@@ -13,23 +13,8 @@
     </script>
     <script type="module" src="lib/datepicker.js">
     </script>
-
-    <script src="lib/aedit.js"></script>
-    <script src="lib/table.js"></script>
-    <script src="lib/ui.js"></script>
-    <script src="lib/io.js"></script>
-    <script src="lib/table.js"></script>
-    <script src="lib/queries.js"></script>
-    <script src="lib/reports.js"></script>              
-    <script src="lib/forms.js"></script>
-    <script src="lib/common.js"></script>
-    <script src="lib/designer.js"></script>
-    <script src="lib/data.js"></script> 
-    <script src="lib/relations.js"></script>
-    <script src="lib/i18n.js"></script>
-    <script src="lib/settings.js"></script>  
-	<script src="lib/core.js"></script>
-      
+    <script src="lib.js">
+    </script>
     <style>
     button {
         font-family: 'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif;
@@ -44,66 +29,65 @@
 <body> 
 
 	<div class="menu-bar">
-		<div class="menu-item" lang-i18n="menuFile">Файл
+		<div class="menu-item">Файл
 			<div class="dropdown"> 
-                <a href="#" onclick="createDbFile()" lang-i18n="createDbFile">🚀 Нова база даних</a> 
-                <a href="#" onclick="showStorageDialog()" lang-i18n="storageDialog">💼 Сховище баз даних</a> 
-                <a href="#" onclick="exportDTA()" lang-i18n="exportDTA">📦 Зберегти як .DTA</a> 
-                <a href="#" onclick="document.getElementById('dtaFileInput').click()" lang-i18n="openDTA">📂 Відкрити з .DTA</a>
+                <a href="#" onclick="createDbFile()">🚀 Нова база даних</a> 
+                <a href="#" onclick="showStorageDialog()">💼 Сховище баз даних</a> 
+                <a href="#" onclick="exportDTA()">📦 Зберегти як .DTA</a> 
+                <a href="#" onclick="document.getElementById('dtaFileInput').click()">📂 Відкрити з .DTA</a>
 				<input type="file" id="dtaFileInput" style="display:none;" accept=".dta" onchange="importDTA(this.files[0])"> 
-                <a href="#" onclick="document.getElementById('sqliteFileInput').click()" lang-i18n="importSQLite">📥 Імпорт з sqlite DB</a>
+                <a href="#" onclick="document.getElementById('sqliteFileInput').click()">📥 Імпорт з sqlite DB</a>
 				<input type="file" id="sqliteFileInput" accept=".db,.sqlite" style="display:none;" onchange="importSQLiteDb(this.files[0])"> 
-                <a href="#" onclick="exportSQLiteDb()" lang-i18n="exportSQLite">📤 Експорт в sqlite DB</a> 
-                <a href="#" onclick="showCsvImportDialog()" lang-i18n="importCSV">📑 Імпорт даних з CSV</a>
+                <a href="#" onclick="exportSQLiteDb()">📤 Експорт в sqlite DB</a> 
+                <a href="#" onclick="showCsvImportDialog()">📑 Імпорт даних з CSV</a>
 				<input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleCsvFile(this.files[0])"> 
-                <a href="#" onclick="showDatabaseInfo()" lang-i18n="databaseInfo">ℹ️ Відомості</a> 
-                <a href="#" onclick="closeDatabase()" lang-i18n="closeDatabase">❌ Закрити базу даних</a> 
-                <a href="#" onclick="exitApplication()" lang-i18n="exitApplication">🚪 Вихід</a> </div>
+                <a href="#" onclick="showDatabaseInfo()">ℹ️ Відомості</a> 
+                <a href="#" onclick="closeDatabase()">❌ Закрити базу даних</a> 
+                <a href="#" onclick="exitApplication()">🚪 Вихід</a> </div>
 		</div>
-		<div class="menu-item" lang-i18n="menuCreate">Створити
-			<div class="dropdown"> <a href="#" onclick="createDbFile()" lang-i18n="createDatabase">🚀 База даних</a> 
-            <a href="#" onclick="createTable()" lang-i18n="createTable">📄 Таблиця</a> 
-            <a href="#" onclick="createQuery()" lang-i18n="createQuery">🔍 Запит</a> 
-            <a href="#" onclick="createReport()" lang-i18n="createReport">📝 Звіт</a> 
-            <a href="#" onclick="createForm()" lang-i18n="createForm">📑 Форма</a> 
-            <a href="#" onclick="createOwnSQL()" lang-i18n="createOwnSQL">✍️ SQL-запит</a> </div>
+		<div class="menu-item">Створити
+			<div class="dropdown"> <a href="#" onclick="createDbFile()">🚀 База даних</a> 
+            <a href="#" onclick="createTable()">📄 Таблиця</a> 
+            <a href="#" onclick="createQuery()">🔍 Запит</a> 
+            <a href="#" onclick="createReport()">📝 Звіт</a> 
+            <a href="#" onclick="createForm()">📑 Форма</a> 
+            <a href="#" onclick="createOwnSQL()">✍️ SQL-запит</a> </div>
 		</div>
-        <div class="menu-item" lang-i18n="menuData">Дані
+        <div class="menu-item">Дані
             <div class="dropdown">               
               <div id="data-menu"></div>
-              <a href="#" onclick="showDataWorkDialog()" id="data-work-link" style="display:none;" lang-i18n="dataWork">⚙️ Робота з даними</a>
+              <a href="#" onclick="showDataWorkDialog()" id="data-work-link" style="display:none;">⚙️ Робота з даними</a>
             </div>
         </div>
 
-		<div class="menu-item" lang-i18n="menuTables">Таблиці
-			<div class="dropdown"> <a href="#" onclick="createTable()" lang-i18n="newTable">𝄜 Створити</a> 
-            <a href="#" onclick="showSavedTablesDialog()" lang-i18n="savedTables">📚 Збережені таблиці</a> 
-            <a href="#" onclick="showImportTableDialog()" id="import-table-link" style="display:none;" lang-i18n="importTable">📥 Імпорт таблиці</a>
+		<div class="menu-item">Таблиці
+			<div class="dropdown"> <a href="#" onclick="createTable()">𝄜 Створити</a> 
+            <a href="#" onclick="showSavedTablesDialog()">📚 Збережені таблиці</a> 
+            <a href="#" onclick="showImportTableDialog()" id="import-table-link" style="display:none;">📥 Імпорт таблиці</a>
             </div>
 		</div>
-		<div class="menu-item" lang-i18n="menuQueries">Запити
-			<div class="dropdown"> <a href="#" onclick="createQuery()" lang-i18n="newQuery">🔍 Створити</a> 
-            <a href="#" onclick="showSavedQueriesDialog()" lang-i18n="savedQueries">📚 Збережені запити</a> </div>
+		<div class="menu-item">Запити
+			<div class="dropdown"> <a href="#" onclick="createQuery()">🔍 Створити</a> 
+            <a href="#" onclick="showSavedQueriesDialog()">📚 Збережені запити</a> </div>
 		</div>
-		<div class="menu-item"> <span lang-i18n="menuReports">Звіти</span>
-			<div class="dropdown"> <a href="#" onclick="createReport()" lang-i18n="newReport">📝 Створити</a> 
-            <a href="#" onclick="showReportsList()" lang-i18n="savedReports">📚 Збережені звіти</a> </div>
+		<div class="menu-item"> <span>Звіти</span>
+			<div class="dropdown"> <a href="#" onclick="createReport()">📝 Створити</a> 
+            <a href="#" onclick="showReportsList()">📚 Збережені звіти</a> </div>
 		</div>
-		<div class="menu-item" lang-i18n="menuForms">Форми
-			<div class="dropdown"> <a href="#" onclick="createForm()" lang-i18n="newForm">📑 Створити</a> 
-            <a href="#" onclick="showSavedFormsDialog()" lang-i18n="savedForms">📚 Збережені форми</a> </div>
+		<div class="menu-item">Форми
+			<div class="dropdown"> <a href="#" onclick="createForm()">📑 Створити</a> 
+            <a href="#" onclick="showSavedFormsDialog()">📚 Збережені форми</a> </div>
 		</div>
-		<div class="menu-item" lang-i18n="menuHelp">Допомога
-			<div class="dropdown"> <a href="help.html" target="_blank" lang-i18n="helpTip">❓ Підказка</a> 
-            <a href="#" onclick="openSettingsModal()" lang-i18n="settings">🛠️ Налаштування</a>
-            <a href="#" onclick="showAboutModal()" lang-i18n="aboutProgram">😉 Про програму</a> </div>
+		<div class="menu-item">Допомога
+			<div class="dropdown"> <a href="help.html" target="_blank">❓ Підказка</a> 
+            <a href="#" onclick="showAboutModal()">😉 Про програму</a> </div>
 		</div>
 	</div>
 	<div class="title-bar">
-		<div id="mainTitle"> <span lang-i18n="selectOrCreateDatabase">Виберіть або створіть базу даних</span> </div> 
+		<div id="mainTitle"> <span>Виберіть або створіть базу даних</span> </div> 
         <img id="title-image" src="logo.png" alt="лого" class="title-image" /> </div>
 	<div id="startPrompt" style="padding: 20px;">
-		<p lang-i18n="welcomeMessage">Вітаємо у dat.A - вашому персональному помічнику у світі баз даних!</p>        
+		<p>Вітаємо у dat.A - вашому персональному помічнику у світі баз даних!</p>        
 	</div> 
      <div id="logo-image" class="center-image">
     <img src="logo.png" alt="logo">
@@ -114,19 +98,19 @@
 	<div id="quickAccessPanel" style="display:none; padding: 20px; display: flex; flex-direction: column; gap: 20px;">
 		<!-- Області: будуть показані лише якщо є відповідні об'єкти -->
 		<div id="quickTables" class="quick-section" style="display: none;">
-			<h3 lang-i18n="quickTables">📄 Таблиці</h3>
+			<h3>📄 Таблиці</h3>
 			<div class="quick-icons" id="quickTablesIcons"></div>
 		</div>
 		<div id="quickQueries" class="quick-section" style="display: none;">
-			<h3 lang-i18n="quickQueries">🔍 Запити</h3>
+			<h3>🔍 Запити</h3>
 			<div class="quick-icons" id="quickQueriesIcons"></div>
 		</div>
 		<div id="quickReports" class="quick-section" style="display: none;">
-			<h3 lang-i18n="quickReports">📝 Звіти</h3>
+			<h3>📝 Звіти</h3>
 			<div class="quick-icons" id="quickReportsIcons"></div>
 		</div>
 		<div id="quickForms" class="quick-section" style="display: none;">
-			<h3 lang-i18n="quickForms">📑 Форми</h3>
+			<h3>📑 Форми</h3>
 			<div class="quick-icons" id="quickFormsIcons"></div>
 		</div>
 	</div>
@@ -136,20 +120,20 @@
 		<div style="background:#fff; padding:20px; width:90%; max-width:1000px; border-radius:10px; display:flex; gap:20px; max-height:80vh; overflow:hidden;">
 			<!-- Лівий контейнер: назва та таблиця -->
 			<div style="flex:1; display:flex; flex-direction:column; gap:10px; overflow-y:auto;">
-				<h2 id="makeTable" style="margin:0;" lang-i18n="createTableTitle">Створення таблиці</h2>
-				<label for="tableName" lang-i18n="tableNameLabel">Назва таблиці:</label>
+				<h2 id="makeTable" style="margin:0;">Створення таблиці</h2>
+				<label for="tableName">Назва таблиці:</label>
 				<input type="text" id="tableName" value="Неназвана таблиця" style="width:100%; padding:8px; font-size:16px;">
 				<table id="schemaTable" border="1" cellpadding="5" style="width:100%; border-collapse:collapse;">
 					<thead id="schemaHead">
 						<tr>
-							<th style="width:5%;" title="Первинний ключ" lang-i18n="primaryKey" lang-i18n-title="primaryKey">🔑</th>
-							<th lang-i18n="fieldName">Назва поляя</th>
-							<th lang-i18n="dataType">Тип даних</th>
-							<th title="Зовнішній ключ" lang-i18n="foreignKey" lang-i18n-title="foreignKey">📌</th>
-							<th id="refTableHeader" style="display:none;" lang-i18n="refTable">Таблиця 📌</th>
-							<th id="refFieldHeader" style="display:none;" lang-i18n="refField">Поле 📌</th>
-                            <th id="refSubstHeader" style="display:none;" lang-i18n="refSubst" title="Підстановка">🛟</th>
-							<th lang-i18n="description">Опис</th>
+							<th style="width:5%;" title="Первинний ключ">🔑</th>
+							<th>Назва поля</th>
+							<th>Тип даних</th>
+							<th title="Зовнішній ключ">📌</th>
+							<th id="refTableHeader" style="display:none;">Таблиця 📌</th>
+							<th id="refFieldHeader" style="display:none;">Поле 📌</th>
+                            <th id="refSubstHeader" style="display:none;">🛟</th>
+							<th>Опис</th>
 						</tr>
 					</thead>
 					<tbody id="schemaBody"> </tbody>
@@ -159,15 +143,16 @@
 			<div style="display:flex; flex-direction:column; gap:12px; min-width:80px; align-items:center;">
 				<button onclick="addSchemaRow()" style="width:64px; height:64px; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
 					<div style="font-size:24px;">➕</div>
-					<div lang-i18n="addField">Додати поле</div>
+					<div>Додати
+						<br>поле</div>
 				</button>
 				<button onclick="saveSchema()" style="width:64px; height:64px; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
 					<div style="font-size:20px;">💾</div>
-					<div lang-i18n="save">Зберегти</div>
+					<div>Зберегти</div>
 				</button>
 				<button onclick="closeModal()" style="width:64px; height:64px; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
 					<div style="font-size:20px;">❌</div>
-					<div lang-i18n="close">Закрити</div>
+					<div>Закрити</div>
 				</button>
 			</div>
 		</div>
@@ -178,14 +163,14 @@
 		<div style="background:#fff; padding:20px; border-radius:10px; max-width: 700px; display: flex; flex-direction: row; gap: 30px;">
 			<!-- Ліва частина: заголовок і поле -->
 			<div style="flex: 1; display: flex; flex-direction: column;">
-				<h2 style="margin-top: 0;" lang-i18n="createNewDbFile">Створення нового файлу бази даних</h2>
-				<label for="dbName" style="margin-bottom: 5px;" lang-i18n="fileNameLabel">Ім'я файлу (без розширення):</label>
+				<h2 style="margin-top: 0;">Створення нового файлу бази даних</h2>
+				<label for="dbName" style="margin-bottom: 5px;">Ім’я файлу (без розширення):</label>
 				<input type="text" id="dbName" value="my_database" style="width:100%; padding:8px; font-size:16px; margin-bottom:15px;"> </div>
 			<!-- Права частина: кнопки -->
 			<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; gap: 12px;">
-				<button onclick="saveNewDb()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 💾 <span style="font-size: 12px;" lang-i18n="save">Зберегти</span> </button>
-				<button onclick="saveDbAndCreateTable()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ➕ <span style="font-size: 12px;" lang-i18n="addTable">Cтворити таблицю</span> </button>
-				<button onclick="closeDbModal()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 12px;" lang-i18n="exit">Вийти</span> </button>
+				<button onclick="saveNewDb()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 💾 <span style="font-size: 12px;">Зберегти</span> </button>
+				<button onclick="saveDbAndCreateTable()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ➕ <span style="font-size: 12px;">Cтворити таблицю</span> </button>
+				<button onclick="closeDbModal()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 12px;">Вийти</span> </button>
 			</div>
 		</div>
 	</div>
@@ -195,11 +180,11 @@
 		<div style="background:#fff; padding:20px; width:90%; max-width:1000px; border-radius:10px; display:flex; gap:20px; max-height:80vh;">
 			<!-- Перший контейнер: заголовок і таблиця -->
 			<div style="flex:1; display:flex; flex-direction:column; gap:10px; overflow-y:auto;">
-				<h2 id="editTitle" style="margin:0;" lang-i18n="editTableTitle">Редагування таблиці</h2>
+				<h2 id="editTitle" style="margin:0;">Редагування таблиці</h2>
 				<div id="editQueryInfo" style="display:none; margin-bottom:4px;">
 					<div id="editRowCount" style="font-size:13px; color:#555; font-weight:bold;"></div>
 					<details id="sqlDetails" style="margin-top:4px; font-size:13px;">
-						<summary style="cursor:pointer; color:#337ab7; user-select:none;" lang-i18n="sqlQuery">SQL запит</summary>
+						<summary style="cursor:pointer; color:#337ab7; user-select:none;">SQL запит</summary>
 						<pre id="editSqlText" style="background:#eee; padding:8px; border-radius:4px; white-space:pre-wrap; margin:4px 0 0; font-size:12px;"></pre>
 					</details>
 				</div>
@@ -214,19 +199,19 @@
 			<div style="display:flex; flex-direction:column; gap:10px; align-items:flex-start; width:64px;">
 				<button id="addDataRowBtn" class="square-btn" onclick="addDataRow()" style="width:100%;">
 					<div class="icon">+</div>
-					<div class="label" lang-i18n="addRow">Додати рядок</div>
+					<div class="label">Додати рядок</div>
 				</button>
 				<button id="deleteSelectedRowBtn" class="square-btn" onclick="deleteSelectedRow()" style="width:100%;">
 					<div class="icon">🗑</div>
-					<div class="label" lang-i18n="delete">Видалити</div>
+					<div class="label">Видалити</div>
 				</button>
 				<button id="saveTableDataBtn" class="square-btn" onclick="saveTableData()" style="width:100%;">
 					<div class="icon">💾</div>
-					<div class="label" lang-i18n="save">Зберегти</div>
+					<div class="label">Зберегти</div>
 				</button>
 				<button class="square-btn" onclick="closeEditModal()" style="width:100%;">
 					<div class="icon">❌</div>
-					<div class="label" lang-i18n="close">Закрити</div>
+					<div class="label">Закрити</div>
 				</button>
 			</div>
 		</div>
@@ -237,14 +222,14 @@
 		<div style="background:#fff; padding:20px; border-radius:10px; box-shadow: 0 0 10px #000; max-width: 600px; display: flex; flex-direction: row; gap: 30px;">
 			<!-- Ліва частина: текст повідомлення -->
 			<div style="flex: 1;">
-				<h3 style="margin-top: 0;" lang-i18n="messageTitle">Повідомлення</h3>
+				<h3 style="margin-top: 0;">Повідомлення</h3>
 				<div id="messageContent" style="margin: 15px 0; white-space: pre-wrap; word-wrap: break-word;">
 					<!-- Текст повідомлення буде тут -->
 				</div>
 			</div>
 			<!-- Права частина: кнопка закриття -->
 			<div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start;">
-				<button onclick="closeMessage()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 12px;" lang-i18n="close">Закрити</span> </button>
+				<button onclick="closeMessage()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 12px;">Закрити</span> </button>
 			</div>
 		</div>
 	</div>
@@ -253,7 +238,7 @@
 		<div style="background:#fff; padding:20px; width:50%; height:60%; border-radius:10px; display:flex; gap:20px;">
 			<!-- Ліва частина: список -->
 			<div style="flex-grow:1; overflow-y:auto;">
-				<h3 lang-i18n="databaseStorage">Сховище баз даних</h3>
+				<h3>Сховище баз даних</h3>
 				<ul id="storageList" style="list-style:none; padding:0; margin:0;">
 					<!-- Динамічні елементи -->
 				</ul>
@@ -262,15 +247,15 @@
 			<div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
 				<button onclick="loadSelectedDb()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
 					<div>📂</div>
-					<div style="font-size:10px;" lang-i18n="open">Відкрити</div>
+					<div style="font-size:10px;">Відкрити</div>
 				</button>
 				<button onclick="confirmDeleteDb()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
 					<div>🗑️</div>
-					<div style="font-size:10px;" lang-i18n="delete">Видалити</div>
+					<div style="font-size:10px;">Видалити</div>
 				</button>
 				<button onclick="closeStorageDialog()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
 					<div>❌</div>
-					<div style="font-size:10px;" lang-i18n="cancel">Скасувати</div>
+					<div style="font-size:10px;">Скасувати</div>
 				</button>
 			</div>
 		</div>
@@ -279,14 +264,14 @@
 		<div class="alert-modal-content" style="display: flex; flex-direction: row; align-items: flex-start; padding: 1em; gap: 2em;">
 			<!-- Ліворуч: текст -->
 			<div style="flex: 1; font-size: 1.1em; padding: 0.5em;">
-				<p id="deleteConfirmText" lang-i18n="confirmDeleteFile">Ви дійсно хочете видалити файл?</p>
+				<p id="deleteConfirmText">Ви дійсно хочете видалити файл?</p>
 			</div>
 			<!-- Праворуч: вертикальні кнопки -->
 			<div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
 				<button onclick="doDeleteDb()" style="width: 64px; height: 64px; font-size: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;"> 🗑️ 
-                <span style="font-size: 10px;" lang-i18n="delete">Видалити</span> </button>
+                <span style="font-size: 10px;">Видалити</span> </button>
 				<button onclick="closeDeleteModal()" style="width: 64px; height: 64px; font-size: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;"> ❌ 
-                <span style="font-size: 10px;" lang-i18n="cancel">Скасувати</span> </button>
+                <span style="font-size: 10px;">Скасувати</span> </button>
 			</div>
 		</div>
 	</div>
@@ -295,16 +280,16 @@
 		<div class="alert-modal-content" style="display: flex; flex-direction: row; align-items: flex-start; padding: 1em; gap: 2em;">
 			<!-- Ліворуч: текст -->
 			<div style="flex: 1; font-size: 1.1em; padding: 0.5em;">
-				<p id="overwtiteConfirmText" lang-i18n="fileExists">Файл з назвою  вже існує. Що робити?</p>
+				<p id="overwtiteConfirmText">Файл з назвою  вже існує. Що робити?</p>
 			</div>
 			<!-- Праворуч: вертикальні кнопки -->
 			<div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
 				<button onclick="doOverwriteDb()" style="width: 64px; height: 64px; font-size: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;">✅
-                <span style="font-size: 10px;" lang-i18n="overwrite">Перезапис</span> </button>
+                <span style="font-size: 10px;">Перезапис</span> </button>
                 <button onclick="doNewNameDb()" style="width: 64px; height: 64px; font-size: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;">✏️️ 
-                <span style="font-size: 10px;" lang-i18n="newName">Нова назва</span> </button>
+                <span style="font-size: 10px;">Нова назва</span> </button>
 				<button onclick="doCloseOverwriteConfirm()" style="width: 64px; height: 64px; font-size: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;">❌ 
-                <span style="font-size: 10px;" lang-i18n="cancel">Скасувати</span> </button>
+                <span style="font-size: 10px;">Скасувати</span> </button>
 			</div>
 		</div>
 	</div>
@@ -314,13 +299,13 @@
 	<div style="background:#fff; padding:20px; width:90%; max-width:1000px; border-radius:10px; display:flex; gap:20px; max-height:80vh; overflow:hidden;">
 		<!-- Лівий контейнер: вміст -->
 		<div style="flex:1; display:flex; flex-direction:column; gap:10px; overflow-y:auto;">
-			<h2 style="margin:0;" lang-i18n="queryBuilderTitle">Конструктор запитів</h2>
+			<h2 style="margin:0;">Створення запиту</h2>
 			
 			<div style="display:flex; align-items:center; gap:10px;">
-				<label for="queryName" style="white-space:nowrap;" lang-i18n="queryNameLabel">Назва запиту:</label>
+				<label for="queryName" style="white-space:nowrap;">Назва запиту:</label>
 				<input type="text" id="queryName" value="Новий запит" style="flex:1; padding:8px; font-size:16px;">
 				
-				<span style="white-space:nowrap;" lang-i18n="fromTableLabel">з таблиці:</span>
+				<span style="white-space:nowrap;">з таблиці:</span>
 				<select id="fromTable" class="query-table-select" style="flex:1; padding:8px; font-size:16px; max-width:150px;">					
 					<!-- сюди підставляємо таблиці -->
 				</select>
@@ -329,13 +314,13 @@
 			<table class="query-table" border="1" cellpadding="5" style="width:100%; border-collapse:collapse;">
 				<thead>
 					<tr>
-						<th lang-i18n="colTable">Таблиця</th>
-						<th lang-i18n="colField">Поле</th>
-						<th lang-i18n="colVisible">Видиме</th>
-						<th lang-i18n="colSort">Упорядкування</th>
-						<th lang-i18n="colCriteria">Критерій</th>
-						<th lang-i18n="colTotals">Підсумки</th>
-						<th lang-i18n="colGroup">Група</th>
+						<th>Таблиця</th>
+						<th>Поле</th>
+						<th>Видиме</th>
+						<th>Упорядкування</th>
+						<th>Критерій</th>
+						<th>Підсумки</th>
+						<th>Група</th>
 						<th>✄️</th>
 					</tr>
 				</thead>
@@ -345,10 +330,10 @@
 			<table id="joinBody" class="query-table" style="width: 100%; margin-top: 10px; display: none;">
 				<thead>
 					<tr>
-						<th lang-i18n="colTableA">Таблиця A</th>
-						<th lang-i18n="colFieldA">Поле A</th>
-						<th lang-i18n="colTableB">Таблиця B</th>
-						<th lang-i18n="colFieldB">Поле B</th>
+						<th>Таблиця A</th>
+						<th>Поле A</th>
+						<th>Таблиця B</th>
+						<th>Поле B</th>
 						<th>✄️</th>
 					</tr>
 				</thead>
@@ -360,23 +345,23 @@
 		<div style="display:flex; flex-direction:column; gap:12px; min-width:80px; align-items:center;">
 			<button onclick="addQueryRow()" style="width:64px; height:64px; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
 				<div style="font-size:24px; line-height:1;">+</div>
-				<div lang-i18n="addRow">Додати рядок</div>
+				<div>Додати<br>рядок</div>
 			</button>
 			<button onclick="addJoinRow()" style="width:64px; height:64px; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
 				<div style="font-size:24px; line-height:1;">🔗</div>
-				<div style="font-size:10px;" lang-i18n="addJoin">addJoin</div>
+				<div style="font-size:9px;">Додати<br>зв'язок</div>
 			</button>
 			<button onclick="openRelationFromQuery()" style="width:64px; height:64px; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
 				<div style="font-size:20px; line-height:1;">🧩</div>
-				<div style="font-size:10px;" lang-i18n="relationBuilder">relBuilder</div>
+				<div style="font-size:8px;">Конструктор<br>зв'язків</div>
 			</button>
 			<button onclick="generateSqlQuery()" style="width:64px; height:64px; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
 				<div style="font-size:24px; line-height:1;">🚩️</div>
-				<div style="font-size:10px;" lang-i18n="saveAndExecute">Зберегти та виконати</div>
+				<div style="font-size:8px;">Зберегти<br>та виконати</div>
 			</button>
 			<button onclick="closeQueryModal()" style="width:64px; height:64px; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
 				<div style="font-size:20px; line-height:1;">❌</div>
-				<div style="font-size:10px;" lang-i18n="close">Закрити</div>
+				<div style="font-size:10px;">Скасувати</div>
 			</button>
 		</div>
 	</div>
@@ -388,7 +373,7 @@
 		<div style="background:#fff; padding:20px; border-radius:10px; max-height:80%; display: flex; flex-direction: row; gap: 30px;">
 			<!-- Ліва частина: заголовок і список -->
 			<div style="display: flex; flex-direction: column; max-height: 60vh; overflow-y: auto;">
-				<h3 style="margin-top: 0;" lang-i18n="savedQueriesTitle">Збережені запити</h3>
+				<h3 style="margin-top: 0;">Збережені запити</h3>
 				<ul id="savedQueriesList" style="list-style:none; padding:0; margin:0; min-width: 250px;">
 					<!-- Список запитів -->
 				</ul>
@@ -396,13 +381,13 @@
 			<!-- Права частина: вертикальні кнопки -->
 			<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; gap: 12px;">
 				<button onclick="executeSelectedQuery()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ▶️ 
-                <span style="font-size: 10px;" lang-i18n="execute">Виконати</span> </button>
+                <span style="font-size: 10px;">Виконати</span> </button>
 				<button onclick="editSelectedQuery()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ✏️ 
-                <span style="font-size: 10px;" lang-i18n="edit">Змінити</span> </button>
+                <span style="font-size: 10px;">Змінити</span> </button>
 				<button onclick="deleteSelectedQuery()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 🗑️ 
-                <span style="font-size: 10px;" lang-i18n="delete">Видалити</span> </button>
+                <span style="font-size: 10px;">Видалити</span> </button>
 				<button onclick="closeSavedQueriesDialog()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ 
-                <span style="font-size: 10px;" lang-i18n="close">Закрити</span> </button>
+                <span style="font-size: 10px;">Закрити</span> </button>
 			</div>
 		</div>
 	</div>
@@ -411,7 +396,7 @@
 		<div style="background:#fff; padding:20px; border-radius:10px; max-height:50%; min-height:395px; display: flex; flex-direction: row; gap: 30px;">
 			<!-- Ліва частина — текст + список -->
 			<div style="display: flex; flex-direction: column; max-height: 60vh; overflow-y: auto;">
-				<h3 style="margin-top: 0;" lang-i18n="savedTablesTitle">Збережені таблиці</h3>
+				<h3 style="margin-top: 0;">Збережені таблиці</h3>
 				<ul id="savedTablesList" style="list-style:none; padding:0; margin:0; min-width: 250px;">
 					<!-- Тут будуть пункти списку -->
 				</ul>
@@ -419,17 +404,17 @@
 			<!-- Права частина — вертикальні кнопки -->
 			<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; gap: 4px;">
 				<button onclick="openSelectedTable()" style="width:64px; height:56px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 📂 
-                <span style="font-size: 10px;" lang-i18n="open">Відкрити</span> </button>
+                <span style="font-size: 10px;">Відкрити</span> </button>
 				<button onclick="editSelectedTableSchema()" style="width:64px; height:56px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 🛠️ 
-                <span style="font-size: 10px;" lang-i18n="edit">Змінити</span> </button>
+                <span style="font-size: 10px;">Змінити</span> </button>
                 <button onclick="copySelectedTable()" style="width:64px; height:56px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-  📄            <span style="font-size: 10px;" lang-i18n="copy">Копіювати</span> </button>
+  📄            <span style="font-size: 10px;">Копіювати</span> </button>
 				<button onclick="confirmDeleteTable()" style="width:64px; height:56px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 🗑️ 
-                <span style="font-size: 10px;" lang-i18n="delete">Видалити</span> </button>
+                <span style="font-size: 10px;">Видалити</span> </button>
                 <button onclick="exportTableToCSV()" style="width:64px; height:56px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 📤
-                <span style="font-size: 10px;" lang-i18n="exportCSV">Експорт в CSV</span> </button>
+                <span style="font-size: 10px;">Експорт в CSV</span> </button>
 				<button onclick="closeSavedTablesDialog()" style="width:64px; height:56px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ 
-                <span style="font-size: 10px;" lang-i18n="close">Закрити</span> </button>
+                <span style="font-size: 10px;">Закрити</span> </button>
 			</div>
 		</div>
 	</div>
@@ -437,14 +422,14 @@
 		<div class="alert-modal-content" style="display: flex; flex-direction: row; align-items: flex-start; padding: 1.5em; gap: 2em;">
 			<!-- Ліворуч: текст підтвердження -->
 			<div style="flex: 1; font-size: 1.1em;">
-				<p id="deleteTableConfirmText" lang-i18n="confirmDeleteTable">Ви дійсно хочете видалити таблицю?</p>
+				<p id="deleteTableConfirmText">Ви дійсно хочете видалити таблицю?</p>
 			</div>
 			<!-- Праворуч: вертикальні кнопки -->
 			<div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
 				<button onclick="doDeleteTable()" style="width: 64px; height: 64px; font-size: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;"> 🗑️ 
-                <span style="font-size: 10px;" lang-i18n="delete">Видалити</span> </button>
+                <span style="font-size: 10px;">Видалити</span> </button>
 				<button onclick="closeDeleteTableConfirmModal()" style="width: 64px; height: 64px; font-size: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;"> ❌ 
-                <span style="font-size: 10px;" lang-i18n="cancel">Скасувати</span> </button>
+                <span style="font-size: 10px;">Скасувати</span> </button>
 			</div>
 		</div>
 	</div>
@@ -453,9 +438,9 @@
 		<div style="background:#fff; padding:20px; width:90%; max-width:1200px; height:90%; border-radius:10px; display:flex; gap:20px; overflow:hidden;">
 			<!-- Лівий контейнер: вміст звіту -->
 			<div style="flex:1; display:flex; flex-direction:column; gap:10px; overflow:hidden;">
-				<h2 id="reportTitle" style="margin:0;" lang-i18n="createReportTitle">Створення звіту</h2>
+				<h2 id="reportTitle" style="margin:0;">Створення звіту</h2>
 				<div>
-					<label for="reportNameInput" lang-i18n="reportNameLabel">Назва звіту:</label>
+					<label for="reportNameInput">Назва звіту:</label>
 					<input type="text" id="reportNameInput" value="Новий звіт" style="width:calc(100% - 20px); padding:8px; font-size:16px;"> </div>
 				<!-- Полотно звіту -->
 				<div id="reportCanvas" style="flex-grow:1; border:1px solid #ccc; background-color:#f9f9f9; position:relative; overflow:auto;"> </div>
@@ -464,45 +449,45 @@
 			<div style="display:flex; flex-direction:column; gap:10px; min-width:80px; align-items:center;">
 				<button onclick="addScreenLabel()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
 					<div style="font-size:20px;">🔤</div>
-					<div lang-i18n="addLabel">Напис</div>
+					<div>Напис</div>
 				</button>
 				<button onclick="addScreenField()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
 					<div style="font-size:20px;">🔲</div>
-					<div lang-i18n="addSource">Поле</div>
+					<div>Поле</div>
 				</button>
 				<button onclick="addScreenGrid()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
 					<div style="font-size:20px;">📐</div>
-					<div lang-i18n="addGrid">Сітка</div>
+					<div>Сітка</div>
 				</button>
 				<button onclick="openTextOptions()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
 					<div style="font-size:20px;">📝</div>
-					<div lang-i18n="textOptions">Текст</div>
+					<div>Текст</div>
 				</button>
 				<button onclick="deleteActiveElement()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center; color:#900;">
 					<div style="font-size:20px;">🗑️</div>
-					<div lang-i18n="delete">Видалити</div>
+					<div>Видалити</div>
 				</button>
 				<button onclick="previewReport()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
 					<div style="font-size:20px;">👁️</div>
-					<div lang-i18n="preview">Перегляд</div>
+					<div>Перегляд</div>
 				</button>
 				<button onclick="saveReport()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
 					<div style="font-size:20px;">💾</div>
-					<div lang-i18n="save">Зберегти</div>
+					<div>Зберегти</div>
 				</button>
 				<button onclick="closeReportCreatorModal()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
 					<div style="font-size:20px;">❌</div>
-					<div lang-i18n="close">Закрити</div>
+					<div>Закрити</div>
 				</button>
 			</div>
 		</div>
 	</div>
 	<!-- Модальне вікно вибору пов'язаного поля -->
 	<div id="fieldSelectionModal" style="display:none; position:fixed; z-index:20001; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5);justify-content:center; align-items:center;">
-		<div style="background:white; padding:20px; border-radius:10px; display:flex; width:550px; max-width:90%; box-shadow:0 0 10px rgba(0,0,0,0.3);">
+		<div style="background:white; padding:20px; border-radius:10px; display:flex; width:500px; max-width:90%; box-shadow:0 0 10px rgba(0,0,0,0.3);">
 			<!-- Ліва частина: заголовок і селекти -->
 			<div style="flex:1;">
-				<h3 style="margin-top:0;" lang-i18n="selectDataSource">Виберіть джерело даних</h3>
+				<h3 style="margin-top:0;">Виберіть пов'язані дані</h3>
 				<div style="display:flex; flex-direction:column; gap:10px;">
 					<select id="fieldPanelTableSelect" style="padding:10px; font-size:16px;"></select>
 					<select id="fieldPanelFieldSelect" style="padding:10px; font-size:16px;"></select>
@@ -511,7 +496,7 @@
 			<!-- Права частина: кнопки -->
 			<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px; margin-left:20px;">
 				<button onclick="cancelFieldSelection()" style="width:64px; height:64px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px;"> ❌ 
-                <span style="font-size:12px;" lang-i18n="close">Закрити</span> </button>
+                <span style="font-size:12px;">Закрити</span> </button>
 			</div>
 		</div>
 	</div>
@@ -530,8 +515,8 @@
     ">
 			<!-- Ліва частина -->
 			<div style="flex: 1;">
-				<h3 lang-i18n="textSettings">Налаштування тексту</h3>
-				<label for="fontFamilySelect" lang-i18n="fontFamily">Шрифт:</label>
+				<h3>Налаштування тексту</h3>
+				<label for="fontFamilySelect">Шрифт:</label>
 				<br>
 				<select id="fontFamilySelect" style="width: 100%; margin-bottom: 10px;">
 					<option value="Arial">Arial</option>
@@ -541,26 +526,26 @@
 					<option value="Georgia">Georgia</option>
 					<option value="Palatino Linotype">Palatino Linotype</option>
 				</select>
-				<label for="fontSizeInput" lang-i18n="fontSize">Розмір (px):</label>
+				<label for="fontSizeInput">Розмір (px):</label>
 				<br>
 				<input type="number" id="fontSizeInput" value="16" min="8" max="72" style="width: 100%; margin-bottom: 10px;">
-				<label for="fontColorInput" lang-i18n="fontColor">Колір:</label>
+				<label for="fontColorInput">Колір:</label>
 				<br>
 				<input type="color" id="fontColorInput" value="#000000" style="width: 100%;"> </div>
 			<!-- Права частина -->
 			<div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
 				<div class="checkbox-group" style="display: flex; flex-direction: column; gap: 10px;">
 					<label style="display: flex; align-items: center; gap: 8px;">
-						<input type="checkbox" id="fontWeightToggle" style="transform: scale(2);"> <span lang-i18n="bold">Жирний</span> </label>
+						<input type="checkbox" id="fontWeightToggle" style="transform: scale(2);"> Жирний </label>
 					<label style="display: flex; align-items: center; gap: 8px;">
-						<input type="checkbox" id="fontStyleToggle" style="transform: scale(2);"> <span lang-i18n="italic">Курсив</span> </label>
+						<input type="checkbox" id="fontStyleToggle" style="transform: scale(2);"> Курсив </label>
 					<label style="display: flex; align-items: center; gap: 8px;">
-						<input type="checkbox" id="textDecorationUnderline" style="transform: scale(2);"> <span lang-i18n="underline">Підкреслений</span> </label>
+						<input type="checkbox" id="textDecorationUnderline" style="transform: scale(2);"> Підкреслений </label>
 					<label style="display: flex; align-items: center; gap: 8px;">
-						<input type="checkbox" id="textDecorationStrikethrough" style="transform: scale(2);"> <span lang-i18n="strikethrough">Закреслений</span> </label>
+						<input type="checkbox" id="textDecorationStrikethrough" style="transform: scale(2);"> Закреслений </label>
 				</div>
 				<div class="button-group" style="margin-top: 20px; text-align: right;">
-					<button onclick="closeTextOptionsModal()" style="width:64px; height:64px; font-size:24px;" lang-i18n="close">❌</button>
+					<button onclick="closeTextOptionsModal()" style="width:64px; height:64px; font-size:24px;">❌</button>
 				</div>
 			</div>
 		</div>
@@ -571,7 +556,7 @@
         
         <!-- Основна частина з canvas -->
         <div style="flex-grow: 1; padding-right: 10px;">
-          <h2 id="reportPreviewTitle" style="margin-top: 0;" lang-i18n="reportPreviewTitle">Попередній перегляд звіту</h2>
+          <h2 id="reportPreviewTitle" style="margin-top: 0;">Попередній перегляд звіту</h2>
           <div id="reportPreviewCanvas" style="border: 1px solid #ccc; min-height: 400px; height:95%; position: relative; background: #fff;"></div>
         </div>
     
@@ -579,11 +564,11 @@
         <div style="display: flex; flex-direction: column; gap: 10px; justify-content: flex-start; align-items: center; padding: 10px;">
           <button onclick="printReportPreview()" style="width: 64px; height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px;">
             <span style="font-size: 24px;">🖨️</span>
-            <span lang-i18n="print">Друк</span>
+            <span>Друк</span>
           </button>
           <button onclick="closeReportPreview()" style="width: 64px; height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px;">
             <span style="font-size: 24px;">❌</span>
-            <span lang-i18n="close">Закрити</span>
+            <span>Закрити</span>
           </button>
         </div>
     
@@ -593,11 +578,11 @@
 	<!-- Вікно графічного конструктора зв'язків-->
 	<div id="relationModal" class="modal" style="display:none; z-index:15000;">
 		<div class="modal-content" style="width: 98%; height: 90vh; max-width: none; background:white; position:relative;">
-			<h2 lang-i18n="relationBuilderTitle">Конструктор зв'язків</h2>
+			<h2>Конструктор зв’язків</h2>
 			<div id="relationCanvas" style="position:relative; flex-grow:1; height:calc(100% - 100px); border:1px solid #ccc; background:#f9f9f9;"> </div>
 			<div style="text-align:right; margin-top:10px;">
-				<button onclick="saveRelations()" lang-i18n="save">Зберегти</button>
-				<button class="close-btn" onclick="closeRelationModal()" lang-i18n="close">Закрити</button>
+				<button onclick="saveRelations()">Зберегти</button>
+				<button class="close-btn" onclick="closeRelationModal()">Закрити</button>
 			</div>
 		</div>
 	</div>
@@ -607,9 +592,9 @@
 		<div id="formCreatorModalContent" style="background:#fff; padding:20px; width:90%; max-width:1200px; height:90%; border-radius:10px; display:flex; gap:20px; overflow:hidden;">
 			<!-- Лівий контейнер -->
 			<div style="flex:1; display:flex; flex-direction:column; gap:5px; overflow:hidden;">
-				<h2 style="margin:0;" lang-i18n="formBuilderTitle">Конструктор форми</h2>
+				<h2 style="margin:0;">Конструктор форми</h2>
 				<div>
-					<label for="formNameInput" lang-i18n="formNameLabel">Назва форми:</label>
+					<label for="formNameInput">Назва форми:</label>
 					<input type="text" id="formNameInput" value="Нова форма" style="width:calc(100% - 20px); padding:8px; font-size:16px;"> </div>
 				<div id="fieldSelectionPanel1" style="display:none; width:30%; height:30px; position: relative;">
 					<div style="display: flex; gap: 5px; height:30px;">
@@ -625,35 +610,35 @@
 			<div style="display:flex; flex-direction:column; gap:10px; min-width:80px; align-items:center;">
 				<button onclick="addScreenLabel()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
 					<div style="font-size:20px;">🔤</div>
-					<div lang-i18n="addLabel">Напис</div>
+					<div>Напис</div>
 				</button>
 				<button onclick="addScreenField()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
 					<div style="font-size:20px;">🔲</div>
-					<div lang-i18n="addSource">Поле</div>
+					<div>Поле</div>
 				</button>
 				<button onclick="addScreenGrid()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
 					<div style="font-size:20px;">📐</div>
-					<div lang-i18n="addGrid">Сітка</div>
+					<div>Сітка</div>
 				</button>
 				<button onclick="openTextOptions()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
 					<div style="font-size:20px;">📝</div>
-					<div lang-i18n="textOptions">Текст</div>
+					<div>Текст</div>
 				</button>
 				<button onclick="deleteActiveElement()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center; color:#900;">
 					<div style="font-size:20px;">🗑️</div>
-					<div lang-i18n="delete">Видалити</div>
+					<div>Видалити</div>
 				</button>
 				<button onclick="previewForm(null,true)" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
 					<div style="font-size:20px;">👁️</div>
-					<div lang-i18n="preview">Перегляд</div>
+					<div>Перегляд</div>
 				</button>
 				<button onclick="saveForm()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
 					<div style="font-size:20px;">💾</div>
-					<div lang-i18n="save">Зберегти</div>
+					<div>Зберегти</div>
 				</button>
 				<button onclick="closeFormModal()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
 					<div style="font-size:20px;">❌</div>
-					<div lang-i18n="close">Закрити</div>
+					<div>Закрити</div>
 				</button>
 			</div>
 			<!--- -->
@@ -664,21 +649,21 @@
 		<div style="display:flex; background:#f0f0f0; border-radius:12px; padding:20px; width:80%; max-width:1000px; height:80%; box-shadow:0 0 10px rgba(0,0,0,0.3);">
 			<!-- Ліва частина: заголовок + canvas -->
 			<div style="flex:1; display:flex; flex-direction:column; margin-right:20px;">
-				<h3 id="formPreviewTitle" style="margin-top:0;" lang-i18n="formPreviewTitle">Попередній перегляд форми</h3>
+				<h3 id="formPreviewTitle" style="margin-top:0;">Попередній перегляд форми</h3>
 				<div id="formPreviewCanvas" style="flex:1; border:1px solid #ccc; background:white; overflow:auto; position:relative;"></div>
 			</div>
 			<!-- Права частина: усі кнопки вертикально -->
 			<div style="display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:10px;">
 				<!-- Кнопки навігації -->
-				<button onclick="goToFirstRecord()" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px;"> ⏮ <span style="font-size:12px;" lang-i18n="firstRecord">Перший</span> </button>
-				<button onclick="goToPreviousRecord()" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px;"> ◀ <span style="font-size:12px;" lang-i18n="previousRecord">Назад</span> </button>
-				<button onclick="goToNextRecord()" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px;"> ▶ <span style="font-size:12px;" lang-i18n="nextRecord">Вперед</span> </button>
-				<button onclick="goToLastRecord()" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px;"> ⏭ <span style="font-size:12px;" lang-i18n="lastRecord">Останній</span> </button>
-				<button onclick="createNewRecord()" id="frmNewRecord" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px;"> ➕ <span style="font-size:12px;" lang-i18n="newRecord">Новий</span> </button>
+				<button onclick="goToFirstRecord()" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px;"> ⏮ <span style="font-size:12px;">Перший</span> </button>
+				<button onclick="goToPreviousRecord()" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px;"> ◀ <span style="font-size:12px;">Назад</span> </button>
+				<button onclick="goToNextRecord()" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px;"> ▶ <span style="font-size:12px;">Вперед</span> </button>
+				<button onclick="goToLastRecord()" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px;"> ⏭ <span style="font-size:12px;">Останній</span> </button>
+				<button onclick="createNewRecord()" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px;"> ➕ <span style="font-size:12px;">Новий</span> </button>
 				<!-- Кнопка збереження -->
-				<button onclick="saveFormChanges()" id="frmSaveChanges" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px;"> 💾 <span style="font-size:12px;" lang-i18n="save">Зберегти</span> </button>
+				<button onclick="saveFormChanges()" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px;"> 💾 <span style="font-size:12px;">Зберегти</span> </button>
 				<!-- Кнопка закриття -->
-				<button onclick="closeFormPreview()" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px;"> ❌ <span style="font-size:12px;" lang-i18n="close">Закрити</span> </button>
+				<button onclick="closeFormPreview()" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px;"> ❌ <span style="font-size:12px;">Закрити</span> </button>
 			</div>
 		</div>
 	</div>
@@ -686,7 +671,7 @@
     <div id="csvImportModal" class="modal" style="display:none;">
       <div class="modal-content" style="display: flex; flex-direction: row; gap: 20px;">
         <div style="flex: 1;">
-          <h3 lang-i18n="selectTableForCSVImport">Виберіть таблицю для імпорту CSV</h3>
+          <h3>Виберіть таблицю для імпорту CSV</h3>
           <select id="csvTargetTable" style="width:100%; padding:10px; font-size:16px;"></select>
         </div>
     
@@ -709,7 +694,7 @@
             text-align: center;
             cursor: pointer;
           ">
-            ✅<br><span style="font-size: 12px;" lang-i18n="ok">ОК</span>
+            ✅<br><span style="font-size: 12px;">ОК</span>
           </button>
     
           <button onclick="closeCsvImportDialog()" style="
@@ -723,7 +708,7 @@
             text-align: center;
             cursor: pointer;
           ">
-            ❌<br><span style="font-size: 12px;" lang-i18n="back">Назад</span>
+            ❌<br><span style="font-size: 12px;">Назад</span>
           </button>
         </div>
       </div>
@@ -732,20 +717,20 @@
 	<!-- 🔽 Відомості про базу даних -->
 	<div id="dbInfoModal" class="modal" style="display:none;">
 		<div class="modal-content" style="max-width: 500px; background:#fff;">
-			<h3 lang-i18n="databaseInfoTitle">Відомості про базу даних</h3>
+			<h3>Відомості про базу даних</h3>
 			<div id="dbInfoContent" style="white-space: pre-wrap; margin-top: 10px;"> </div>
 			<div style="display: flex; justify-content: flex-end; margin-top: 20px;">
                 <button onclick="closeDbInfoModal()" 
                     style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
 				❌
-                    <span style="font-size: 12px;" lang-i18n="close">Закрити</span>
+                    <span style="font-size: 12px;">Закрити</span>
                 </button>
             </div>
 		</div>
 	</div>
 	<!-- 🔽 Вікно виходу з програми -->
 	<div id="exitModal" class="modal" style="display:none;">
-		<div class="modal-content" style="background:#fff; text-align:center; font-size:24px;" lang-i18n="goodbyeMessage"> До зустрічі! </div>
+		<div class="modal-content" style="background:#fff; text-align:center; font-size:24px;"> До зустрічі! </div>
 	</div>
 	<!-- 🔽 Вікно перегляду створених звітів -->
 	<div id="reportListModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
@@ -753,17 +738,17 @@
 		<div style="background:#fff; padding:20px; border-radius:10px; max-height:80%; display: flex; flex-direction: row; gap: 30px;">
 			<!-- Ліва частина: заголовок і список -->
 			<div style="display: flex; flex-direction: column; max-height: 60vh; overflow-y: auto;">
-				<h3 style="margin-top: 0;" lang-i18n="savedReportsTitle">Збережені звіти</h3>
+				<h3 style="margin-top: 0;">Збережені звіти</h3>
 				<ul id="reportList" style="list-style:none; padding:0; margin:0; min-width: 250px;">
 					<!-- Список звітів -->
 				</ul>
 			</div>
 			<!-- Права частина: вертикальні кнопки -->
 			<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; gap: 12px;">
-				<button onclick="previewSelectedReport()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 📄 <span style="font-size: 10px;" lang-i18n="preview">Перегляд</span> </button>
-				<button onclick="editSelectedReport()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ✏️ <span style="font-size: 10px;" lang-i18n="edit">Змінити</span> </button>
-				<button onclick="deleteSelectedReport()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 🗑️ <span style="font-size: 10px;" lang-i18n="delete">Видалити</span> </button>
-				<button onclick="closeReportList()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 10px;" lang-i18n="close">Закрити</span> </button>
+				<button onclick="previewSelectedReport()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 📄 <span style="font-size: 10px;">Перегляд</span> </button>
+				<button onclick="editSelectedReport()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ✏️ <span style="font-size: 10px;">Змінити</span> </button>
+				<button onclick="deleteSelectedReport()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 🗑️ <span style="font-size: 10px;">Видалити</span> </button>
+				<button onclick="closeReportList()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 10px;">Закрити</span> </button>
 			</div>
 		</div>
 	</div>
@@ -773,17 +758,17 @@
 		<div style="background:#fff; padding:20px; border-radius:10px; max-height:80%; display: flex; flex-direction: row; gap: 30px;">
 			<!-- Ліва частина: заголовок і список -->
 			<div style="display: flex; flex-direction: column; max-height: 60vh; overflow-y: auto;">
-				<h3 style="margin-top: 0;" lang-i18n="savedFormsTitle">Збережені форми</h3>
+				<h3 style="margin-top: 0;">Збережені форми</h3>
 				<ul id="savedFormsList" style="list-style:none; padding:0; margin:0; min-width: 250px;">
 					<!-- Список форм -->
 				</ul>
 			</div>
 			<!-- Права частина: вертикальні кнопки -->
 			<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; gap: 12px;">
-				<button onclick="previewSelecteForm()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 👁️ <span style="font-size: 10px;" lang-i18n="preview">Перегляд</span> </button>
-				<button onclick="editSelectedForm()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ✏️ <span style="font-size: 10px;" lang-i18n="edit">Змінити</span> </button>
-				<button onclick="deleteSelectedForm()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 🗑️ <span style="font-size: 10px;" lang-i18n="delete">Видалити</span> </button>
-				<button onclick="closeSavedFormsDialog()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 10px;" lang-i18n="close">Закрити</span> </button>
+				<button onclick="previewSelecteForm()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 👁️ <span style="font-size: 10px;">Перегляд</span> </button>
+				<button onclick="editSelectedForm()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ✏️ <span style="font-size: 10px;">Змінити</span> </button>
+				<button onclick="deleteSelectedForm()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 🗑️ <span style="font-size: 10px;">Видалити</span> </button>
+				<button onclick="closeSavedFormsDialog()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 10px;">Закрити</span> </button>
 			</div>
 		</div>
 	</div>
@@ -793,8 +778,8 @@
 		<div style="background:#fff; padding:20px; border-radius:10px; max-height:90%; max-width:90%; width:800px; display: flex; flex-direction: row; gap: 30px;">
 			<!-- Ліва частина: textarea + результати -->
 			<div style="flex: 1; display: flex; flex-direction: column;">
-				<h3 style="margin-top: 0;" lang-i18n="sqlEditorTitle">Редактор SQL-запиту</h3>
-                <label for="ownSQLName" lang-i18n="queryNameLabel">Назва запиту:</label>
+				<h3 style="margin-top: 0;">Створення SQL-запиту</h3>
+                <label for="ownSQLName">Назва запиту:</label>
 				<input type="text" id="ownSQLName" value="Новий запит" style="width:97%; padding:8px; font-size:16px;">
 				<textarea id="ownSqlInput" style="width: 100%; height: 150px; margin-bottom: 10px; padding: 10px; box-sizing: border-box; border: 1px solid #ddd;"></textarea>
 				
@@ -802,9 +787,9 @@
 			</div>
 			<!-- Права частина: кнопки -->
 			<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; gap: 12px;">
-				<button onclick="executeOwnSQL()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ▶️ <span style="font-size: 10px;" lang-i18n="execute">Виконати</span> </button>
-				<button onclick="saveOwnSQL()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">💾<span style="font-size: 10px;" lang-i18n="save">Зберегти</span></button>
-			    <button onclick="closeOwnSqlModal()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 10px;" lang-i18n="close">Закрити</span> </button>
+				<button onclick="executeOwnSQL()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ▶️ <span style="font-size: 10px;">Виконати</span> </button>
+				<button onclick="saveOwnSQL()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">💾<span style="font-size: 10px;">Зберегти</span></button>
+			    <button onclick="closeOwnSqlModal()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 10px;">Закрити</span> </button>
 			</div>
 		</div>
 	</div>
@@ -815,66 +800,62 @@
 			<!-- Ліва частина: логотип + текст -->
 			<div style="flex: 1;">
 				<div style="text-align: center; margin-bottom: 15px;"> <img src="logo.png" alt="Логотип" width="128" height="auto"> </div>
-				<h2 style="margin-top: 0;text-align:center;" lang-i18n="aboutTitle">Про dat.A</h2>
-				<p lang-i18n="aboutDescription">dat.A — це простий вебзастосунок для роботи з базами даних безпосередньо у вашому браузері.</p>
-				<p><span lang-i18n="versionLabel">Версія:</span> 2.10-beta (05042026)</p>
-				<p lang-i18n="aboutCredits">Розроблено з любов'ю до інформатики та тих, хто її вивчає, і тих, хто їх навчає  💻❤️</p>
+				<h2 style="margin-top: 0;text-align:center;">Про <strong>dat.A</strong></h2>
+				<p><strong>dat.A</strong> — це простий вебзастосунок для роботи з базами даних безпосередньо у вашому браузері.</p>
+				<p><strong>Версія:</strong> 1.2 (29032026)</p>
+				<p>Розроблено з любов'ю до інформатики та тих, хто її вивчає, і тих, хто їх навчає  💻❤️</p>
 			</div>
 			<!-- Права частина: кнопка закриття -->
 			<div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start;">
-				<button onclick="closeAboutModal()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 12px;" lang-i18n="close">Закрити</span> </button>
+				<button onclick="closeAboutModal()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 12px;">Закрити</span> </button>
 			</div>
 		</div>
 	</div>
 	<!-- 🔽 Вікно введення параметрів для SQL-запиту -->
 	<div id="parameterModal" class="modal" style="display:none; z-index:10010;">
 		<div class="modal-content" style="background:white; padding:20px; border-radius:10px; max-width: 400px; margin: auto;">
-			<h3 id="parameterPrompt" lang-i18n="enterValue">Введіть значення</h3>
+			<h3 id="parameterPrompt">Введіть значення</h3>
 			<input type="text" id="parameterInput" style="width:90%; padding:8px; font-size:16px;">
 			<div style="text-align:right; margin-top:15px;">
-				<button onclick="confirmParameter()" lang-i18n="ok">ОК</button>
-				<button onclick="cancelParameter()" lang-i18n="cancel">Скасувати</button>
+				<button onclick="confirmParameter()">ОК</button>
+				<button onclick="cancelParameter()">Скасувати</button>
 			</div>
 		</div>
 	</div>
 	<!-- Вікно побудови обчислюваного поля -->
 	<div id="computedFieldModal" class="modal" style="display:none; z-index:10020;">
 		<div class="modal-content" style="background:white; padding:20px; border-radius:10px; max-width:500px; margin:auto;">
-			<h3 lang-i18n="computedFieldTitle">Обчислюване поле</h3>
+			<h3>Обчислюване поле</h3>
 			<div style="display:flex; flex-direction:column; gap:10px;">
-				<!-- Left operand -->
-				<label lang-i18n="computedLeftOperand">Ліве поле:</label>
+				<label>Ліве поле:</label>
 				<div style="display:flex; gap:6px;">
 					<select id="computedLeftTable" onchange="populateComputedFields('computedLeftTable','computedLeftField')" style="flex:1;"></select>
 					<select id="computedLeftField" style="flex:1;"></select>
 				</div>
-				<!-- Operator -->
-				<label lang-i18n="computedOperator">Оператор:</label>
+				<label>Оператор:</label>
 				<select id="computedOperator" style="width:100px;">
 					<option value="+">+ </option>
 					<option value="-">− </option>
 					<option value="*">× </option>
-					<option value="/">/ </option>
+					<option value="/">÷ </option>
 					<option value="||">|| (concat)</option>
 				</select>
-				<!-- Right operand -->
-				<label lang-i18n="computedRightOperand">Праве поле / значення:</label>
+				<label>Праве поле / значення:</label>
 				<div style="display:flex; gap:6px; align-items:center;">
 					<select id="computedRightType" onchange="toggleComputedRightType()" style="width:100px;">
-						<option value="field" lang-i18n="computedTypeField">Поле</option>
-						<option value="value" lang-i18n="computedTypeValue">Значення</option>
+						<option value="field">Поле</option>
+						<option value="value">Значення</option>
 					</select>
 					<select id="computedRightTable" onchange="populateComputedFields('computedRightTable','computedRightField')" style="flex:1;"></select>
 					<select id="computedRightField" style="flex:1;"></select>
 					<input type="text" id="computedRightValue" placeholder="" style="flex:1; display:none;">
 				</div>
-				<!-- Alias -->
-				<label lang-i18n="computedAliasLabel">Псевдонім (обов'язково):</label>
+				<label>Псевдонім (обов'язково):</label>
 				<input type="text" id="computedAlias" style="width:100%; padding:6px;">
 			</div>
 			<div style="text-align:right; margin-top:15px;">
-				<button onclick="confirmComputedField()" lang-i18n="ok">ОК</button>
-				<button onclick="cancelComputedField()" lang-i18n="cancel">Скасувати</button>
+				<button onclick="confirmComputedField()">ОК</button>
+				<button onclick="cancelComputedField()">Скасувати</button>
 			</div>
 		</div>
 	</div>
@@ -906,8 +887,8 @@
       font-weight: bold;
       color: #888;
       cursor: pointer;
-    " title="Закрити" lang-i18n-title="close">×</div>
-			<h2 style="text-align: center; margin-bottom: 20px;" lang-i18n="mainMenuTitle">Головне меню</h2>
+    " title="Закрити">×</div>
+			<h2 style="text-align: center; margin-bottom: 20px;">Головне меню</h2>
 			<div style="
       display: flex;
       flex-wrap: wrap;
@@ -916,31 +897,31 @@
     ">
 				<!-- Кнопка -->
 				<div class="menu-icon" onclick="filesMenu()"> <img src="img/files-menu.png" alt="Файли">
-					<div lang-i18n="files">Файли</div>
+					<div>Файли</div>
 				</div>
 				<div class="menu-icon" onclick="createMenu()"> <img src="img/create-menu.png" alt="Створити">
-					<div lang-i18n="create">Створити</div>
+					<div>Створити</div>
 				</div>
 				<div class="menu-icon" onclick="dataMenu()"> <img src="img/data-menu.png" alt="Дані">
-					<div lang-i18n="data">Дані</div>
+					<div>Дані</div>
 				</div>
 				<div class="menu-icon" onclick="tablesMenu()"> <img src="img/tables-menu.png" alt="Таблиці">
-					<div lang-i18n="tables">Таблиці</div>
+					<div>Таблиці</div>
 				</div>
 				<div class="menu-icon" onclick="queriesMenu()"> <img src="img/queries-menu.png" alt="Запити">
-					<div lang-i18n="queries">Запити</div>
+					<div>Запити</div>
 				</div>
 				<div class="menu-icon" onclick="reportsMenu()"> <img src="img/reports-menu.png" alt="Звіти">
-					<div lang-i18n="reports">Звіти</div>
+					<div>Звіти</div>
 				</div>
 				<div class="menu-icon" onclick="formsMenu()"> <img src="img/forms-menu.png" alt="Форми">
-					<div lang-i18n="forms">Форми</div>
+					<div>Форми</div>
 				</div>
 				<div class="menu-icon" onclick="helpMenu()"> <img src="img/help-menu.png" alt="Допомога">
-					<div lang-i18n="help">Допомога</div>
+					<div>Допомога</div>
 				</div>
 				<div class="menu-icon" onclick="closeMainMenu()"> <img src="img/back-icon.png" alt="Закрити">
-					<div lang-i18n="close">Закрити</div>
+					<div>Закрити</div>
 				</div>
 			</div>
 		</div>
@@ -948,50 +929,50 @@
 	<!-- Файли -->
 	<div id="files_Modal" style="display:none;" class="modal">
 		<div class="modal-content">
-			<h2 lang-i18n="files">Файли</h2>
+			<h2>Файли</h2>
 			<div class="modal-icons">
 				<div class="modal-icon" onclick="createDbFile()">
 					<div class="icon">🚀</div>
-					<div class="label" lang-i18n="newDatabase">Нова база</div>
+					<div class="label">Нова база</div>
 				</div>
 				<div class="modal-icon" onclick="showStorageDialog()">
 					<div class="icon">💼</div>
-					<div class="label" lang-i18n="storage">Сховище</div>
+					<div class="label">Сховище</div>
 				</div>
 				<div class="modal-icon" onclick="exportDTA()">
 					<div class="icon">📦</div>
-					<div class="label" lang-i18n="saveDTA">Зберегти .DTA</div>
+					<div class="label">Зберегти .DTA</div>
 				</div>
 				<div class="modal-icon" onclick="document.getElementById('dtaFileInput').click()">
 					<div class="icon">📂</div>
-					<div class="label" lang-i18n="openDTA">Відкрити .DTA</div>
+					<div class="label">Відкрити .DTA</div>
 				</div>
 				<input type="file" id="dtaFileInput" style="display:none;" accept=".dta" onchange="importDTA(this.files[0])">
 				<div class="modal-icon" onclick="document.getElementById('sqliteFileInput').click()">
 					<div class="icon">📥</div>
-					<div class="label" lang-i18n="importSQLite">Імпорт sqlite</div>
+					<div class="label">Імпорт sqlite</div>
 				</div>
 				<input type="file" id="sqliteFileInput" accept=".db,.sqlite" style="display:none;" onchange="importSQLiteDb(this.files[0])">
 				<div class="modal-icon" onclick="exportSQLiteDb()">
 					<div class="icon">📤</div>
-					<div class="label" lang-i18n="exportSQLite">Експорт sqlite</div>
+					<div class="label">Експорт sqlite</div>
 				</div>
 				<div class="modal-icon" onclick="showCsvImportDialog()">
 					<div class="icon">📑</div>
-					<div class="label" lang-i18n="importCSV">Імпорт CSV</div>
+					<div class="label">Імпорт CSV</div>
 				</div>
 				<input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleCsvFile(this.files[0])">
 				<div class="modal-icon" onclick="showDatabaseInfo()">
 					<div class="icon">ℹ️</div>
-					<div class="label" lang-i18n="info">Відомості</div>
+					<div class="label">Відомості</div>
 				</div>
 				<div class="modal-icon" onclick="closeDatabase()">
 					<div class="icon">❌</div>
-					<div class="label" lang-i18n="closeDB">Закрити БД</div>
+					<div class="label">Закрити БД</div>
 				</div>
 				<div class="modal-icon" onclick="exitApplication()">
 					<div class="icon">🚪</div>
-					<div class="label" lang-i18n="exit">Вихід</div>
+					<div class="label">Вихід</div>
 				</div>
 			</div>
 		</div>
@@ -999,31 +980,31 @@
 	<!-- Створити -->
 	<div id="create_Modal" style="display:none;" class="modal">
 		<div class="modal-content">
-			<h2 lang-i18n="create">Створити</h2>
+			<h2>Створити</h2>
 			<div class="modal-icons">
 				<div class="modal-icon" onclick="createDbFile()">
 					<div class="icon">🚀</div>
-					<div class="label" lang-i18n="database">База даних</div>
+					<div class="label">База даних</div>
 				</div>
 				<div class="modal-icon" onclick="createTable()">
 					<div class="icon">📄</div>
-					<div class="label" lang-i18n="table">Таблиця</div>
+					<div class="label">Таблиця</div>
 				</div>
 				<div class="modal-icon" onclick="createQuery()">
 					<div class="icon">🔍</div>
-					<div class="label" lang-i18n="query">Запит</div>
+					<div class="label">Запит</div>
 				</div>
 				<div class="modal-icon" onclick="createReport()">
 					<div class="icon">📝</div>
-					<div class="label" lang-i18n="report">Звіт</div>
+					<div class="label">Звіт</div>
 				</div>
 				<div class="modal-icon" onclick="createForm()">
 					<div class="icon">📑</div>
-					<div class="label" lang-i18n="form">Форма</div>
+					<div class="label">Форма</div>
 				</div>
 				<div class="modal-icon" onclick="createOwnSQL()">
 					<div class="icon">✍️</div>
-					<div class="label" lang-i18n="sqlQuery">SQL-запит</div>
+					<div class="label">SQL-запит</div>
 				</div>
 			</div>
 		</div>
@@ -1031,11 +1012,11 @@
 	<!-- Дані -->
 	<div id="data_Modal" style="display:none;" class="modal">
 		<div class="modal-content">
-			<h2 lang-i18n="data">Дані</h2>
+			<h2>Дані</h2>
 			<div class="modal-icons">
 				<div class="modal-icon" onclick="showData()">
 					<div class="icon">📚</div>
-					<div class="label" lang-i18n="tableData">Дані таблиць</div>
+					<div class="label">Дані таблиць</div>
 				</div>
 			</div>
 		</div>
@@ -1043,15 +1024,15 @@
 	<!-- Таблиці -->
 	<div id="tables_Modal" style="display:none;" class="modal">
 		<div class="modal-content">
-			<h2 lang-i18n="tables">Таблиці</h2>
+			<h2>Таблиці</h2>
 			<div class="modal-icons">
 				<div class="modal-icon" onclick="createTable()">
 					<div class="icon">𝄜</div>
-					<div class="label" lang-i18n="create">Створити</div>
+					<div class="label">Створити</div>
 				</div>
 				<div class="modal-icon" onclick="showSavedTablesDialog()">
 					<div class="icon">📚</div>
-					<div class="label" lang-i18n="saved">Збережені</div>
+					<div class="label">Збережені</div>
 				</div>
 			</div>
 		</div>
@@ -1059,15 +1040,15 @@
 	<!-- Запити -->
 	<div id="queries_Modal" style="display:none;" class="modal">
 		<div class="modal-content">
-			<h2 lang-i18n="queries">Запити</h2>
+			<h2>Запити</h2>
 			<div class="modal-icons">
 				<div class="modal-icon" onclick="createQuery()">
 					<div class="icon">🔍</div>
-					<div class="label" lang-i18n="create">Створити</div>
+					<div class="label">Створити</div>
 				</div>
 				<div class="modal-icon" onclick="showSavedQueriesDialog()">
 					<div class="icon">📚</div>
-					<div class="label" lang-i18n="saved">Збережені</div>
+					<div class="label">Збережені</div>
 				</div>
 			</div>
 		</div>
@@ -1075,15 +1056,15 @@
 	<!-- Звіти -->
 	<div id="reports_Modal" style="display:none;" class="modal">
 		<div class="modal-content">
-			<h2 lang-i18n="reports">Звіти</h2>
+			<h2>Звіти</h2>
 			<div class="modal-icons">
 				<div class="modal-icon" onclick="createReport()">
 					<div class="icon">📝</div>
-					<div class="label" lang-i18n="create">Створити</div>
+					<div class="label">Створити</div>
 				</div>
 				<div class="modal-icon" onclick="showReportsList()">
 					<div class="icon">📚</div>
-					<div class="label" lang-i18n="saved">Збережені</div>
+					<div class="label">Збережені</div>
 				</div>
 			</div>
 		</div>
@@ -1091,15 +1072,15 @@
 	<!-- Форми -->
 	<div id="forms_Modal" style="display:none;" class="modal">
 		<div class="modal-content">
-			<h2 lang-i18n="forms">Форми</h2>
+			<h2>Форми</h2>
 			<div class="modal-icons">
 				<div class="modal-icon" onclick="createForm()">
 					<div class="icon">📑</div>
-					<div class="label" lang-i18n="create">Створити</div>
+					<div class="label">Створити</div>
 				</div>
 				<div class="modal-icon" onclick="showSavedFormsDialog()">
 					<div class="icon">📚</div>
-					<div class="label" lang-i18n="saved">Збережені</div>
+					<div class="label">Збережені</div>
 				</div>
 			</div>
 		</div>
@@ -1107,15 +1088,15 @@
 	<!-- Допомога -->
 	<div id="help_Modal" style="display:none;" class="modal">
 		<div class="modal-content">
-			<h2 lang-i18n="help">Допомога</h2>
+			<h2>Допомога</h2>
 			<div class="modal-icons">
 				<div class="modal-icon" onclick="window.open('help.html', '_blank')">
 					<div class="icon">❓</div>
-					<div class="label" lang-i18n="helpTip">Підказка</div>
+					<div class="label">Підказка</div>
 				</div>
 				<div class="modal-icon" onclick="showAboutModal()">
 					<div class="icon">😉</div>
-					<div class="label" lang-i18n="aboutProgram">Про програму</div>
+					<div class="label">Про програму</div>
 				</div>
 			</div>
 		</div>
@@ -1124,10 +1105,10 @@
 	<div id="dataModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
       background-color: rgba(0,0,0,0.5); z-index:1002; justify-content:center; align-items:center;">
 		<div style="background:#fff; padding:20px; width:400px; border-radius:10px; max-height:80%; overflow-y:auto;">
-			<h3 lang-i18n="selectTable">Оберіть таблицю</h3>
+			<h3>Оберіть таблицю</h3>
 			<ul id="tableListInModal"></ul>
-			<button onclick="confirmOpenSelectedTable()" lang-i18n="open">Відкрити</button>
-			<button onclick="document.getElementById('dataModal').style.display='none'" lang-i18n="cancel">Скасувати</button>
+			<button onclick="confirmOpenSelectedTable()">Відкрити</button>
+			<button onclick="document.getElementById('dataModal').style.display='none'">Скасувати</button>
 		</div>
 	</div>
     
@@ -1137,7 +1118,7 @@
     <div style="background:#fff; padding:20px; width:60%; height:60%; border-radius:10px; display:flex; gap:20px;">
         <!-- Ліва частина: список -->
         <div style="flex-grow:1; overflow-y:auto;">
-            <h3 lang-i18n="tablesAndQueryResults">Таблиці та результати запитів</h3>
+            <h3>Таблиці та результати запитів</h3>
             <ul id="dataWorkList" style="list-style:none; padding:0; margin:0;">
                 <!-- Динамічно -->
             </ul>
@@ -1147,12 +1128,12 @@
             <button onclick="openSelectedDataWork()" style="width:64px; height:64px; font-size:24px;
                     display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <div>📂</div>
-                <div style="font-size:10px;" lang-i18n="open">Відкрити</div>
+                <div style="font-size:10px;">Відкрити</div>
             </button>
             <button onclick="closeDataWorkDialog()" style="width:64px; height:64px; font-size:24px;
                     display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <div>❌</div>
-                <div style="font-size:10px;" lang-i18n="cancel">Скасувати</div>
+                <div style="font-size:10px;">Скасувати</div>
             </button>
         </div>
     </div>
@@ -1160,96 +1141,96 @@
 <!-- Перегляд та робота з даними -->
 <div id="dataViewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
     background-color: rgba(0,0,0,0.5); z-index:1006; justify-content:center; align-items:center;">
-    <div style="background:#fff; padding:20px; width:90%; max-width:1100px; border-radius:10px; display:flex; gap:20px; max-height:88vh; overflow:hidden;">
+    <div style="background:#fff; padding:20px; width:90%; max-width:1000px; border-radius:10px; display:flex; gap:20px; max-height:80vh; overflow:hidden;">
+        
+        <!-- Ліва частина: фільтри, сортування -->
+        <div style="flex:1; display:flex; flex-direction:column; gap:10px; overflow-y:auto;">
+            <h2 id="dataViewTitle" style="margin:0;">Перегляд таблиці</h2>
+            
+            <!-- Поле + Сортування + Пошук в одному рядку -->
+<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+    <label>Поле:
+        <select id="dataFieldSelect"></select>
+    </label>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <label>Пошук:
+            <input type="text" id="dataSearchInput" style="width:150px;">
+        </label>
+    </div>    
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">    
+        <label><input type="radio" name="sortOrder" value="asc" checked> За зростанням</label>
+        <label><input type="radio" name="sortOrder" value="desc"> За спаданням</label>
+    </div>
+</div>
 
-        <!-- Основна колонка: заголовок + верхня панель + таблиця -->
-        <div style="flex:1; display:flex; flex-direction:column; gap:10px; overflow:hidden; min-width:0;">
-            <h2 id="dataViewTitle" style="margin:0;" lang-i18n="tableViewTitle">Перегляд таблиці</h2>
+<!-- Фільтри -->
+<div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+    <!-- Фільтр 1 -->
+    <label>Фільтр:
+        <select id="dataFilterCondition1" onchange="clearFilterInputOnEmpty(this, 'dataFilterInput1')">
+            <option value="">немає</option>
+            <option value="=">=</option>
+            <option value="!=">!=</option>
+            <option value=">">></option>
+            <option value="<"><</option>
+            <option value=">=">>=</option>
+            <option value="<="><=</option>
+        </select>
+        <input type="text" id="dataFilterInput1" style="width:120px;">
+    </label>
 
-            <!-- Верхня панель: ліво (Search/Sort) + право (Filters) -->
-            <div style="display:flex; gap:12px; align-items:flex-start;">
+    <!-- Логічний оператор -->
+    <label>
+        <select id="logicalOperator" onchange="toggleSecondFilter()">
+            <option value="">🧲</option>            
+            <option value="OR">OR</option>
+            <option value="AND">AND</option>
+        </select>
+    </label>
 
-                <!-- Ліва частина: Search + Sort -->
-                <div style="display:flex; flex-direction:column; gap:8px; min-width:300px; background:#f5f7fa; border:1px solid #dde; border-radius:6px; padding:10px;">
-                    <!-- Search -->
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <label for="dataSearchInput" style="font-size:14px;white-space:nowrap;" lang-i18n="searchLabel">🔎 Search</label>
-                        <input type="text" id="dataSearchInput"  lang-i18n="dataSearchInput" placeholder="🔍..."
-                               style="flex:1; padding:4px 6px; font-size:14px; min-width:0;"
-                               oninput="applyDataSearch()">
-                    </div>
-                    <!-- Sort by -->
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <label for="dataFieldSelect" style="font-size:14px; white-space:nowrap;" lang-i18n="sortByLabel">↕️ Sort by</label>
-                        <select id="dataFieldSelect" style="flex:1; padding:4px; font-size:13px; min-width:0;"></select>
-                    </div>
-                    <!-- Radio buttons -->
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <label style="display:flex; align-items:center; gap:4px; font-size:13px; cursor:pointer; white-space:nowrap;">
-                            <input type="radio" name="sortOrder" value="asc" checked>
-                            <span lang-i18n="sortAscending">Ascending</span>
-                        </label>
-                        <label style="display:flex; align-items:center; gap:4px; font-size:13px; cursor:pointer; white-space:nowrap;">
-                            <input type="radio" name="sortOrder" value="desc">
-                            <span lang-i18n="sortDescending">Descending</span>
-                        </label>
-                    </div>
-                </div>
+    <!-- Фільтр 2 (початково прихований) -->
+    <div id="secondFilterContainer" style="display:none; display:flex; gap:10px; align-items:center;">
+        <select id="dataFilterCondition2" onchange="clearFilterInputOnEmpty(this, 'dataFilterInput2')">
+            <option value="">немає</option>
+            <option value="=">=</option>
+            <option value="!=">!=</option>
+            <option value=">">></option>
+            <option value="<"><</option>
+            <option value=">=">>=</option>
+            <option value="<="><=</option>
+        </select>
+        <input type="text" id="dataFilterInput2" style="width:120px;">
+    </div>
+</div>
 
-                <!-- Права частина: Filters -->
-                <div style="flex:1; display:flex; flex-direction:column; gap:6px; background:#f5f7fa; border:1px solid #dde; border-radius:6px; padding:10px; min-width:0;">
-                    <div style="font-size:14px;" lang-i18n="filters">🔬 Filters</div>
-                    <div id="filterRowsContainer" style="display:flex; flex-direction:column; gap:5px;"></div>
-                </div>
-
-            </div>
-
-            <!-- Лічильник записів -->
-            <div id="dataViewCount" style="font-size:12px; color:#666;"></div>
-
-            <!-- Таблиця -->
-            <div style="overflow:auto; flex-grow:1;">
+            <div style="overflow-x:auto; flex-grow:1;">
                 <table id="dataViewTable" border="1" cellpadding="5" style="width:100%; border-collapse:collapse; table-layout:fixed;">
-                    <thead id="dataViewHead" style="background-color:#eee;font-size:12px;"></thead>
+                    <thead id="dataViewHead" style="background-color:#eee;"></thead>
                     <tbody id="dataViewBody"></tbody>
                 </table>
             </div>
         </div>
-
-        <!-- Права колонка: кнопки (як в оригіналі) -->
-        <div style="display:flex; flex-direction:column; gap:10px; align-items:center; width:64px; flex-shrink:0;">
+        
+        <!-- Права частина: кнопки -->
+        <div style="display:flex; flex-direction:column; gap:10px; align-items:center; width:64px;">
             <button onclick="sortDataTable()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <div>↕️</div>
-                <div style="font-size:10px;" lang-i18n="sort">Сортувати</div>
-            </button>
-            <button onclick="addDataFilterRow()" style="width:64px; height:64px; font-size:20px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                <div>➕</div>
-                <div style="font-size:10px;" lang-i18n="addFilter">Додати фільтр</div>
+                <div style="font-size:10px;">Сортувати</div>
             </button>
             <button onclick="applyDataFilter()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <div>🔍</div>
-                <div style="font-size:10px;" lang-i18n="filter">Фільтр</div>
+                <div style="font-size:10px;">Фільтр</div>
             </button>
-            <button onclick="resetDataFilters()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                <div>🔄</div>
-                <div style="font-size:10px;" lang-i18n="reset">Скинути</div>
+            <button onclick="applyDataSearch()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                <div>🔎</div>
+                <div style="font-size:10px;">Пошук</div>
             </button>
             <button onclick="closeDataViewModal()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <div>❌</div>
-                <div style="font-size:10px;" lang-i18n="close">Закрити</div>
+                <div style="font-size:10px;">Закрити</div>
             </button>
         </div>
     </div>
-</div>
-
-<!-- Приховані елементи для зворотної сумісності з data.js -->
-<div style="display:none;">
-    <select id="logicalOperator"></select>
-    <div id="secondFilterContainer"></div>
-    <select id="dataFilterCondition1"></select>
-    <input id="dataFilterInput1">
-    <select id="dataFilterCondition2"></select>
-    <input id="dataFilterInput2">
 </div>
 
 <div id="deleteRowModal" style="
@@ -1273,10 +1254,10 @@
         </div>
         <div  style="display:flex; flex-direction:column; gap:10px;">
             <button id="confirmDelete" onclick="deleteRowConfirmed()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                🗑<div style="font-size:10px;" lang-i18n="delete">Видалити</div>
+                🗑<div style="font-size:10px;">Видалити</div>
             </button>
             <button id="cancelDelete" onclick="deleteRowCancelled()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                ❌<div style="font-size:10px;" lang-i18n="cancel">Скасувати</div>
+                ❌<div style="font-size:10px;">Скасувати</div>
             </button>
         </div>
     </div>
@@ -1299,17 +1280,17 @@
         gap:20px;
     ">
         <div style="flex:1; display:flex; align-items:center;">
-            <span id="pkMessage" style="font-size:18px;" lang-i18n="pkAddedMessage">
-                Додано первинний ключ!
+            <span id="pkMessage" style="font-size:18px;">
+                Додано первинний ключ!<br> 
                 Встановити його тип як ціле число з автоінкрементом?
             </span>
         </div>
         <div style="display:flex; flex-direction:column; gap:10px;">
             <button id="pkYes" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                👍<div style="font-size:10px;" lang-i18n="yes">Так</div>
+                👍<div style="font-size:10px;">Так</div>
             </button>
             <button id="pkNo" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                👎<div style="font-size:10px;" lang-i18n="no">Ні</div>
+                👎<div style="font-size:10px;">Ні</div>
             </button>
         </div>
     </div>
@@ -1317,15 +1298,15 @@
 <div id="importTableModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
     background-color: rgba(0,0,0,0.5); z-index:10050; justify-content:center; align-items:center;">
   <div style="background:#fff; padding:20px; width:90%; max-width:900px; border-radius:10px; display:flex; flex-direction:column; gap:15px;">
-    <h2 lang-i18n="importTableTitle">Імпорт таблиці</h2>
-    <div id="importMsg" lang-i18n="importInstructions">Скопіюйте дані з табличного процесора і натисніть <span style="font-size:24px;"><b>Ctrl+V</b></span> тут.</div>
+    <h2>Імпорт таблиці</h2>
+    <div id="importMsg">Скопіюйте дані з табличного процесора і натисніть <span style="font-size:24px;"><b>Ctrl+V</b></span> тут.</div>
     <textarea id="clipboardInput" style="position:absolute; top:-10px; left:-10px; width:1px; height:1px; opacity:0;" 
     tabindex="0"></textarea>
     
     <div id="previewArea" style="max-height:400px; overflow:auto; border:1px solid #ccc; padding:5px;"></div>
     <div style="display:flex; gap:10px; justify-content:flex-end;">
-      <button onclick="confirmImportTable()" lang-i18n="import">Імпорт</button>
-      <button onclick="closeImportTableDialog()" lang-i18n="cancel">Скасувати</button>
+      <button onclick="confirmImportTable()">Імпорт</button>
+      <button onclick="closeImportTableDialog()">Скасувати</button>
     </div>
   </div>
 </div>
@@ -1334,15 +1315,13 @@
 <div id="confirmImportModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
     background-color: rgba(0,0,0,0.5); z-index:10060; justify-content:center; align-items:center;">
   <div style="background:#fff; padding:20px; width:600px; border-radius:10px; display:flex; flex-direction:column; gap:15px;">
-    <h2 lang-i18n="confirmImportTitle">Підтвердження імпорту</h2>
-    <label lang-i18n="tableNameLabel">Назва таблиці:</label>
+    <h2>Підтвердження імпорту</h2>
+    <label>Назва таблиці:</label>
     <input id="importTableName" type="text" value="ІмпортованаТаблиця" style="padding:5px;"/>
     <div id="tableSchemaPreview" style="max-height:200px; overflow:auto; border:1px solid #ccc; padding:5px;"></div>
-    <!-- Вибір первинного ключа — заповнюється динамічно з confirmImportTable() -->
-    <div id="importPkChoice" style="padding:8px; background:#f5f5f5; border:1px solid #ddd; border-radius:6px;"></div>
     <div style="display:flex; gap:10px; justify-content:flex-end;">
-      <button onclick="saveImportedTable()" lang-i18n="save">Зберегти</button>
-      <button onclick="closeConfirmImport()" lang-i18n="cancel">Скасувати</button>
+      <button onclick="saveImportedTable()">Зберегти</button>
+      <button onclick="closeConfirmImport()">Скасувати</button>
     </div>
   </div>
 </div>
@@ -1406,7 +1385,7 @@
 <!-- Панель структури бази даних -->
 <div id="structurePanel" 
      style="position: fixed; top: 0; right: -300px; width: 300px; height: 100vh; background: #f5f5f5; border-left: 1px solid #ccc; z-index: 10005; overflow-y: auto; transition: right 0.3s ease;">
-    <div style="padding: 10px; background: #eee; font-weight: bold;" lang-i18n="databaseStructureTitle">Структура бази даних</div>
+    <div style="padding: 10px; background: #eee; font-weight: bold;">Структура бази даних</div>
     <div id="structureContent" style="padding: 10px;"></div>
 </div>
 
@@ -1423,15 +1402,15 @@
           <div style=" display:flex; flex-direction:column; align-items:center; gap:10px;">
             <button onclick="saveImageUrl()" style=" width:64px; height:64px; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; cursor:pointer; ">
 				<div> 💾 </div>
-			    <div style="font-size:11px;" lang-i18n="save">Зберегти</div>
+			    <div style="font-size:11px;">Зберегти</div>
             </button>
             <button onclick="deleteImageUrl()" style=" width:64px; height:64px; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; cursor:pointer; ">
 				<div> 🗑 </div>
-			<div style="font-size:11px;" lang-i18n="delete">Видалити</div>
+			<div style="font-size:11px;">Видалити</div>
             </button>
             <button onclick="closeImageModal()" style=" width:64px; height:64px; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; cursor:pointer; ">
 				<div> ❌ </div>
-			<div style="font-size:11px;" lang-i18n="cancel">Скасувати</div>
+			<div style="font-size:11px;">Скасувати</div>
             </button>
             </div>
           </div>
@@ -1446,47 +1425,7 @@
 </div>
   </div>
 </div>
-<!-- Вікно URL файлу -->
-<div id="urlModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:20000; justify-content:center; align-items:center;">
-  <div style="background:white; width:480px; max-width:90%; max-height:90%; border-radius:12px; padding:15px; display:flex; flex-direction:column;">
 
-    <!-- Центральна частина: іконка + кнопки -->
-    <div style="flex:1; display:flex; gap:12px;">
-
-      <!-- Іконка файлу -->
-      <div style="flex:1; display:flex; justify-content:center; align-items:center; min-height:140px; border:1px solid #ccc;">
-        <div style="display:flex; flex-direction:column; align-items:center; gap:8px; color:#aaa; font-size:48px;">
-          📎
-          <span style="font-size:13px;" id="urlFieldName"></span>
-        </div>
-      </div>
-
-      <!-- Кнопки справа -->
-      <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
-        <button onclick="saveFileUrl()" style="width:64px; height:64px; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; cursor:pointer;">
-          <div>💾</div>
-          <div style="font-size:11px;" lang-i18n="save">Зберегти</div>
-        </button>
-        <button onclick="deleteFileUrl()" style="width:64px; height:64px; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; cursor:pointer;">
-          <div>🗑</div>
-          <div style="font-size:11px;" lang-i18n="delete">Видалити</div>
-        </button>
-        <button onclick="closeUrlModal()" style="width:64px; height:64px; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; cursor:pointer;">
-          <div>❌</div>
-          <div style="font-size:11px;" lang-i18n="cancel">Скасувати</div>
-        </button>
-      </div>
-
-    </div>
-
-    <!-- Поле адреси внизу -->
-    <div style="margin-top:12px; display:flex; gap:6px; width:100%;">
-      <input id="urlInput" type="text" placeholder="https://example.com/file.pdf"
-             style="flex:1; padding:8px; box-sizing:border-box; height:40px;">
-    </div>
-
-  </div>
-</div>
 <!-- Вікно файлу -->
 <div id="fileModal" style="display:none; position:fixed; inset:0;
      background:rgba(0,0,0,.6); z-index:20000; justify-content:center; align-items:center;">
@@ -1511,27 +1450,27 @@
         <button onclick="saveFileFromInput()"
                 style="width:64px; height:64px; padding:0; display:flex; flex-direction:column;
                        align-items:center; justify-content:center; font-size:24px; cursor:pointer;">
-          <div>💾</div><div style="font-size:11px;" lang-i18n="save">Зберегти</div>
+          <div>💾</div><div style="font-size:11px;">Зберегти</div>
         </button>
         <button id="fileViewBtn" onclick="viewCurrentFile()"
                 style="width:64px; height:64px; padding:0; display:none; flex-direction:column;
                        align-items:center; justify-content:center; font-size:24px; cursor:pointer;">
-          <div>👁️</div><div style="font-size:11px;" lang-i18n="open">Відкрити</div>
+          <div>👁️</div><div style="font-size:11px;">Відкрити</div>
         </button>
         <button id="fileDownloadBtn" onclick="downloadCurrentFile()"
                 style="width:64px; height:64px; padding:0; display:flex; flex-direction:column;
                        align-items:center; justify-content:center; font-size:24px; cursor:pointer;">
-          <div>⬇️</div><div style="font-size:9px;" lang-i18n="download">Скачати</div>
+          <div>⬇️</div><div style="font-size:11px;">Скачати</div>
         </button>
         <button onclick="deleteCurrentFile()"
                 style="width:64px; height:64px; padding:0; display:flex; flex-direction:column;
                        align-items:center; justify-content:center; font-size:24px; cursor:pointer;">
-          <div>🗑</div><div style="font-size:11px;" lang-i18n="delete">Видалити</div>
+          <div>🗑</div><div style="font-size:11px;">Видалити</div>
         </button>
         <button onclick="closeFileModal()"
                 style="width:64px; height:64px; padding:0; display:flex; flex-direction:column;
                        align-items:center; justify-content:center; font-size:24px; cursor:pointer;">
-          <div>❌</div><div style="font-size:11px;" lang-i18n="cancel">Скасувати</div>
+          <div>❌</div><div style="font-size:11px;">Скасувати</div>
         </button>
       </div>
     </div>
@@ -1543,68 +1482,13 @@
              onchange="previewSelectedFile()"
              style="width:100%; padding:6px; box-sizing:border-box;">
       <div id="fileSizeWarning"
-           style="color:red; font-size:12px; margin-top:4px; display:none;" lang-i18n="fileSizeWarning">
+           style="color:red; font-size:12px; margin-top:4px; display:none;">
         ⚠️ Файл перевищує ліміт 5 МБ
       </div>
     </div>
   </div>
 </div>
-<!-- Модальне вікно налаштувань -->
-<div id="settingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-    background-color: rgba(0,0,0,0.5); z-index:10030; justify-content:center; align-items:center;">
-    <div style="background:#fff; padding:20px; border-radius:10px; max-width:450px; width:90%; display:flex; flex-direction:column; gap:20px;">
-        <h2 style="margin:0 0 5px 0;" lang-i18n="settings">Налаштування</h2>
-        
-        <div style="display:flex; flex-direction:column; gap:15px;">
-            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-                <input type="checkbox" id="autoLoadLastDbCheckbox"> 
-                <span lang-i18n="autoLoadLastDbCheckbox">Автозавантаження останньої бази даних</span>
-            </label>
-            
-            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-                <input type="checkbox" id="simpleInterfaceCheckbox"> 
-                <span lang-i18n="simpleInterfaceCheckbox">Автозавантаження простого інтерфейсу</span>
-            </label>
-            
-            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-                <input type="checkbox" id="darkThemeCheckbox"> 
-                <span lang-i18n="darkThemeCheckbox">Темна тема</span>
-            </label>
-            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
-                <input type="checkbox" id="storeFilesInDbCheckbox"> 
-                <span lang-i18n="storeFilesInDbCheckbox">Зберігати файли і зображення в базі даних</span>
-            </label>            
-   
-            <div style="display:flex; align-items:center; gap:10px; justify-content:space-between;">
-                <span lang-i18n="languageSelect" >Мова інтерфейсу:</span>
-                <select id="languageSelect" style="padding:5px; border-radius:4px; border:1px solid #ccc;">
-                    <option value="uk">🇺🇦 Українська</option>
-                    <option value="en">🇬🇧 English</option>
-                    <option value="pl">🇵🇱 Polski</option>
-                    <option value="de">🇩🇪 Deutsch</option>
-                    <option value="fr">🇫🇷 Français</option>
-                    <option value="es">🇪🇸 Español</option>
-                    <option value="it">🇮🇹 Italiano</option>
-                </select>
-            </div>
-            
-            <button id="clearStorageBtn" lang-i18n="clearStorageBtn" style="padding:8px; background:#f00000; border:1px solid #ccc; border-radius:5px; cursor:pointer; text-align:center;">
-                🗑️ Очистити Сховище баз даних
-            </button>
-        </div>
-        
-        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
-            <button onclick="closeSettingsModal()" style="padding:5px 15px; border:1px solid #ccc; border-radius:5px; cursor:pointer;"  lang-i18n="cancel">Скасувати</button>
-            <button id="saveSettingsBtn" style="padding:5px 15px; background:#4CAF50; color:white; border:none; border-radius:5px; cursor:pointer;"  lang-i18n="save">Зберегти</button>
-        </div>
-    </div>
-</div>
 
-<!-- Кнопка для приховування панелі швидкого доступу (динамічне керування) -->
-<style id="simpleInterfaceStyle">
-    /* Цей стиль буде керувати приховуванням панелі швидкого доступу */
-</style>
-<!-- Мова ініціалізується в settings.js через DOMContentLoaded → loadLanguage() -->	
 </body>
 
 </html>
