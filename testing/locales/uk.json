@@ -73,7 +73,6 @@
   "primaryKeyLabel": "Первинний ключ ",
   "queryDefaultName": "Новий_запит ",
   "querySelectTable": "Виберіть таблицю ",
-  "querySelectField": "Оберіть поле",
   "queryAllFields": "* (Всі поля) ",
   "queryAlias": "псевдонім ",
   "queryAliasFull": "Псевдонім ",

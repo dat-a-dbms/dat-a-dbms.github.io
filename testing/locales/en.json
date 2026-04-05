@@ -73,7 +73,6 @@
   "primaryKeyLabel": "Primary key ",
   "queryDefaultName": "New_query ",
   "querySelectTable": "Select table ",
-  "querySelectField": "Select field",
   "queryAllFields": "* (All fields) ",
   "queryAlias": "alias ",
   "queryAliasFull": "Alias ",
