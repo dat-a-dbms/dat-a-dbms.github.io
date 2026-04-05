@@ -6260,7 +6260,7 @@ function handleCsvFile(file) {
             "real": val => /^-?\d+(\.\d+)?$/.test(val),
             "boolean": val => /^(true|false|1|0)$/i.test(val),
             "text": val => true,
-            "date": val => !isNaN(Date.parse(val)) || /^\d{4}-\d{2}-\d{2}$/.test(val),,
+            "date": val => !isNaN(Date.parse(val)) || /^\d{4}-\d{2}-\d{2}$/.test(val),
             "list": val => true,
             "image": val => true,
             "file": val => true,
