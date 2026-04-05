@@ -1,4 +1,9 @@
 {
+  "sortByLabel": "↕️ Сортувати по",
+  "filters": "🔬 Фільтри",
+  "dataSearchInput": "По всіх полях...",
+  "addFilter": "Додати фільтр",
+  "reset": "Скинути",
   "menuFile": "Файл",
   "createDbFile": "🚀 Нова база даних",
   "storageDialog": "💼 Сховище баз даних",

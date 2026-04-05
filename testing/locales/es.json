@@ -1,4 +1,9 @@
 {
+  "dataNone": "ninguno",
+  "dataValue": "Valor...",
+  "dataContains": "contiene",
+  "dataStartswith": "empieza por",
+  "dataViewCount": "Mostrando: ${shown} de ${total} registros",
   "queryAllField": "* (Todos los campos)",
   "exprBuilderTitle": "⚡ Cálculo:",
   "exprAddFieldBtn": "+ Agregar campo",

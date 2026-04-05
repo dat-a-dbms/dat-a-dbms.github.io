@@ -1,4 +1,9 @@
 {
+  "dataViewCount": "Показано: ${shown} з ${total} записів",
+  "dataValue": "Значення...",
+  "dataNone": "немає",
+  "dataContains": "містить",
+  "dataStartswith":"починається з",
   "queryAllField" : "* (Всі поля)",
   "exprBuilderTitle": "⚡ Обчислення:",
   "exprAddFieldBtn": "+ Додати поле",

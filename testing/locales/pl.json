@@ -1,4 +1,9 @@
 {
+  "dataNone": "brak",
+  "dataValue": "Wartość...",
+  "dataContains": "zawiera",
+  "dataStartswith": "zaczyna się od",
+  "dataViewCount": "Wyświetlono: ${shown} z ${total} rekordów",
   "queryAllField": "* (Wszystkie pola)",
   "exprBuilderTitle": "⚡ Obliczenia:",
   "exprAddFieldBtn": "+ Dodaj pole",

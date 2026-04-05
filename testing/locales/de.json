@@ -1,4 +1,9 @@
 {
+  "dataNone": "keine",
+  "dataValue": "Wert...",
+  "dataContains": "enthält",
+  "dataStartswith": "beginnt mit",
+  "dataViewCount": "Angezeigt: ${shown} von ${total} Datensätzen",
   "queryAllField": "* (Alle Felder)",
   "exprBuilderTitle": "⚡ Berechnung:",
   "exprAddFieldBtn": "+ Feld hinzufügen",

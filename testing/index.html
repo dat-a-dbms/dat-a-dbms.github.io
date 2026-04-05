@@ -1160,89 +1160,79 @@
 <!-- Перегляд та робота з даними -->
 <div id="dataViewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
     background-color: rgba(0,0,0,0.5); z-index:1006; justify-content:center; align-items:center;">
-    <div style="background:#fff; padding:20px; width:90%; max-width:1000px; border-radius:10px; display:flex; gap:20px; max-height:80vh; overflow:hidden;">
-        
-        <!-- Ліва частина: фільтри, сортування -->
-        <div style="flex:1; display:flex; flex-direction:column; gap:10px; overflow-y:auto;">
+    <div style="background:#fff; padding:20px; width:90%; max-width:1100px; border-radius:10px; display:flex; gap:20px; max-height:88vh; overflow:hidden;">
+
+        <!-- Основна колонка: заголовок + верхня панель + таблиця -->
+        <div style="flex:1; display:flex; flex-direction:column; gap:10px; overflow:hidden; min-width:0;">
             <h2 id="dataViewTitle" style="margin:0;" lang-i18n="tableViewTitle">Перегляд таблиці</h2>
-            
-            <!-- Поле + Сортування + Пошук в одному рядку -->
-<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-    <label lang-i18n="fieldLabel">Поле:
-        <select id="dataFieldSelect"></select>
-    </label>
-    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-        <label lang-i18n="searchLabel">Пошук:
-            <input type="text" id="dataSearchInput" style="width:150px;">
-        </label>
-    </div>    
-    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">    
-        <label><input type="radio" name="sortOrder" value="asc" checked> <span lang-i18n="sortAscending">За зростанням</span></label>
-        <label><input type="radio" name="sortOrder" value="desc"> <span lang-i18n="sortDescending">За спаданням</span></label>
-    </div>
-</div>
 
-<!-- Фільтри -->
-<div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-    <!-- Фільтр 1 -->
-    <label lang-i18n="filterLabel">Фільтр:
-        <select id="dataFilterCondition1" onchange="clearFilterInputOnEmpty(this, 'dataFilterInput1')">
-            <option value="" lang-i18n="noFilter">немає</option>
-            <option value="=">=</option>
-            <option value="!=">!=</option>
-            <option value=">">></option>
-            <option value="<"><</option>
-            <option value=">=">>=</option>
-            <option value="<="><=</option>
-        </select>
-        <input type="text" id="dataFilterInput1" style="width:120px;">
-    </label>
+            <!-- Верхня панель: ліво (Search/Sort) + право (Filters) -->
+            <div style="display:flex; gap:12px; align-items:flex-start;">
 
-    <!-- Логічний оператор -->
-    <label>
-        <select id="logicalOperator" onchange="toggleSecondFilter()">
-            <option value="">🧲</option>            
-            <option value="OR">OR</option>
-            <option value="AND">AND</option>
-        </select>
-    </label>
+                <!-- Ліва частина: Search + Sort -->
+                <div style="display:flex; flex-direction:column; gap:8px; min-width:300px; background:#f5f7fa; border:1px solid #dde; border-radius:6px; padding:10px;">
+                    <!-- Search -->
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <label for="dataSearchInput" style="font-size:14px;white-space:nowrap;" lang-i18n="searchLabel">🔎 Search</label>
+                        <input type="text" id="dataSearchInput"  lang-i18n="dataSearchInput" placeholder="🔍..."
+                               style="flex:1; padding:4px 6px; font-size:14px; min-width:0;"
+                               oninput="applyDataSearch()">
+                    </div>
+                    <!-- Sort by -->
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <label for="dataFieldSelect" style="font-size:14px; white-space:nowrap;" lang-i18n="sortByLabel">↕️ Sort by</label>
+                        <select id="dataFieldSelect" style="flex:1; padding:4px; font-size:13px; min-width:0;"></select>
+                    </div>
+                    <!-- Radio buttons -->
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <label style="display:flex; align-items:center; gap:4px; font-size:13px; cursor:pointer; white-space:nowrap;">
+                            <input type="radio" name="sortOrder" value="asc" checked>
+                            <span lang-i18n="sortAscending">Ascending</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:13px; cursor:pointer; white-space:nowrap;">
+                            <input type="radio" name="sortOrder" value="desc">
+                            <span lang-i18n="sortDescending">Descending</span>
+                        </label>
+                    </div>
+                </div>
 
-    <!-- Фільтр 2 (початково прихований) -->
-    <div id="secondFilterContainer" style="display:none; display:flex; gap:10px; align-items:center;">
-        <select id="dataFilterCondition2" onchange="clearFilterInputOnEmpty(this, 'dataFilterInput2')">
-            <option value="" lang-i18n="noFilter">немає</option>
-            <option value="=">=</option>
-            <option value="!=">!=</option>
-            <option value=">">></option>
-            <option value="<"><</option>
-            <option value=">=">>=</option>
-            <option value="<="><=</option>
-        </select>
-        <input type="text" id="dataFilterInput2" style="width:120px;">
-    </div>
-</div>
+                <!-- Права частина: Filters -->
+                <div style="flex:1; display:flex; flex-direction:column; gap:6px; background:#f5f7fa; border:1px solid #dde; border-radius:6px; padding:10px; min-width:0;">
+                    <div style="font-size:14px;" lang-i18n="filters">🔬 Filters</div>
+                    <div id="filterRowsContainer" style="display:flex; flex-direction:column; gap:5px;"></div>
+                </div>
 
-            <div style="overflow-x:auto; flex-grow:1;">
+            </div>
+
+            <!-- Лічильник записів -->
+            <div id="dataViewCount" style="font-size:12px; color:#666;"></div>
+
+            <!-- Таблиця -->
+            <div style="overflow:auto; flex-grow:1;">
                 <table id="dataViewTable" border="1" cellpadding="5" style="width:100%; border-collapse:collapse; table-layout:fixed;">
-                    <thead id="dataViewHead" style="background-color:#eee;"></thead>
+                    <thead id="dataViewHead" style="background-color:#eee;font-size:12px;"></thead>
                     <tbody id="dataViewBody"></tbody>
                 </table>
             </div>
         </div>
-        
-        <!-- Права частина: кнопки -->
-        <div style="display:flex; flex-direction:column; gap:10px; align-items:center; width:64px;">
+
+        <!-- Права колонка: кнопки (як в оригіналі) -->
+        <div style="display:flex; flex-direction:column; gap:10px; align-items:center; width:64px; flex-shrink:0;">
             <button onclick="sortDataTable()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <div>↕️</div>
                 <div style="font-size:10px;" lang-i18n="sort">Сортувати</div>
+            </button>
+            <button onclick="addDataFilterRow()" style="width:64px; height:64px; font-size:20px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                <div>➕</div>
+                <div style="font-size:10px;" lang-i18n="addFilter">Додати фільтр</div>
             </button>
             <button onclick="applyDataFilter()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <div>🔍</div>
                 <div style="font-size:10px;" lang-i18n="filter">Фільтр</div>
             </button>
-            <button onclick="applyDataSearch()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                <div>🔎</div>
-                <div style="font-size:10px;" lang-i18n="search">Пошук</div>
+            <button onclick="resetDataFilters()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                <div>🔄</div>
+                <div style="font-size:10px;" lang-i18n="reset">Скинути</div>
             </button>
             <button onclick="closeDataViewModal()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <div>❌</div>
@@ -1250,6 +1240,16 @@
             </button>
         </div>
     </div>
+</div>
+
+<!-- Приховані елементи для зворотної сумісності з data.js -->
+<div style="display:none;">
+    <select id="logicalOperator"></select>
+    <div id="secondFilterContainer"></div>
+    <select id="dataFilterCondition1"></select>
+    <input id="dataFilterInput1">
+    <select id="dataFilterCondition2"></select>
+    <input id="dataFilterInput2">
 </div>
 
 <div id="deleteRowModal" style="

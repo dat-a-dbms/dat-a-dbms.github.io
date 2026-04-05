@@ -1,4 +1,9 @@
 {
+  "sortByLabel": "↕️ Ordenar por",
+  "filters": "🔬 Filtros",
+  "dataSearchInput": "Buscar en todos los campos...",
+  "addFilter": "Añadir filtro",
+  "reset": "Restablecer",
   "menuFile": "Archivo",
   "createDbFile": "🚀 Nueva Base de Datos",
   "storageDialog": "💼 Almacenamiento de Base de Datos",

@@ -1,4 +1,9 @@
 {
+  "dataNone": "aucun",
+  "dataValue": "Valeur...",
+  "dataContains": "contient",
+  "dataStartswith": "commence par",
+  "dataViewCount": "Affichage : ${shown} sur ${total} enregistrements",
   "queryAllField": "* (Tous les champs)",
   "exprBuilderTitle": "⚡ Calcul :",
   "exprAddFieldBtn": "+ Ajouter un champ",

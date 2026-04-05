@@ -84,6 +84,98 @@ let currentDataView = {
     rows: []
 };
 
+// ─── Мульти-фільтри ───────────────────────────────────────────────
+let _filterRowCount = 0;
+
+function _getConditionOptions() {
+    return `<option value="">${t("dataNone")}</option>
+            <option value="=">=</option>
+            <option value="!=">!=</option>
+            <option value=">">></option>
+            <option value="<">&lt;</option>
+            <option value=">=">>=</option>
+            <option value="<="><=</option>
+            <option value="contains">${t("dataContains")}</option>
+            <option value="startswith">${t("dataStartswith")}</option>`;
+}
+
+function addDataFilterRow() {
+    _filterRowCount++;
+    const id = "fr_" + _filterRowCount;
+    const container = document.getElementById("filterRowsContainer");
+    const isFirst = container.children.length === 0;
+    const div = document.createElement("div");
+    div.id = id;
+    div.style.cssText = "display:flex; gap:6px; align-items:center; flex-wrap:wrap;";
+
+    const logicPart = isFirst
+        ? `<span style="font-size:12px; color:#666; min-width:36px;">${t("dataFilterLabel")}</span>`
+        : `<button onclick="_toggleLogicBadge('badge_${id}')" id="badge_${id}"
+               style="font-size:11px; font-weight:bold; padding:2px 7px; border-radius:4px;
+                      background:#d0e0ff; border:1px solid #88aadd; cursor:pointer; min-width:36px;">AND</button>`;
+
+    div.innerHTML = `
+        ${logicPart}
+        <select class="dvFilterCol" data-row="${id}" style="padding:3px 4px; font-size:13px;">
+            ${currentDataView.columns.map(c => `<option value="${c}">${c}</option>`).join("")}
+        </select>
+        <select class="dvFilterCond" data-row="${id}" style="padding:3px 4px; font-size:13px;">
+            ${_getConditionOptions()}
+        </select>
+        <input type="text" class="dvFilterVal" data-row="${id}"
+               style="width:180px; padding:3px 5px; font-size:13px;" placeholder="${t("dataValue")}">
+        <button onclick="_removeFilterRow('${id}')"
+                style="font-size:13px; padding:0; width:22px; height:22px; border-radius:2px;
+                       border:1px solid #bbb; background:#fff; cursor:pointer; color:#666; flex-shrink:0;">×</button>
+    `;
+    container.appendChild(div);
+}
+
+function _toggleLogicBadge(badgeId) {
+    const b = document.getElementById(badgeId);
+    if (!b) return;
+    b.textContent = b.textContent.trim() === "AND" ? "OR" : "AND";
+}
+
+function _removeFilterRow(rowId) {
+    const el = document.getElementById(rowId);
+    if (el) el.remove();
+    applyDataFilter();
+}
+
+function _getFilterRows() {
+    const rows = document.querySelectorAll("#filterRowsContainer > div");
+    return Array.from(rows).map((row, i) => {
+        const col   = row.querySelector(".dvFilterCol")  ? row.querySelector(".dvFilterCol").value  : "";
+        const cond  = row.querySelector(".dvFilterCond") ? row.querySelector(".dvFilterCond").value : "";
+        const val   = row.querySelector(".dvFilterVal")  ? row.querySelector(".dvFilterVal").value.trim() : "";
+        const badge = row.querySelector("button[id^='badge_']");
+        const logic = badge ? badge.textContent.trim() : "AND";
+        return { col, cond, val, logic, index: i };
+    });
+}
+
+function _evalCondition(cellValue, cond, mask) {
+    if (!cond || !mask) return true;
+    const strVal = String(cellValue);
+    if (cond === "contains") return strVal.toLowerCase().includes(mask.toLowerCase());
+    if (cond === "startswith") return strVal.toLowerCase().startsWith(mask.toLowerCase());
+    if (cond === "=" || cond === "!=") {
+        const regex = maskToRegex(mask);
+        const matches = regex.test(strVal);
+        return cond === "=" ? matches : !matches;
+    }
+    const numVal  = parseFloat(strVal);
+    const numMask = parseFloat(mask);
+    if (isNaN(numVal) || isNaN(numMask)) return false;
+    if (cond === ">")  return numVal > numMask;
+    if (cond === "<")  return numVal < numMask;
+    if (cond === ">=") return numVal >= numMask;
+    if (cond === "<=") return numVal <= numMask;
+    return true;
+}
+
+//Відкриття 
 function openSelectedDataWork() {
     if (!selectedDataWorkName) {
         Message(t("dataSelectTableOrQuery"));
@@ -94,36 +186,37 @@ function openSelectedDataWork() {
 }
 
 function openDataView(tableName) {
-    let tableData;
-    let columns;
+    let tableData, columns;
     if (tableName.startsWith('*')) {
         const q = queries.results.find(item => item.name === tableName.substring(1));
         if (!q) return Message(t("dataQueryNotFound"));
-        columns = q.schema.map(c => c.title);
+        columns  = q.schema.map(c => c.title);
         tableData = q.data;
     } else {
         const tbl = database.tables.find(tbl => tbl.name === tableName);
         if (!tbl) return Message(t("dataTableNotFound"));
-        columns = tbl.schema.map(c => c.title);
+        columns  = tbl.schema.map(c => c.title);
         tableData = tbl.data;
     }
     currentDataView.columns = columns;
-    currentDataView.rows = [...tableData];
-    // Заповнити селект полів
+    currentDataView.rows    = [...tableData];
+
+    // Заповнити селект поля для сортування
     const select = document.getElementById("dataFieldSelect");
     select.innerHTML = columns.map(c => `<option value="${c}">${c}</option>`).join("");
-    // Показати дані
+
+    // Очистити фільтри
+    document.getElementById("filterRowsContainer").innerHTML = "";
+    document.getElementById("dataSearchInput").value = "";
+    _filterRowCount = 0;
+
     renderDataViewTable(columns, currentDataView.rows);
+    _updateCountLabel(currentDataView.rows.length, currentDataView.rows.length);
     document.getElementById("dataViewTitle").textContent = t("dataTableLabel", tableName);
     document.getElementById("dataViewModal").style.display = "flex";
-    document.getElementById("secondFilterContainer").style.display = "none";
-    document.getElementById("logicalOperator").selectedIndex = 0;
-    document.getElementById("dataFilterInput1").value = "";
-    document.getElementById("dataFilterInput2").value = "";
-    document.getElementById("dataFilterCondition1").selectedIndex = 0;
-    document.getElementById("dataFilterCondition2").selectedIndex = 0;
 }
 
+//Рендер таблиці
 function renderDataViewTable(columns, rows) {
     const head = document.getElementById("dataViewHead");
     const body = document.getElementById("dataViewBody");
@@ -147,6 +240,12 @@ function renderDataViewTable(columns, rows) {
     });
 }
 
+function _updateCountLabel(shown, total) {
+    const el = document.getElementById("dataViewCount");
+    if (el) el.textContent = t("dataViewCount",shown,total);
+}
+
+// Сортування
 function sortDataTable() {
     const field = document.getElementById("dataFieldSelect").value;
     const order = document.querySelector('input[name="sortOrder"]:checked').value;
@@ -157,101 +256,56 @@ function sortDataTable() {
         if (a[colIndex] > b[colIndex]) return order === "asc" ? 1 : -1;
         return 0;
     });
-    renderDataViewTable(currentDataView.columns, currentDataView.rows);
+    applyDataFilter();
 }
 
-function toggleSecondFilter() {
-    const logicalOp = document.getElementById("logicalOperator").value;
-    const container = document.getElementById("secondFilterContainer");
-    if (logicalOp === "AND" || logicalOp === "OR") {
-        container.style.display = "flex";
-    } else {
-        container.style.display = "none";
-    }
-}
-
-function clearFilterInputOnEmpty(selectElement, inputId) {
-    if (selectElement.value === "") {
-        document.getElementById(inputId).value = "";
-    }
-}
-
+// Застосувати фільтри
 function applyDataFilter() {
-    const condition1 = document.getElementById("dataFilterCondition1").value;
-    const mask1 = document.getElementById("dataFilterInput1").value.trim();
-    const logicalOp = document.getElementById("logicalOperator").value;
-    const condition2 = document.getElementById("dataFilterCondition2").value;
-    const mask2 = document.getElementById("dataFilterInput2").value.trim();
-    const field = document.getElementById("dataFieldSelect").value;
-    const colIndex = currentDataView.columns.indexOf(field);
-    if (colIndex === -1) {
-        renderDataViewTable(currentDataView.columns, currentDataView.rows);
-        return;
-    }
-    //  Функція для оцінки одного фільтра
-    function evaluateFilter(value, condition, mask) {
-        if (!condition || !mask) return true; // якщо фільтр не заданий — пропускаємо
-        const strValue = String(value);
-        if (condition === "=" || condition === "!=") {
-            const regex = maskToRegex(mask);
-            const matches = regex.test(strValue);
-            return condition === "=" ? matches : !matches;
-        } else {
-            // Числове порівняння
-            const numValue = parseFloat(strValue);
-            const numMask = parseFloat(mask);
-            if (isNaN(numValue) || isNaN(numMask)) return false;
-            switch (condition) {
-                case ">":
-                    return numValue > numMask;
-                case "<":
-                    return numValue < numMask;
-                case ">=":
-                    return numValue >= numMask;
-                case "<=":
-                    return numValue <= numMask;
-                default:
-                    return true;
-            }
+    const filterRows = _getFilterRows().filter(f => f.cond && f.val !== "");
+    const globalMask = document.getElementById("dataSearchInput").value.trim().toLowerCase();
+
+    let result = currentDataView.rows.filter(row => {
+        // Глобальний пошук по всіх колонках
+        if (globalMask) {
+            const found = row.some(cell => String(cell).toLowerCase().includes(globalMask));
+            if (!found) return false;
         }
-    }
-    let filtered = currentDataView.rows;
-    // Якщо обрано  "+ " або немає другого фільтра — використовуємо лише перший
-    if (!logicalOp || !(condition2 && mask2)) {
-        if (!condition1 || !mask1) {
-            renderDataViewTable(currentDataView.columns, currentDataView.rows);
-            return;
-        }
-        filtered = currentDataView.rows.filter(row => evaluateFilter(row[colIndex], condition1, mask1));
-    } else {
-        // Обидва фільтри активні
-        filtered = currentDataView.rows.filter(row => {
-            const pass1 = evaluateFilter(row[colIndex], condition1, mask1);
-            const pass2 = evaluateFilter(row[colIndex], condition2, mask2);
-            if (logicalOp === "AND") {
-                return pass1 && pass2;
-            } else if (logicalOp === "OR") {
-                return pass1 || pass2;
-            }
-            return pass1; // fallback
+        // Мульти-фільтри
+        if (filterRows.length === 0) return true;
+        let pass = true;
+        filterRows.forEach((f, i) => {
+            const colIdx = currentDataView.columns.indexOf(f.col);
+            if (colIdx === -1) return;
+            const cellVal = row[colIdx];
+            const match   = _evalCondition(cellVal, f.cond, f.val);
+            if (i === 0) { pass = match; }
+            else if (f.logic === "OR")  { pass = pass || match; }
+            else                         { pass = pass && match; }
         });
-    }
-    renderDataViewTable(currentDataView.columns, filtered);
+        return pass;
+    });
+
+    renderDataViewTable(currentDataView.columns, result);
+    _updateCountLabel(result.length, currentDataView.rows.length);
 }
 
+// ─── Глобальний пошук (викликається при введенні) ─────────────────
 function applyDataSearch() {
-    const mask = document.getElementById("dataSearchInput").value.toLowerCase();
-    if (!mask) {
-        renderDataViewTable(currentDataView.columns, currentDataView.rows);
-        return;
-    }
-    const field = document.getElementById("dataFieldSelect").value;
-    const colIndex = currentDataView.columns.indexOf(field);
-    if (colIndex === -1) return;
-    const regex = maskToRegex(mask);
-    const filtered = currentDataView.rows.filter(r => regex.test(String(r[colIndex])));
-    renderDataViewTable(currentDataView.columns, filtered);
+    applyDataFilter();
 }
+
+// ─── Скинути фільтри ─────────────────────────────────────────────
+function resetDataFilters() {
+    document.getElementById("filterRowsContainer").innerHTML = "";
+    document.getElementById("dataSearchInput").value = "";
+    _filterRowCount = 0;
+    renderDataViewTable(currentDataView.columns, currentDataView.rows);
+    _updateCountLabel(currentDataView.rows.length, currentDataView.rows.length);
+}
+
+// ─── Зворотна сумісність (викликається зі старого коду) ──────────
+function toggleSecondFilter() {}
+function clearFilterInputOnEmpty() {}
 
 function closeDataViewModal() {
     document.getElementById("dataViewModal").style.display = "none";
