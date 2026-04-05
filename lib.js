@@ -2427,7 +2427,84 @@ function closeQueryModal() {
     toggleStructureButtonVisibility(false);
 }
 
-/** 
+// ===================== Combined Table.Field Dropdown Helpers =====================
+
+function parseCombinedValue(value) {
+    if (!value || value === "__expr__") return { tableName: "", fieldName: value || "" };
+    const dot = value.indexOf(".");
+    if (dot === -1) return { tableName: "", fieldName: value };
+    return { tableName: value.substring(0, dot), fieldName: value.substring(dot + 1) };
+}
+
+function getAvailableQueryTables() {
+    const tables = [];
+    const fromTable = document.getElementById("fromTable")?.value;
+    if (fromTable) tables.push(fromTable);
+    document.querySelectorAll("#joinBody .join-table-a, #joinBody .join-table-b").forEach(sel => {
+        if (sel.value && !tables.includes(sel.value)) tables.push(sel.value);
+    });
+    if (tables.length === 0) {
+        database.tables.forEach(t => tables.push(t.name));
+    }
+    return tables;
+}
+
+function populateCombinedDropdown(selectEl) {
+    const currentValue = selectEl.value;
+    selectEl.innerHTML = "";
+
+    const emptyOpt = document.createElement("option");
+    emptyOpt.value = "";
+    emptyOpt.textContent = "Оберіть поле";
+    selectEl.appendChild(emptyOpt);
+
+    const availableTables = getAvailableQueryTables();
+
+    availableTables.forEach(tableName => {
+        const table = database.tables.find(tb => tb.name === tableName);
+        if (!table) return;
+
+        const group = document.createElement("optgroup");
+        group.label = tableName;
+
+        const starOpt = document.createElement("option");
+        starOpt.value = tableName + ".*";
+        starOpt.textContent = "* (Всі поля)";
+        group.appendChild(starOpt);
+
+        table.schema.forEach(field => {
+            const opt = document.createElement("option");
+            opt.value = tableName + "." + field.title;
+            opt.textContent = field.title;
+            group.appendChild(opt);
+        });
+
+        selectEl.appendChild(group);
+    });
+
+    const exprSep = document.createElement("option");
+    exprSep.disabled = true;
+    exprSep.textContent = "──────────";
+    selectEl.appendChild(exprSep);
+    const exprOption = document.createElement("option");
+    exprOption.value = "__expr__";
+    exprOption.textContent = "⚡ Обчислення...";
+    selectEl.appendChild(exprOption);
+
+    if (currentValue && Array.from(selectEl.options).some(o => o.value === currentValue)) {
+        selectEl.value = currentValue;
+    }
+}
+
+function repopulateAllCombinedDropdowns() {
+    document.querySelectorAll("#queryBody .query-field-select").forEach(sel => {
+        populateCombinedDropdown(sel);
+    });
+}
+
+// ===================== End Combined Dropdown Helpers =====================
+
+/**
  * Додає новий рядок до конструктора запиту
  * Рядок містить вибір таблиці, поля, видимість, сортування, фільтр
  **/
@@ -2436,7 +2513,6 @@ function addQueryRow() {
     const row = document.createElement("tr");
 
     row.innerHTML = `
-        <td><select class="query-table-select" onchange="populateFieldDropdown(this)"></select></td>
         <td><select class="query-field-select" onchange="onFieldSelectChange(this)"></select><div class="computed-expr-display" style="display:none; margin-top:4px; font-size:12px; color:#555; cursor:pointer;" onclick="editComputedField(this)"></div></td>
         <td><input type="checkbox" checked class="query-visible-checkbox"></td>
         <td>
@@ -2480,7 +2556,7 @@ function addQueryRow() {
     `;
 
     tbody.appendChild(row);
-    populateTableDropdownsForRow(row);
+    populateCombinedDropdown(row.querySelector(".query-field-select"));
 }
 
 /**
@@ -2504,17 +2580,34 @@ function toggleAliasInput(selectEl) {
 let computedFieldTargetRow = null;
 
 function onFieldSelectChange(selectEl) {
+    const row = selectEl.closest("tr");
     if (selectEl.value === "__expr__") {
-        computedFieldTargetRow = selectEl.closest("tr");
+        computedFieldTargetRow = row;
         openComputedFieldModal();
     } else {
-        const row = selectEl.closest("tr");
         const display = row.querySelector(".computed-expr-display");
         if (display) {
             display.style.display = "none";
             display.innerHTML = "";
         }
+        selectEl.style.display = "";
+        // Restore GROUP BY, WHERE, and role controls
+        const groupSel = row.querySelector(".group-field-select");
+        const opSel = row.querySelector(".query-operator-select");
+        const critInput = row.querySelector(".query-criteria-input");
+        const roleSel = row.querySelector(".query-field-role");
+        if (groupSel) groupSel.style.display = "";
+        if (opSel) opSel.style.display = "";
+        if (critInput) critInput.style.display = "";
+        if (roleSel) roleSel.style.display = "";
         delete row.dataset.computed;
+        const { tableName } = parseCombinedValue(selectEl.value);
+        const fromSelect = document.getElementById("fromTable");
+        if (tableName && fromSelect && !fromSelect.value) {
+            fromSelect.value = tableName;
+            repopulateAllCombinedDropdowns();
+        }
+        populateGroupDropdown(row, tableName);
     }
 }
 
@@ -2522,8 +2615,9 @@ function getQueryTables() {
     const tables = [];
     const fromTable = document.getElementById("fromTable")?.value;
     if (fromTable) tables.push(fromTable);
-    document.querySelectorAll("#queryBody .query-table-select").forEach(sel => {
-        if (sel.value && !tables.includes(sel.value)) tables.push(sel.value);
+    document.querySelectorAll("#queryBody .query-field-select").forEach(sel => {
+        const { tableName } = parseCombinedValue(sel.value);
+        if (tableName && !tables.includes(tableName)) tables.push(tableName);
     });
     document.querySelectorAll("#joinBody .join-table-a, #joinBody .join-table-b").forEach(sel => {
         if (sel.value && !tables.includes(sel.value)) tables.push(sel.value);
@@ -2534,125 +2628,264 @@ function getQueryTables() {
     return tables;
 }
 
-function populateComputedTableDropdown(selectId) {
-    const select = document.getElementById(selectId);
-    select.innerHTML = "";
-    const tables = getQueryTables();
-    tables.forEach(name => {
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        select.appendChild(opt);
+// ===================== Expression Builder (computed fields) =====================
+
+function ensureExprBuilderModal() {
+    if (document.getElementById("exprBuilderModal")) return;
+
+    const modal = document.createElement("div");
+    modal.id = "exprBuilderModal";
+    modal.style.cssText = `
+        display:none; position:fixed; inset:0; z-index:9999;
+        align-items:center; justify-content:center;
+        background:rgba(0,0,0,0.45);
+    `;
+    modal.innerHTML = `
+        <div class="eb-card">
+            <div class="eb-header">
+                <span class="eb-header-label">⚡ Обчислення:</span>
+                <input id="exprBuilderAlias" type="text" class="eb-alias-input"
+                    placeholder="псевдонім">
+                <button class="eb-close-btn" onclick="cancelComputedField()"
+                    title="Скасувати">✕</button>
+            </div>
+            <div id="exprBuilderDisplay" class="eb-display">
+                <span class="eb-empty">—</span>
+            </div>
+            <div class="eb-toolbar">
+                <div class="eb-field-wrap" id="exprFieldDropdownWrap">
+                    <select id="exprCombinedSelect" class="eb-btn eb-btn-field" onchange="exprOnCombinedFieldChange()">
+                        <option value="">+ Додати поле</option>
+                    </select>
+                </div>
+                <div class="eb-func-wrap" id="exprFuncDropdownWrap">
+                    <button class="eb-btn eb-btn-field" onclick="exprToggleFuncMenu()">Функції ▼</button>
+                    <div id="exprFuncMenu" class="eb-func-menu">
+                        ${["ABS(","INSTR(","CONCAT(","LENGTH(","SIGN(","SUBSTR(","ROUND(","TRIM(","REPLACE("].map(f=>
+                            `<button class="eb-func-item" onclick="exprAddFunc('${f}')">${f}</button>`
+                        ).join("")}
+                    </div>
+                </div>
+                <button class="eb-btn eb-btn-op eb-btn-comma" onclick="exprAdd(',')">,</button>
+                <button class="eb-btn eb-btn-del" onclick="exprDel()">⌫</button>
+            </div>
+            <div class="eb-grid">
+                ${["7","8","9"].map(v=>`<button class="eb-btn eb-btn-digit" onclick="exprAdd('${v}')">${v}</button>`).join("")}
+                <button class="eb-btn eb-btn-op" onclick="exprAdd('*')">*</button>
+                <button class="eb-btn eb-btn-op" onclick="exprAdd('%')">%</button>
+                ${["4","5","6"].map(v=>`<button class="eb-btn eb-btn-digit" onclick="exprAdd('${v}')">${v}</button>`).join("")}
+                <button class="eb-btn eb-btn-op" onclick="exprAdd('/')">/</button>
+                <button class="eb-btn eb-btn-op" onclick="exprAdd('(')">(</button>
+                ${["1","2","3"].map(v=>`<button class="eb-btn eb-btn-digit" onclick="exprAdd('${v}')">${v}</button>`).join("")}
+                <button class="eb-btn eb-btn-op" onclick="exprAdd('+')">+</button>
+                <button class="eb-btn eb-btn-op" onclick="exprAdd(')')">)</button>
+                <button class="eb-btn eb-btn-digit" onclick="exprAdd('0')">0</button>
+                <button class="eb-btn eb-btn-digit" onclick="exprAdd('.')">.</button>
+                <button class="eb-btn eb-btn-op"    onclick="exprToggleSign()">+/-</button>
+                <button class="eb-btn eb-btn-op"    onclick="exprAdd('-')">-</button>
+                <button class="eb-btn eb-btn-ok"    onclick="confirmComputedField()">OK</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    document.addEventListener("click", function(ev) {
+        if (!ev.target.closest("#exprFuncDropdownWrap")) {
+            document.getElementById("exprFuncMenu")?.classList.remove("show");
+        }
     });
 }
 
-function populateComputedFields(tableSelectId, fieldSelectId) {
-    const tableName = document.getElementById(tableSelectId).value;
-    const fieldSelect = document.getElementById(fieldSelectId);
-    fieldSelect.innerHTML = "";
-    if (!tableName) return;
-    const table = database.tables.find(t => t.name === tableName);
-    if (!table) return;
-    table.schema.forEach(field => {
-        const opt = document.createElement("option");
-        opt.value = field.title;
-        opt.textContent = field.title;
-        fieldSelect.appendChild(opt);
-    });
+// ---- Expression Builder state ----
+let _exprValue = "";
+
+function exprToggleFuncMenu() {
+    document.getElementById("exprFuncMenu").classList.toggle("show");
 }
 
-function toggleComputedRightType() {
-    const type = document.getElementById("computedRightType").value;
-    const tableEl = document.getElementById("computedRightTable");
-    const fieldEl = document.getElementById("computedRightField");
-    const valueEl = document.getElementById("computedRightValue");
-    if (type === "field") {
-        tableEl.style.display = "";
-        fieldEl.style.display = "";
-        valueEl.style.display = "none";
-    } else {
-        tableEl.style.display = "none";
-        fieldEl.style.display = "none";
-        valueEl.style.display = "";
+function _exprTokenize(s) {
+    const tokens = []; let i = 0;
+    while (i < s.length) {
+        if (/\s/.test(s[i])) { i++; continue; }
+        const fieldMatch = s.slice(i).match(/^\[([^\]]+)\]/);
+        if (fieldMatch) {
+            tokens.push({ v: fieldMatch[0], t: "field" }); i += fieldMatch[0].length; continue;
+        }
+        if (/[A-Z_]/i.test(s[i])) {
+            const m = s.slice(i).match(/^[A-Z_]+/i);
+            if (m && s[i + m[0].length] === "(") { tokens.push({ v: m[0], t: "func" }); i += m[0].length; }
+            else { tokens.push({ v: s[i], t: "text" }); i++; }
+            continue;
+        }
+        if (/[0-9.]/.test(s[i])) {
+            let n = ""; while (i < s.length && /[0-9.]/.test(s[i])) { n += s[i]; i++; }
+            tokens.push({ v: n, t: "num" }); continue;
+        }
+        if ("()+-*/%".includes(s[i])) { tokens.push({ v: s[i], t: s[i] === "(" || s[i] === ")" ? "paren" : "op" }); i++; continue; }
+        if (s.slice(i, i+2) === "&&") { tokens.push({ v: "&&", t: "op" }); i += 2; continue; }
+        tokens.push({ v: s[i], t: "text" }); i++;
     }
+    return tokens;
+}
+
+function _exprHighlight(s) {
+    if (!s) return `<span class="eb-empty">—</span>`;
+    return _exprTokenize(s).map(tk => {
+        const sp = document.createElement("span");
+        sp.textContent = tk.v;
+        sp.className = "hl-" + tk.t;
+        return sp.outerHTML;
+    }).join("");
+}
+
+function _exprValidate(s) {
+    const errs = []; let bal = 0; const ops = "+-*/%";
+    let prev = null;
+    for (let i = 0; i < s.length; i++) {
+        const c = s[i];
+        if (c === "(") bal++;
+        else if (c === ")") { bal--; if (bal < 0) errs.push("Зайва )"); }
+        if (ops.includes(c) && ops.includes(prev)) errs.push("Подвійний оператор");
+        prev = c;
+    }
+    if (bal > 0) errs.push("Не закрито дужки");
+    if (s && ops.includes(s.slice(-1))) errs.push("Вираз не може закінчуватись оператором");
+    return errs;
+}
+
+function _exprUpdate() {
+    const disp = document.getElementById("exprBuilderDisplay");
+    if (!disp) return;
+    disp.innerHTML = _exprValue
+        ? _exprHighlight(_exprValue)
+        : `<span class="eb-empty">—</span>`;
+    const errs = _exprValidate(_exprValue);
+    disp.classList.toggle("eb-err", errs.length > 0);
+    disp.classList.toggle("eb-ok",  !errs.length && !!_exprValue);
+}
+
+function exprAdd(s) {
+    _exprValue += s;
+    _exprUpdate();
+}
+
+function exprAddField(tableField) {
+    _exprValue += `[${tableField}]`;
+    _exprUpdate();
+}
+
+function exprAddFunc(f) {
+    _exprValue += f;
+    _exprUpdate();
+    document.getElementById("exprFuncMenu")?.classList.remove("show");
+}
+
+function exprDel() {
+    if (!_exprValue) return;
+    const fieldMatch = _exprValue.match(/\[[^\]]+\]$/);
+    if (fieldMatch) { _exprValue = _exprValue.slice(0, -fieldMatch[0].length); _exprUpdate(); return; }
+    if (/[A-Z_]+\($/i.test(_exprValue)) { _exprValue = _exprValue.replace(/[A-Z_]+\($/i, ""); _exprUpdate(); return; }
+    if ("()+-*/%".includes(_exprValue.slice(-1))) { _exprValue = _exprValue.slice(0,-1); _exprUpdate(); return; }
+    _exprValue = _exprValue.slice(0, -1);
+    _exprUpdate();
+}
+
+function exprToggleSign() {
+    const m = [..._exprValue.matchAll(/(?:^|(?<=[+\-*\/%(]))(-?)(\d+(?:\.\d+)?)/g)];
+    if (!m.length) return;
+    const last = m[m.length - 1];
+    const st = last.index;
+    const neg = _exprValue[st] === "-";
+    _exprValue = neg ? _exprValue.slice(0, st) + _exprValue.slice(st + 1) : _exprValue.slice(0, st) + "-" + _exprValue.slice(st);
+    _exprUpdate();
+}
+
+function _exprPopulateFieldMenu() {
+    const combinedSelect = document.getElementById("exprCombinedSelect");
+    if (!combinedSelect) return;
+
+    combinedSelect.innerHTML = `<option value="">+ Додати поле</option>`;
+    getQueryTables().forEach(tableName => {
+        const table = database.tables.find(tb => tb.name === tableName);
+        if (!table) return;
+
+        const group = document.createElement("optgroup");
+        group.label = tableName;
+
+        table.schema.forEach(field => {
+            const opt = document.createElement("option");
+            opt.value = tableName + "." + field.title;
+            opt.textContent = field.title;
+            group.appendChild(opt);
+        });
+
+        combinedSelect.appendChild(group);
+    });
+}
+
+function exprOnCombinedFieldChange() {
+    const combinedSelect = document.getElementById("exprCombinedSelect");
+    const value = combinedSelect.value;
+    if (!value) return;
+
+    exprAddField(value);
+    combinedSelect.value = "";
 }
 
 function openComputedFieldModal() {
-    populateComputedTableDropdown("computedLeftTable");
-    populateComputedTableDropdown("computedRightTable");
-    populateComputedFields("computedLeftTable", "computedLeftField");
-    populateComputedFields("computedRightTable", "computedRightField");
-
-    if (computedFieldTargetRow) {
-        const rowTable = computedFieldTargetRow.querySelector(".query-table-select").value;
-        if (rowTable) {
-            document.getElementById("computedLeftTable").value = rowTable;
-            populateComputedFields("computedLeftTable", "computedLeftField");
-            document.getElementById("computedRightTable").value = rowTable;
-            populateComputedFields("computedRightTable", "computedRightField");
-        }
-    }
-
-    document.getElementById("computedOperator").value = "+";
-    document.getElementById("computedRightType").value = "field";
-    document.getElementById("computedRightValue").value = "";
-    document.getElementById("computedAlias").value = "";
-    toggleComputedRightType();
+    ensureExprBuilderModal();
+    _exprPopulateFieldMenu();
 
     if (computedFieldTargetRow && computedFieldTargetRow.dataset.computed) {
         const c = JSON.parse(computedFieldTargetRow.dataset.computed);
-        document.getElementById("computedLeftTable").value = c.leftTable;
-        populateComputedFields("computedLeftTable", "computedLeftField");
-        document.getElementById("computedLeftField").value = c.leftField;
-        document.getElementById("computedOperator").value = c.operator;
-        document.getElementById("computedRightType").value = c.rightType;
-        toggleComputedRightType();
-        if (c.rightType === "field") {
-            document.getElementById("computedRightTable").value = c.rightTable;
-            populateComputedFields("computedRightTable", "computedRightField");
-            document.getElementById("computedRightField").value = c.rightField;
-        } else {
-            document.getElementById("computedRightValue").value = c.rightField;
-        }
-        document.getElementById("computedAlias").value = c.alias;
+        _exprValue = c.expr || "";
+        document.getElementById("exprBuilderAlias").value = c.alias || "";
+    } else {
+        _exprValue = "";
+        document.getElementById("exprBuilderAlias").value = "";
     }
+    _exprUpdate();
 
-    document.getElementById("computedFieldModal").style.display = "flex";
+    document.getElementById("exprBuilderModal").style.display = "flex";
 }
 
 function confirmComputedField() {
-    const alias = document.getElementById("computedAlias").value.trim();
+    const alias = document.getElementById("exprBuilderAlias").value.trim();
     if (!alias) {
         Message("Введіть псевдонім для обчислюваного поля.");
         return;
     }
-
-    const rightType = document.getElementById("computedRightType").value;
-    const computed = {
-        leftTable: document.getElementById("computedLeftTable").value,
-        leftField: document.getElementById("computedLeftField").value,
-        operator: document.getElementById("computedOperator").value,
-        rightType: rightType,
-        rightTable: rightType === "field" ? document.getElementById("computedRightTable").value : null,
-        rightField: rightType === "field" ? document.getElementById("computedRightField").value : document.getElementById("computedRightValue").value.trim(),
-        alias: alias
-    };
-
+    if (!_exprValue) {
+        Message("Вираз не може бути порожнім");
+        return;
+    }
+    const errs = _exprValidate(_exprValue);
+    if (errs.length) {
+        Message("Помилка виразу: " + errs[0]);
+        return;
+    }
     if (!computedFieldTargetRow) return;
 
+    const computed = { expr: _exprValue, alias };
     computedFieldTargetRow.dataset.computed = JSON.stringify(computed);
 
-    const leftLabel = `${computed.leftTable}.${computed.leftField}`;
-    const rightLabel = computed.rightType === "field"
-        ? `${computed.rightTable}.${computed.rightField}`
-        : computed.rightField;
-    const displayText = `${leftLabel} ${computed.operator} ${rightLabel} → ${alias}`;
-
     const display = computedFieldTargetRow.querySelector(".computed-expr-display");
-    display.innerHTML = `<span title="Натисніть, щоб редагувати вираз">⚡ ${displayText} ✏️</span>`;
-    display.style.display = "block";
+    display.innerHTML = `<span title="${_exprValue}" style="cursor:pointer;">⚡ ${alias}</span>`;
+    display.style.display = "flex";
 
-    document.getElementById("computedFieldModal").style.display = "none";
+    const fieldSelect = computedFieldTargetRow.querySelector(".query-field-select");
+    if (fieldSelect) fieldSelect.style.display = "none";
+    // Hide GROUP BY, WHERE, and role — not applicable for computed fields
+    const groupSel = computedFieldTargetRow.querySelector(".group-field-select");
+    const opSel = computedFieldTargetRow.querySelector(".query-operator-select");
+    const critInput = computedFieldTargetRow.querySelector(".query-criteria-input");
+    const roleSel = computedFieldTargetRow.querySelector(".query-field-role");
+    if (groupSel) groupSel.style.display = "none";
+    if (opSel) opSel.style.display = "none";
+    if (critInput) critInput.style.display = "none";
+    if (roleSel) roleSel.style.display = "none";
+
+    document.getElementById("exprBuilderModal").style.display = "none";
     computedFieldTargetRow = null;
 }
 
@@ -2660,8 +2893,9 @@ function cancelComputedField() {
     if (computedFieldTargetRow && !computedFieldTargetRow.dataset.computed) {
         const fieldSelect = computedFieldTargetRow.querySelector(".query-field-select");
         fieldSelect.value = fieldSelect.options[0]?.value || "";
+        fieldSelect.style.display = "";
     }
-    document.getElementById("computedFieldModal").style.display = "none";
+    document.getElementById("exprBuilderModal").style.display = "none";
     computedFieldTargetRow = null;
 }
 
@@ -2670,7 +2904,7 @@ function editComputedField(displayEl) {
     openComputedFieldModal();
 }
 
-// ===================== End Computed Fields =====================
+// ===================== End Expression Builder =====================
 
 /**
  * Видаляє рядок з конструктора запиту
@@ -2682,109 +2916,44 @@ function deleteQueryRow(button) {
     row.remove(); // Видалити рядок
 }
 
-/** 
- * Заповнює всі випадаючі списки таблиць у конструкторі запиту
+/**
+ * Заповнює випадаючий список FROM-таблиці та комбіновані дропдауни полів
  **/
 function populateTableDropdowns() {
-    const tableSelects = document.querySelectorAll(".query-table-select"); // Всі селекти таблиць
-    
-    tableSelects.forEach(select => {
-        console.log("Заповнюється:", select.id);
-        select.innerHTML = "<option value=''>Виберіть таблицю</option>"; // Початковий варіант
+    const fromSelect = document.getElementById("fromTable");
+    if (fromSelect) {
+        fromSelect.innerHTML = "<option value=''>Виберіть таблицю</option>";
         database.tables.forEach(table => {
             const option = document.createElement("option");
             option.value = table.name;
             option.textContent = table.name;
-            select.appendChild(option); // Додати назву таблиці
+            fromSelect.appendChild(option);
         });
-    });
+    }
+    repopulateAllCombinedDropdowns();
 }
 
 /**
- * Заповнює список таблиць у конкретному рядку конструктора запиту
- * Параметр:
- *   row — рядок, у якому потрібно заповнити список
- **/
-function populateTableDropdownsForRow(row) {
-    const select = row.querySelector(".query-table-select");
-    select.innerHTML = "<option value=''>Виберіть таблицю</option>";
-    database.tables.forEach(table => {
-        const option = document.createElement("option");
-        option.value = table.name;
-        option.textContent = table.name;
-        select.appendChild(option);
-    });
-}
-
-
-/** 
- * Заповнює список полів таблиці на основі вибраної таблиці
- * Параметр:
- *   tableSelect — select-елемент з вибраною таблицею
- **/
-function populateFieldDropdown(tableSelect) {
-    const row = tableSelect.closest("tr");
-    if (!row) {
-        console.error("populateFieldDropdown: викликано з елемента поза <tr>", tableSelect);
-        return;
-    }
-
-    const fieldSelect = row.querySelector(".query-field-select");
+ * Populate group-by dropdown based on selected combined field's table
+ */
+function populateGroupDropdown(row, tableName) {
     const groupSelect = row.querySelector(".group-field-select");
-
-    if (!fieldSelect || !groupSelect) {
-        console.error("populateFieldDropdown: не знайдено fieldSelect або groupSelect у рядку", row);
-        return;
-    }
-
-    // Далі код без змін...
-    fieldSelect.innerHTML = "";
+    if (!groupSelect) return;
     groupSelect.innerHTML = "";
-    const selectedTableName = tableSelect.value;
-    if (!selectedTableName) {
-        fieldSelect.disabled = true;
-        return;
-    }
-
-    const selectedTable = database.tables.find(t => t.name === selectedTableName);
-    if (!selectedTable) return;
-
-    fieldSelect.disabled = false;
-    groupSelect.disabled = false;
-
-    // Додати опцію "* (всі поля)" на початок
-    const starOption = document.createElement("option");
-    starOption.value = "*";
-    starOption.textContent = "* (Всі поля)";
-    fieldSelect.appendChild(starOption);
-
-    // Додати реальні поля таблиці
-    selectedTable.schema.forEach(field => {
-        const option = document.createElement("option");
-        option.value = field.title;
-        option.textContent = field.title;
-        fieldSelect.appendChild(option);
-    });
-
-    // Додати опцію "Обчислення"
-    const exprSep = document.createElement("option");
-    exprSep.disabled = true;
-    exprSep.textContent = "──────────";
-    fieldSelect.appendChild(exprSep);
-    const exprOption = document.createElement("option");
-    exprOption.value = "__expr__";
-    exprOption.textContent = "⚡ Обчислення...";
-    fieldSelect.appendChild(exprOption);
 
     const startOption = document.createElement("option");
     startOption.value = "";
     startOption.textContent = "----";
     groupSelect.appendChild(startOption);
 
-    selectedTable.schema.forEach(field => {
+    if (!tableName) return;
+    const table = database.tables.find(t => t.name === tableName);
+    if (!table) return;
+
+    table.schema.forEach(field => {
         const option = document.createElement("option");
         option.value = field.title;
-        option.textContent = field.title;        
+        option.textContent = field.title;
         groupSelect.appendChild(option);
     });
 }
@@ -2869,8 +3038,8 @@ function generateSqlQuery() {
     };
 
     rows.forEach(row => {
-        const tableName = row.querySelector(".query-table-select").value;
-        const fieldName = row.querySelector(".query-field-select")?.value || "";
+        const combinedValue = row.querySelector(".query-field-select")?.value || "";
+        const { tableName, fieldName } = parseCombinedValue(combinedValue);
         const groupName = row.querySelector(".group-field-select")?.value || "";
         const isVisible = row.querySelector(".query-visible-checkbox").checked;
         const sortBy = row.querySelector(".query-sort-select").value;
@@ -2879,7 +3048,8 @@ function generateSqlQuery() {
         const fieldRole = row.querySelector(".query-field-role").value;
         let alias = row.querySelector(".query-alias-input").value.trim();
 
-        if (!tableName || (!fieldName && fieldName !== "*")) return;
+        const isComputed = !!row.dataset.computed;
+        if (!isComputed && (!tableName || (!fieldName && fieldName !== "*"))) return;
         if (!baseTable && tableName !== "*") baseTable = tableName;
 
         // --- Computed expression ---
@@ -2896,13 +3066,16 @@ function generateSqlQuery() {
         // --- SELECT ---
         let selectExpr = "";
         if (fieldName === "__expr__" && computedData) {
-            const left = `"${computedData.leftTable}"."${computedData.leftField}"`;
-            const right = computedData.rightType === "field"
-                ? `"${computedData.rightTable}"."${computedData.rightField}"`
-                : isNumericLiteral(String(computedData.rightField))
-                    ? computedData.rightField
-                    : sqlQuote(computedData.rightField);
-            selectExpr = `(${left} ${computedData.operator} ${right}) AS ${computedData.alias}`;
+            // Expression Builder format: { expr, alias }
+            // Replace [TABLE.FIELD] tokens with "TABLE"."FIELD"
+            let sqlExpr = computedData.expr.replace(/\[([^\]]+)\]/g, (_, tf) => {
+                const dot = tf.indexOf(".");
+                if (dot === -1) return `"${tf}"`;
+                const tbl = tf.slice(0, dot);
+                const fld = tf.slice(dot + 1);
+                return `"${tbl}"."${fld}"`;
+            });
+            selectExpr = `(${sqlExpr}) AS "${computedData.alias}"`;
             alias = computedData.alias;
             hasSelect = true;
         } else if (fieldName === "*") {
@@ -3283,18 +3456,10 @@ function runFinalSqlQuery() {
 function onFromTableChange() {
     const tableName = document.getElementById("fromTable").value;
     if (tableName) {
-        // Очистити поточні рядки
         document.getElementById("queryBody").innerHTML = "";
-        // Додати новий рядок
         addQueryRow();
-        // Встановити таблицю в цьому рядку
-        const newRow = document.querySelector("#queryBody tr");
-        if (newRow) {
-            const tableSelect = newRow.querySelector(".query-table-select");
-            tableSelect.value = tableName;
-            populateFieldDropdown(tableSelect); // тепер це безпечно!
-        }
     }
+    repopulateAllCombinedDropdowns();
 }
 function populateQueryModal(queryDefinition) {
     document.getElementById("queryName").value = queryDefinition.name;
@@ -3307,7 +3472,6 @@ function populateQueryModal(queryDefinition) {
     queryDefinition.config.forEach(item => {
         const row = document.createElement("tr");
         row.innerHTML = `
-            <td><select class="query-table-select" onchange="onFromTableChange()"></select></td>
             <td><select class="query-field-select" onchange="onFieldSelectChange(this)"></select><div class="computed-expr-display" style="display:none; margin-top:4px; font-size:12px; color:#555; cursor:pointer;" onclick="editComputedField(this)"></div></td>
             <td><input type="checkbox" checked class="query-visible-checkbox"></td>
             <td>
@@ -3337,7 +3501,7 @@ function populateQueryModal(queryDefinition) {
             </td>
             <td>
                 <select class="query-field-role" title="Тип участі у запиті" onchange="toggleAliasInput(this)">
-                    <option value="select">----</option>                    
+                    <option value="select">----</option>
                     <option title="КІЛЬКІСТЬ" value="count">COUNT</option>
                     <option title="СУМА" value="sum">SUM</option>
                     <option title="СЕРЕДНЄ" value="avg">AVG</option>
@@ -3351,51 +3515,61 @@ function populateQueryModal(queryDefinition) {
         `;
         queryBody.appendChild(row);
 
-        // Заповнити випадаючі списки
-        populateTableDropdownsForRow(row);
-        row.querySelector(".query-table-select").value = item.tableName;
-        populateFieldDropdown(row.querySelector(".query-table-select"));
-        row.querySelector(".query-field-select").value = item.fieldName;
+        // Populate combined dropdown and restore value
+        populateCombinedDropdown(row.querySelector(".query-field-select"));
+        const combinedValue = item.fieldName === "__expr__" ? "__expr__" : item.tableName + "." + item.fieldName;
+        row.querySelector(".query-field-select").value = combinedValue;
+        populateGroupDropdown(row, item.tableName);
         row.querySelector(".group-field-select").value = item.groupName;
         row.querySelector(".query-visible-checkbox").checked = item.isVisible;
         row.querySelector(".query-sort-select").value = item.sortBy;
 
         // Restore computed field if present
         if (item.fieldName === "__expr__" && item.computed) {
-            row.dataset.computed = JSON.stringify(item.computed);
             const c = item.computed;
-            const leftLabel = `${c.leftTable}.${c.leftField}`;
-            const rightLabel = c.rightType === "field"
-                ? `${c.rightTable}.${c.rightField}`
-                : c.rightField;
-            const displayText = `${leftLabel} ${c.operator} ${rightLabel} → ${c.alias}`;
+            let exprStr, aliasStr;
+            if (c.expr !== undefined) {
+                // New format
+                exprStr = c.expr;
+                aliasStr = c.alias;
+            } else {
+                // Legacy format — migrate to new
+                const leftLabel = `${c.leftTable}.${c.leftField}`;
+                const rightLabel = c.rightType === "field" ? `${c.rightTable}.${c.rightField}` : c.rightField;
+                exprStr = `[${leftLabel}]${c.operator}${c.rightType === "field" ? `[${rightLabel}]` : c.rightField}`;
+                aliasStr = c.alias;
+            }
+            row.dataset.computed = JSON.stringify({ expr: exprStr, alias: aliasStr });
             const display = row.querySelector(".computed-expr-display");
-            display.innerHTML = `<span title="Натисніть, щоб редагувати вираз">⚡ ${displayText} ✏️</span>`;
+            display.innerHTML = `<span title="${exprStr}" style="text-decoration:underline dotted;cursor:pointer;">⚡ ${aliasStr}</span>`;
             display.style.display = "block";
+            // Hide combined dropdown and inapplicable controls for computed field
+            row.querySelector(".query-field-select").style.display = "none";
+            const groupSel = row.querySelector(".group-field-select");
+            const opSel = row.querySelector(".query-operator-select");
+            const critInput = row.querySelector(".query-criteria-input");
+            const roleSel = row.querySelector(".query-field-role");
+            if (groupSel) groupSel.style.display = "none";
+            if (opSel) opSel.style.display = "none";
+            if (critInput) critInput.style.display = "none";
+            if (roleSel) roleSel.style.display = "none";
         }
 
         const operatorSelect = row.querySelector(".query-operator-select");
         const criteriaInput = row.querySelector(".query-criteria-input");
 
-        // Встановлюємо оператор і критерій
-
         operatorSelect.value = item.operator;
         criteriaInput.value = item.criteria;
 
-        // Встановлюємо роль поля (важливо!)
         const roleSelect = row.querySelector(".query-field-role");
         roleSelect.value = item.fieldRole || "select";
 
-        // Встановлюємо псевдонім, якщо він був
         const aliasInput = row.querySelector(".query-alias-input");
         if (item.alias) {
             aliasInput.value = item.alias;
         }
 
-        // Оновлюємо видимість інпуту псевдоніма
         toggleAliasInput(roleSelect);
-        
-        
     });
 
     // Відновлення JOIN-зв’язків
@@ -3543,6 +3717,8 @@ function populateQueryModal(queryDefinition) {
                 fieldSelect.appendChild(opt);
             });
         }
+        // Repopulate combined dropdowns since available tables changed
+        repopulateAllCombinedDropdowns();
     }
     //
 

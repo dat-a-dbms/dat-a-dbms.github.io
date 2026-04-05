@@ -73,6 +73,7 @@
   "primaryKeyLabel": "Klucz główny ",
   "queryDefaultName": "Nowe_zapytanie ",
   "querySelectTable": "Wybierz tabelę ",
+  "querySelectField": "Wybierz pole",
   "queryAllFields": "* (Wszystkie pola) ",
   "queryAlias": "alias ",
   "queryAliasFull": "Alias ",
