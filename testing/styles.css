@@ -496,7 +496,7 @@ body.dark-theme {
     --dt-surface-hi2: #4a4a4a;
     --dt-border:      #444;
     --dt-border-hi:   #555;
-    --dt-text:        #e0e0e0;
+    --dt-text:        #ffffff;
     --dt-text-dim:    #c0c0c0;
     --dt-text-muted:  #888;
     --dt-accent:      #4a9eff;
@@ -534,7 +534,7 @@ body.dark-theme .title-bar {
 body.dark-theme input,
 body.dark-theme select,
 body.dark-theme textarea,
-body.dark-theme button {
+body.dark-theme button:not(#exprBuilderModal button) {
     background-color: var(--dt-input-bg);
     color: var(--dt-text);
     border-color: var(--dt-border-hi);
@@ -1325,22 +1325,12 @@ body.dark-theme #exprBuilderModal {
     font-size: 1.2em;
     font-weight: bold;
     box-sizing: border-box;
-    background: #f0f4ff;
-    border: 1px solid #c0d0ff;
-    color: #2c3e50;
+    background: var(--eb-btn-bg);
+    border: 1px solid var(--eb-btn-border);
+    color: var(--eb-btn-text);
 }
 .eb-toolbar .eb-btn-comma:hover {
-    background: #d0e0ff;
-    border-color: #80a0ff;
-}
-body.dark-theme .eb-toolbar .eb-btn-comma {
-    background: #2a344a;
-    border-color: #4a5a7a;
-    color: #e0e8ff;
-}
-body.dark-theme .eb-toolbar .eb-btn-comma:hover {
-    background: #3a4a6a;
-    border-color: #6a80aa;
+    background: var(--eb-btn-hover);
 }
 
 /* DEL */
@@ -1364,9 +1354,9 @@ body.dark-theme .eb-toolbar .eb-btn-comma:hover {
 
 /* ── Base button ── */
 #exprBuilderModal .eb-btn {
-    border-radius: 2px;
-    padding: 8px;
-    font: 14px system-ui;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 14px;
     cursor: pointer;
     border-width: 1px;
     border-style: solid;
