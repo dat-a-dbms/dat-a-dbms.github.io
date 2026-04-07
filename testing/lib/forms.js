@@ -220,9 +220,10 @@ function previewForm(form = null, resetIndex = false) {
         return res?.isQuery === true;
     });
 
-    //Приховуємо кнопки "Новий" та "Зберегти", якщо форма використовує результати запитів
+    //Приховуємо кнопки "Новий", "Зберегти" та "Видалити", якщо форма використовує результати запитів
     document.getElementById("frmNewRecord").style.display = usesQueries ? 'none' : 'flex';
     document.getElementById("frmSaveChanges").style.display = usesQueries ? 'none' : 'flex';
+    document.getElementById("frmDeleteRecord").style.display = usesQueries ? 'none' : 'flex';
     // ----------------- Логіка з currentFormRecordIndex -----------------
     const formTables = elements.filter(el => el.type === 'field').map(el => el.tableName).filter(Boolean);
     const maxRecordIndex = formTables.length > 0
@@ -775,6 +776,57 @@ function createNewRecord() {
     saveDatabase();
     // перейти до останнього запису (щоб одразу побачити доданий)
     goToLastRecord();
+}
+
+function deleteFormRecord() {
+    // Визначаємо таблицю з першого поля форми
+    const fields = [...document.querySelectorAll("#formPreviewCanvas .form-field")];
+    const tableNames = [...new Set(fields.map(f => f.dataset.tableName).filter(Boolean))];
+    if (tableNames.length !== 1) {
+        Message(t("formMultipleTables"));
+        return;
+    }
+
+    const tableName = tableNames[0];
+    const table = database.tables.find(tb => tb.name === tableName);
+    if (!table) {
+        Message(t("formTableNotFound"));
+        return;
+    }
+
+    const pkIndex = table.schema.findIndex(col => col.primaryKey);
+    if (pkIndex === -1) {
+        Message(t("formNoPrimaryKey"));
+        return;
+    }
+
+    const idx = currentFormRecordIndex ?? 0;
+    if (!table.data || table.data.length === 0 || idx >= table.data.length) {
+        Message(t("formNoRecordToDelete"));
+        return;
+    }
+
+    const pkValue = table.data[idx]?.[pkIndex];
+    const pkField = table.schema[pkIndex].title;
+
+    confirmDeleteRow(pkValue, (confirmed) => {
+        if (!confirmed) return;
+        try {
+            db.run(`DELETE FROM "${tableName}" WHERE "${pkField}" = ?;`, [pkValue]);
+            table.data.splice(idx, 1);
+            // Коригуємо індекс, щоб не вийти за межі
+            if (table.data.length === 0) {
+                currentFormRecordIndex = 0;
+            } else {
+                currentFormRecordIndex = Math.min(idx, table.data.length - 1);
+            }
+            saveDatabase();
+            Message(t("formRecordDeleted"));
+            previewForm(currentPreviewForm, false);
+        } catch (e) {
+            Message(t("aeditDeleteError", e.message));
+        }
+    });
 }
 
 function deleteSelectedForm() {
