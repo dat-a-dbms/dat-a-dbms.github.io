@@ -1,4 +1,6 @@
 {
+  "formRecordDeleted": "Record eliminato dal database",
+  "formConfirmDeleteRecord": "Eliminare questo record dal database?"
   "dataNone": "nessuno",
   "dataValue": "Valore...",
   "dataContains": "contiene",

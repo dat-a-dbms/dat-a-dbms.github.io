@@ -1,6 +1,31 @@
 let currentFormRecordIndex = 0; // For form viewer navigation
 let selectedFormName = null; // To keep track of the selected form in the saved forms dialog 
-let selectedFormField = null;   
+let selectedFormField = null;
+
+function confirmDeleteFormRecord(callback) {
+    document.getElementById("deleteMessage").innerText = t("formConfirmDeleteRecord");
+    const modal = document.getElementById("deleteRowModal");
+    const btnConfirm = document.getElementById("confirmDelete");
+    const btnCancel = document.getElementById("cancelDelete");
+
+    // Зберігаємо оригінальні обробники
+    const origConfirm = btnConfirm.getAttribute("onclick");
+    const origCancel = btnCancel.getAttribute("onclick");
+
+    const cleanup = () => {
+        btnConfirm.setAttribute("onclick", origConfirm);
+        btnCancel.setAttribute("onclick", origCancel);
+        modal.style.display = "none";
+    };
+
+    btnConfirm.setAttribute("onclick", "");
+    btnConfirm.onclick = () => { cleanup(); callback(true); };
+
+    btnCancel.setAttribute("onclick", "");
+    btnCancel.onclick = () => { cleanup(); };
+
+    modal.style.display = "block";
+}
 /**
  * Конструктор форм
  **/
@@ -238,10 +263,12 @@ function previewForm(form = null, resetIndex = false) {
     if (resetIndex) currentFormRecordIndex = 0;
     currentFormRecordIndex = Math.min(currentFormRecordIndex, maxRecordIndex < 0 ? 0 : maxRecordIndex);
     const isLastRecord = currentFormRecordIndex === maxRecordIndex;
-    let last =""
-    if (isLastRecord) {
-		last = ", last record"
-	}
+    let last = "";
+    if (isCreatingNewRecord) {
+        last = ", new record";
+    } else if (isLastRecord) {
+        last = ", last record";
+    }
     document.getElementById("formPreviewTitle").innerText =
         t("formPreviewTitle", formName, currentFormRecordIndex + 1)+t(last);
 
@@ -662,6 +689,7 @@ if (refreshResult.length > 0) {
     currentFormRecordIndex = -1;
 }
     
+        isCreatingNewRecord = false;
         Message(t("formRecordAdded"));
         saveDatabase();
         return;
@@ -710,21 +738,25 @@ if (refreshResult.length > 0) {
         row[pkIndex] = values[pkField];
     }
 
+    isCreatingNewRecord = false;
     Message(t("formRecordUpdated"));
     saveDatabase();
 }
 
     function goToFirstRecord() {
+        isCreatingNewRecord = false;
         currentFormRecordIndex = 0;
         previewForm(currentPreviewForm, false);
     }
 
     function goToPreviousRecord() {
+        isCreatingNewRecord = false;
         currentFormRecordIndex = Math.max(0, currentFormRecordIndex - 1);
         previewForm(currentPreviewForm, false);
     }
 
     function goToNextRecord() {
+        isCreatingNewRecord = false;
         // визначити макс. довжину таблиць
         const tables = database.tables;
         const maxLength = Math.max(...tables.map(t => t.data.length));
@@ -732,7 +764,8 @@ if (refreshResult.length > 0) {
         previewForm(currentPreviewForm, false);
     }
 
-    function goToLastRecord() {
+    function goToLastRecord(skipReset = false) {
+        if (!skipReset) isCreatingNewRecord = false;
         const tables = database.tables;
         const maxLength = Math.max(...tables.map(t => t.data.length));
         currentFormRecordIndex = maxLength - 1;
@@ -775,7 +808,7 @@ function createNewRecord() {
 
     saveDatabase();
     // перейти до останнього запису (щоб одразу побачити доданий)
-    goToLastRecord();
+    goToLastRecord(true);
 }
 
 function deleteFormRecord() {
@@ -809,7 +842,7 @@ function deleteFormRecord() {
     const pkValue = table.data[idx]?.[pkIndex];
     const pkField = table.schema[pkIndex].title;
 
-    confirmDeleteRow(pkValue, (confirmed) => {
+    confirmDeleteFormRecord((confirmed) => {
         if (!confirmed) return;
         try {
             db.run(`DELETE FROM "${tableName}" WHERE "${pkField}" = ?;`, [pkValue]);

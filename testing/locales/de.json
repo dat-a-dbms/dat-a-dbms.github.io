@@ -1,4 +1,6 @@
 {
+  "formRecordDeleted": "Datensatz aus der Datenbank gelöscht",
+  "formConfirmDeleteRecord": "Diesen Datensatz aus der Datenbank löschen?",
   "dataNone": "keine",
   "dataValue": "Wert...",
   "dataContains": "enthält",

@@ -1,4 +1,6 @@
 {
+  "formRecordDeleted": "Record deleted from the database",
+  "formConfirmDeleteRecord": "Delete this record from the database?",
   "dataViewCount": "Showing: ${shown} of ${total} records",
   "dataValue": "Value...",
   "dataNone": "none",
