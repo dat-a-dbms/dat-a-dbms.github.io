@@ -40,8 +40,22 @@ function saveForm() {
         const formCanvas = document.getElementById("formCanvas");
 
         const elements = [...formCanvas.querySelectorAll('.form-element')].map(el => {
+            // Графічні об'єкти
+            if (el.classList.contains("form-shape")) {
+                return {
+                    type:            "shape",
+                    shapeType:       el.dataset.shapeType,
+                    strokeColor:     el.dataset.strokeColor  || "#333333",
+                    fillColor:       el.dataset.fillColor    || "#ffffff",
+                    fillTransparent: el.dataset.fillTransparent === "1",
+                    left:   el.offsetLeft,
+                    top:    el.offsetTop,
+                    width:  el.offsetWidth,
+                    height: el.offsetHeight,
+                };
+            }
+            // Текстові поля та написи
             const type = el.classList.contains("form-label") ? "label" : "field";
-
             return {
                 type,
                 left: el.offsetLeft,
@@ -70,6 +84,7 @@ function saveForm() {
         else database.forms.push(formObject);
 
         saveDatabase();
+        if (typeof isDesignerDirty !== "undefined") isDesignerDirty = false;
         Message(t("formSaved", formName));
 }
 
@@ -189,73 +204,100 @@ function previewForm(form = null, resetIndex = false) {
     if (form) {
         currentPreviewForm = form;
     }
-    
     const previewModal = document.getElementById("formPreviewModal");
     const previewCanvas = document.getElementById("formPreviewCanvas");
     previewCanvas.innerHTML = "";
-    
+
     let formName;
     let elements = [];
-    
-    //формуємо elements, щоб уникнути помилки ініціалізації
+
+    // Формуємо elements
     if (form) {
         formName = form.name;
-        elements = form.elements.map(el => ({
-            type: el.type,
-            left: el.left + "px",
-            top: el.top + "px", 
-            width: el.width + "px",
-            height: el.height + "px",
-            fontFamily: el.fontFamily || 'Arial',
-            fontSize: el.fontSize || '16px',
-            fontWeight: el.fontWeight || 'normal',
-            fontStyle: el.fontStyle || 'normal',
-            textDecoration: el.textDecoration || '',
-            color: el.color || '#000',
-            textAlign: el.textAlign || 'left',
-            tableName: el.tableName,
-            fieldName: el.fieldName,
-            text: el.text || ""
-        }));
+        elements = form.elements.map(el => {
+            const base = {
+                type: el.type,
+                left: el.left + "px",
+                top: el.top + "px", 
+                width: el.width + "px",
+                height: el.height + "px"
+            };
+            // 🆕 Зберігаємо властивості фігур
+            if (el.type === "shape") {
+                return {
+                    ...base,
+                    shapeType: el.shapeType,
+                    strokeColor: el.strokeColor,
+                    fillColor: el.fillColor,
+                    fillTransparent: el.fillTransparent
+                };
+            }
+            // Властивості текстових елементів та полів
+            return {
+                ...base,
+                fontFamily: el.fontFamily || 'Arial',
+                fontSize: el.fontSize || '16px',
+                fontWeight: el.fontWeight || 'normal',
+                fontStyle: el.fontStyle || 'normal',
+                textDecoration: el.textDecoration || '',
+                color: el.color || '#000',
+                textAlign: el.textAlign || 'left',
+                tableName: el.tableName,
+                fieldName: el.fieldName,
+                text: el.text || " "
+            };
+        });
     } else {
         formName = document.getElementById("formNameInput").value.trim();
-        elements = [...document.querySelectorAll("#formCanvas .form-label, #formCanvas .form-field")].map(el => ({
-            type: el.classList.contains("form-field") ? "field" : "label",
-            left: el.style.left,
-            top: el.style.top,
-            width: el.style.width,
-            height: el.style.height,
-            fontFamily: el.style.fontFamily || 'Arial',
-            fontSize: el.style.fontSize || '16px',
-            fontWeight: el.style.fontWeight || 'normal',
-            fontStyle: el.style.fontStyle || 'normal',
-            textDecoration: el.style.textDecoration || '',
-            color: el.style.color || '#000',
-            textAlign: el.style.textAlign || 'left',
-            tableName: el.dataset.tableName,
-            fieldName: el.dataset.fieldName,
-            text: el.innerText?.trim() || ""
-        }));
+        // 🆕 Вибираємо ВСІ елементи форми, включаючи фігури
+        elements = [...document.querySelectorAll("#formCanvas .form-element")].map(el => {
+            // 🆕 Обробка фігур
+            if (el.classList.contains("form-shape")) {
+                return {
+                    type: "shape",
+                    left: el.style.left, top: el.style.top, width: el.style.width, height: el.style.height,
+                    shapeType: el.dataset.shapeType,
+                    strokeColor: el.dataset.strokeColor || "#333333",
+                    fillColor: el.dataset.fillColor || "#ffffff",
+                    fillTransparent: el.dataset.fillTransparent === "1"
+                };
+            }
+            // Поля та написи
+            return {
+                type: el.classList.contains("form-field") ? "field" : "label",
+                left: el.style.left, top: el.style.top, width: el.style.width, height: el.style.height,
+                fontFamily: el.style.fontFamily || 'Arial',
+                fontSize: el.style.fontSize || '16px',
+                fontWeight: el.style.fontWeight || 'normal',
+                fontStyle: el.style.fontStyle || 'normal',
+                textDecoration: el.style.textDecoration || '',
+                color: el.style.color || '#000',
+                textAlign: el.style.textAlign || 'left',
+                tableName: el.dataset.tableName,
+                fieldName: el.dataset.fieldName,
+                text: el.innerText?.trim() || " "
+            };
+        });
     }
-    
-    // перевіряємо на запити (після ініціалізації elements)
+
+    // Перевіряємо на запити
     const usesQueries = elements.some(el => {
         if (!el.tableName) return false;
         const res = findTableOrQueryResult(el.tableName);
         return res?.isQuery === true;
     });
 
-    //Приховуємо кнопки "Новий", "Зберегти" та "Видалити", якщо форма використовує результати запитів
+    // Приховуємо кнопки, якщо форма використовує результати запитів
     document.getElementById("frmNewRecord").style.display = usesQueries ? 'none' : 'flex';
     document.getElementById("frmSaveChanges").style.display = usesQueries ? 'none' : 'flex';
     document.getElementById("frmDeleteRecord").style.display = usesQueries ? 'none' : 'flex';
+
     // ----------------- Логіка з currentFormRecordIndex -----------------
     const formTables = elements.filter(el => el.type === 'field').map(el => el.tableName).filter(Boolean);
     const maxRecordIndex = formTables.length > 0
         ? Math.max(...formTables.map(name => {
             const res = findTableOrQueryResult(name);
-            // Якщо це визначення запиту, даних ще немає (0), але ми виконаємо його нижче
-            if (res?.isDefinition) return 0; 
+            if (res?.isDefinition) return 0;  
             return res?.table?.data?.length || 0;
         })) - 1
         : 0;
@@ -270,9 +312,9 @@ function previewForm(form = null, resetIndex = false) {
         last = ", last record";
     }
     document.getElementById("formPreviewTitle").innerText =
-        t("formPreviewTitle", formName, currentFormRecordIndex + 1)+t(last);
+        t("formPreviewTitle", formName, currentFormRecordIndex + 1) + t(last);
 
-    // ----------------- Рендеринг полів -----------------
+    // ----------------- Рендеринг елементів -----------------
     elements.forEach(el => {
         if (el.type === "field") {
             const result = findTableOrQueryResult(el.tableName);
@@ -307,17 +349,15 @@ function previewForm(form = null, resetIndex = false) {
             fieldContainer.dataset.tableName = el.tableName || "";
             fieldContainer.dataset.fieldName = el.fieldName || "";
             
-            let cellValue = "";
+            let cellValue = " ";
             let colSchema = null;
             let colIndex = -1;
             let tableData = null;
-            // 🆕 Визначаємо чи тільки для читання
             const isReadOnly = result?.isQuery === true; 
 
             if (!result) {
                 cellValue = t("formSourceNotFound");
             } else if (result.isDefinition) {
-                // 🆕 АВТО-ВИКОНАННЯ ЗАПИТУ, ЯКЩО НЕМАЄ РЕЗУЛЬТАТІВ
                 try {
                     const res = db.exec(result.table.sql);
                     if (res.length > 0) {
@@ -328,12 +368,10 @@ function previewForm(form = null, resetIndex = false) {
                         const internalName = result.table.name.startsWith('запит "') ? result.table.name : `запит "${result.table.name}"`;
                         const queryResultTable = { name: internalName, schema, data: dataRows };
                         
-                        // Зберігаємо результат в кеш
                         const existingIndex = queries.results.findIndex(t => t.name === internalName);
                         if (existingIndex !== -1) queries.results[existingIndex] = queryResultTable;
                         else queries.results.push(queryResultTable);
                         
-                        // Оновлюємо посилання на щойно створений результат
                         const newResult = findTableOrQueryResult(el.tableName);
                         if (newResult) {
                             tableData = newResult.table.data;
@@ -341,7 +379,7 @@ function previewForm(form = null, resetIndex = false) {
                             colSchema = newResult.table.schema[colIndex];
                             if (colIndex !== -1 && tableData?.length > 0) {
                                 const record = tableData[Math.min(currentFormRecordIndex, tableData.length - 1)];
-                                cellValue = record?.[colIndex] ?? "";
+                                cellValue = record?.[colIndex] ?? " ";
                             }
                         }
                     } else {
@@ -351,7 +389,6 @@ function previewForm(form = null, resetIndex = false) {
                     cellValue = t("formQueryError", e.message);
                 }
             } else {
-                // Звичайна таблиця або збережений результат запиту
                 const table = result.table;
                 tableData = table.data;
                 if (!tableData || tableData.length === 0) {
@@ -361,7 +398,7 @@ function previewForm(form = null, resetIndex = false) {
                     if (colIndex !== -1) {
                         colSchema = table.schema[colIndex];
                         const record = tableData[Math.min(currentFormRecordIndex, tableData.length - 1)];
-                        cellValue = record?.[colIndex] ?? "";
+                        cellValue = record?.[colIndex] ?? " ";
                         fieldContainer.dataset.colIndex = String(colIndex);
                     } else {
                         cellValue = t("formFieldNotFound");
@@ -369,131 +406,127 @@ function previewForm(form = null, resetIndex = false) {
                 }
             }
 
-            // ---------- Логіка рендерингу (з урахуванням isReadOnly) ----------
+            // Логіка рендерингу поля
             if (colSchema && colSchema.type && String(colSchema.type).toLowerCase().includes("image")) {
-                console.log("// Поле IMAGE / Зображення", cellValue)
-				if (cellValue instanceof Uint8Array) {
-					const imgData = extractImage(cellValue);
-
-					if (imgData) {
-						const blob = new Blob([imgData.data], { type: imgData.type });
-						cellValue = URL.createObjectURL(blob);
-					} else {
-						console.warn("Зображення не знайдено");
-					}
-				}
-				console.log("// Поле IMAGE ", cellValue)
+                if (cellValue instanceof Uint8Array) {
+                    const imgData = extractImage(cellValue);
+                    if (imgData) {
+                        const blob = new Blob([imgData.data], { type: imgData.type });
+                        cellValue = URL.createObjectURL(blob);
+                    }
+                }
                 fieldContainer.innerHTML = "";
                 const img = document.createElement("img");
                 img.src = cellValue || "";
                 img.alt = el.fieldName || "";
                 Object.assign(img.style, {
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "contain",
-                    display: "block",
+                    width: "100%", height: "100%", objectFit: "contain", display: "block",
                     cursor: isReadOnly ? "default" : "pointer"
                 });
                 
                 if (!isReadOnly) {
                     img.addEventListener("click", () => {
                         const storeInDb = localStorage.getItem("app_settings_storeFilesInDb") === "true";
-
                         if (storeInDb) {
-                            // Режим зберігання файлу в БД — відкриваємо файловий редактор
                             const recordIndex = Math.min(currentFormRecordIndex, tableData.length - 1);
                             const currentData = (!result.isQuery && colIndex !== -1 && tableData)
-                                ? tableData[recordIndex][colIndex]
-                                : null;
+                                ? tableData[recordIndex][colIndex] : null;
 
-                            openFileEditor(
-                                currentData instanceof Uint8Array ? currentData : null,
-                                (newValue) => {
-                                    if (!result.isQuery && colIndex !== -1 && tableData) {
-                                        tableData[recordIndex][colIndex] = newValue;
-                                    }
-                                    // Відображаємо новий Uint8Array як blob-зображення
-                                    if (newValue instanceof Uint8Array && newValue.length > 0) {
-                                        const imgData = extractImage(newValue);
-                                        if (imgData) {
-                                            const blob = new Blob([imgData.data], { type: imgData.type });
-                                            if (img.src.startsWith("blob:")) URL.revokeObjectURL(img.src);
-                                            img.src = URL.createObjectURL(blob);
-                                        }
-                                    } else {
-                                        img.src = "";
-                                    }
+                            openFileEditor(currentData instanceof Uint8Array ? currentData : null, (newValue) => {
+                                if (!result.isQuery && colIndex !== -1 && tableData) {
+                                    tableData[recordIndex][colIndex] = newValue;
                                 }
-                            );
+                                if (newValue instanceof Uint8Array && newValue.length > 0) {
+                                    const imgData = extractImage(newValue);
+                                    if (imgData) {
+                                        const blob = new Blob([imgData.data], { type: imgData.type });
+                                        if (img.src.startsWith("blob:")) URL.revokeObjectURL(img.src);
+                                        img.src = URL.createObjectURL(blob);
+                                    }
+                                } else { img.src = ""; }
+                            });
                         } else {
-                            // Режим URL — відкриваємо редактор URL зображення
-                            openImageEditor(
-                                el.fieldName,
-                                cellValue,
-                                (newValue) => {
-                                    img.src = newValue || "";
-                                    if (!result.isQuery && colIndex !== -1 && tableData) {
-                                        const recordIndex = Math.min(currentFormRecordIndex, tableData.length - 1);
-                                        tableData[recordIndex][colIndex] = newValue;
-                                    }
+                            openImageEditor(el.fieldName, cellValue, (newValue) => {
+                                img.src = newValue || "";
+                                if (!result.isQuery && colIndex !== -1 && tableData) {
+                                    const recordIndex = Math.min(currentFormRecordIndex, tableData.length - 1);
+                                    tableData[recordIndex][colIndex] = newValue;
                                 }
-                            );
+                            });
                         }
                     });
                 }
                 fieldContainer.appendChild(img);
             } else {
-                // Інші типи — виклик advDataInput
                 const control = advDataInput(
-                    fieldContainer,
-                    cellValue,
-                    colSchema,
+                    fieldContainer, cellValue, colSchema,
                     tableData?.[Math.min(currentFormRecordIndex, tableData?.length - 1)],
-                    colIndex,
-                    isReadOnly // 🆕 Передаємо прапорець readonly
+                    colIndex, isReadOnly
                 );
                 if (!control) {
                     fieldContainer.textContent = cellValue;
                 } else {
                     control.dataset.tableName = fieldContainer.dataset.tableName;
                     control.dataset.fieldName = fieldContainer.dataset.fieldName;
-                    control.dataset.colIndex  = fieldContainer.dataset.colIndex;
-                    // 🆕 Блокуємо елементи запитів
+                    control.dataset.colIndex = fieldContainer.dataset.colIndex;
                     if (isReadOnly && control.tagName !== 'BUTTON') {
                         control.setAttribute("readonly", "true");
-                        if (control.tagName === 'SELECT' || control.tagName === 'INPUT') {
-                            control.disabled = true;
-                        }
+                        if (control.tagName === 'SELECT' || control.tagName === 'INPUT') control.disabled = true;
                     }
                 }
             }
             previewCanvas.appendChild(fieldContainer);
+
         } else if (el.type === "label") {
             const label = document.createElement("div");
             Object.assign(label.style, {
+                position: "absolute", left: el.left, top: el.top,
+                width: el.width, height: el.height,
+                fontFamily: el.fontFamily, fontSize: el.fontSize,
+                fontWeight: el.fontWeight, fontStyle: el.fontStyle,
+                textDecoration: el.textDecoration, color: el.color,
+                textAlign: el.textAlign || 'left', padding: "5px",
+                border: "none", background: "transparent",
+                overflow: "hidden", whiteSpace: "nowrap"
+            });
+            label.innerText = el.text || " ";
+            previewCanvas.appendChild(label);
+
+        } else if (el.type === "shape") {
+            // 🆕 Рендеринг графічних об'єктів
+            const shapeDiv = document.createElement("div");
+            shapeDiv.className = `form-shape shape-${el.shapeType}`;
+            Object.assign(shapeDiv.style, {
                 position: "absolute",
                 left: el.left,
                 top: el.top,
                 width: el.width,
                 height: el.height,
-                fontFamily: el.fontFamily,
-                fontSize: el.fontSize,
-                fontWeight: el.fontWeight,
-                fontStyle: el.fontStyle,
-                textDecoration: el.textDecoration,
-                color: el.color,
-                textAlign: el.textAlign || 'left',
-                padding: "5px",
-                border: "none",
-                background: "transparent",
-                overflow: "hidden",
-                whiteSpace: "nowrap"
+                boxSizing: "border-box",
+                zIndex: 0,
+                pointerEvents: "none"
             });
-            label.innerText = el.text || "";
-            previewCanvas.appendChild(label);
+
+            const fill = el.fillTransparent ? "transparent" : (el.fillColor || "#ffffff");
+            const stroke = el.strokeColor || "#333333";
+
+            if (el.shapeType === "hline") {
+                shapeDiv.style.borderTop = `2px solid ${stroke}`;
+                shapeDiv.style.backgroundColor = "transparent";
+            } else if (el.shapeType === "vline") {
+                shapeDiv.style.borderLeft = `2px solid ${stroke}`;
+                shapeDiv.style.backgroundColor = "transparent";
+            } else if (el.shapeType === "rect" || el.shapeType === "round-rect") {
+                shapeDiv.style.border = `2px solid ${stroke}`;
+                shapeDiv.style.backgroundColor = fill;
+                if (el.shapeType === "round-rect") {
+                    shapeDiv.style.borderRadius = "14px";
+                }
+            }
+            previewCanvas.appendChild(shapeDiv);
         }
     });
-    
+
     previewModal.style.display = "flex";
 }
 
@@ -880,4 +913,49 @@ function deleteSelectedForm() {
         } else {
             Message(t("formNotFoundForDelete"));
         }
+}
+
+/**
+ * Універсальне модальне вікно підтвердження збереження.
+ * onSave   — викликається при натисканні "Зберегти"
+ * onClose  — викликається при натисканні "Закрити" (без збереження)
+ **/
+function showConfirmSave(onSave, onClose) {
+    const modal   = document.getElementById("confirmSaveModal");
+    const saveBtn = document.getElementById("confirmSaveSaveBtn");
+    const closeBtn = document.getElementById("confirmSaveCloseBtn");
+
+    const cleanup = () => { modal.style.display = "none"; };
+
+    saveBtn.onclick = () => { cleanup(); onSave(); };
+    closeBtn.onclick = () => { cleanup(); if (onClose) onClose(); };
+
+    modal.style.display = "flex";
+}
+
+/**
+ * Закриття Конструктора форм.
+ * Якщо є незбережені зміни (прапор isDesignerDirty) — питає про збереження.
+ **/
+function closeFormModal() {
+    if (typeof isDesignerDirty !== "undefined" && isDesignerDirty) {
+        showConfirmSave(
+            () => { saveForm(); _doCloseFormModal(); },
+            () => { _doCloseFormModal(); }
+        );
+    } else {
+        _doCloseFormModal();
+    }
+}
+
+function _doCloseFormModal() {
+    document.getElementById("formCreatorModal").style.display = "none";
+    if (typeof isDesignerDirty !== "undefined") isDesignerDirty = false;
+}
+
+/**
+ * Закриття вікна перегляду форми.
+ **/
+function closeFormPreview() {
+    document.getElementById("formPreviewModal").style.display = "none";
 }

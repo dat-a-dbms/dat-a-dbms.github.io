@@ -448,55 +448,73 @@
 			</div>
 		</div>
 	</div>
-	<div id="reportCreatorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+	
+<div id="reportCreatorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
      background-color: rgba(0,0,0,0.5); z-index:1005; justify-content:center; align-items:center;">
-		<div style="background:#fff; padding:20px; width:90%; max-width:1200px; height:90%; border-radius:10px; display:flex; gap:20px; overflow:hidden;">
-			<!-- Лівий контейнер: вміст звіту -->
-			<div style="flex:1; display:flex; flex-direction:column; gap:10px; overflow:hidden;">
+	<div style="background:#fff; padding:20px; width:90%; max-width:1200px; height:90%; border-radius:10px; display:flex; gap:20px; overflow:hidden;">
+		
+		<!-- Лівий контейнер: вміст звіту -->
+		<div style="flex:1; display:flex; flex-direction:column; gap:10px; overflow:hidden;">
+			
+			<!-- 🟢 РЯДОК 1: Заголовок зліва + Кнопки фігур справа -->
+			<div style="display:flex; align-items:center; justify-content:space-between;">
 				<h2 id="reportTitle" style="margin:0;" lang-i18n="createReportTitle">Створення звіту</h2>
-				<div>
-					<label for="reportNameInput" lang-i18n="reportNameLabel">Назва звіту:</label>
-					<input type="text" id="reportNameInput" value="Новий звіт" style="width:calc(100% - 20px); padding:8px; font-size:16px;"> </div>
-				<!-- Полотно звіту -->
-				<div id="reportCanvas" style="flex-grow:1; border:1px solid #ccc; background-color:#f9f9f9; position:relative; overflow:auto;"> </div>
+				<div style="display:flex; gap:4px; align-items:center; flex-shrink:0;">
+					<button onclick="addShapeRect()" title="Прямокутник" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer; background:#f5f5f5;">□</button>
+					<button onclick="addShapeRoundRect()" title="Закруглений прямокутник" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer; background:#f5f5f5;">▢</button>
+					<button onclick="addShapeHLine()" title="Горизонтальна лінія" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer; background:#f5f5f5;">──</button>
+					<button onclick="addShapeVLine()" title="Вертикальна лінія" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer; background:#f5f5f5;">│</button>
+					<button onclick="openShapeColorPicker()" title="Колір фігури" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer; background:#f5f5f5;">🎨</button>
+				</div>
 			</div>
-			<!-- Правий контейнер: кнопки вертикально -->
-			<div style="display:flex; flex-direction:column; gap:10px; min-width:80px; align-items:center;">
-				<button onclick="addScreenLabel()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-					<div style="font-size:20px;">🔤</div>
-					<div lang-i18n="addLabel">Напис</div>
-				</button>
-				<button onclick="addScreenField()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-					<div style="font-size:20px;">🔲</div>
-					<div lang-i18n="addSource">Поле</div>
-				</button>
-				<button onclick="addScreenGrid()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-					<div style="font-size:20px;">📐</div>
-					<div lang-i18n="addGrid">Сітка</div>
-				</button>
-				<button onclick="openTextOptions()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-					<div style="font-size:20px;">📝</div>
-					<div lang-i18n="textOptions">Текст</div>
-				</button>
-				<button onclick="deleteActiveElement()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center; color:#900;">
-					<div style="font-size:20px;">🗑️</div>
-					<div lang-i18n="delete">Видалити</div>
-				</button>
-				<button onclick="previewReport()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-					<div style="font-size:20px;">👁️</div>
-					<div lang-i18n="preview">Перегляд</div>
-				</button>
-				<button onclick="saveReport()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-					<div style="font-size:20px;">💾</div>
-					<div lang-i18n="save">Зберегти</div>
-				</button>
-				<button onclick="closeReportCreatorModal()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-					<div style="font-size:20px;">❌</div>
-					<div lang-i18n="close">Закрити</div>
-				</button>
+
+			<!-- 🟢 РЯДОК 2: Назва звіту + Поле вводу (під заголовком) -->
+			<div style="display:flex; align-items:center; gap:8px;">
+				<label for="reportNameInput" lang-i18n="reportNameLabel" style="white-space:nowrap;">Назва звіту:</label>
+				<input type="text" id="reportNameInput" value="Новий звіт" style="flex:1; padding:8px; font-size:16px; min-width:150px;">
 			</div>
+
+			<!-- Полотно звіту (займає весь залишок висоти) -->
+			<div id="reportCanvas" style="flex-grow:1; border:1px solid #ccc; background-color:#f9f9f9; position:relative; overflow:auto;"></div>
+		</div>
+
+		<!-- Правий контейнер: кнопки вертикально (без змін) -->
+		<div style="display:flex; flex-direction:column; gap:10px; min-width:80px; align-items:center;">
+			<button onclick="addScreenLabel()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+				<div style="font-size:20px;">🔤</div>
+				<div lang-i18n="addLabel">Напис</div>
+			</button>
+			<button onclick="addScreenField()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+				<div style="font-size:20px;">🔲</div>
+				<div lang-i18n="addSource">Поле</div>
+			</button>
+			<button onclick="addScreenGrid()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+				<div style="font-size:20px;">📐</div>
+				<div lang-i18n="addGrid">Сітка</div>
+			</button>
+			<button onclick="openTextOptions()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+				<div style="font-size:20px;">📝</div>
+				<div lang-i18n="textOptions">Текст</div>
+			</button>
+			<button onclick="deleteActiveElement()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center; color:#900;">
+				<div style="font-size:20px;">🗑️</div>
+				<div lang-i18n="delete">Видалити</div>
+			</button>
+			<button onclick="previewReport()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+				<div style="font-size:20px;">👁️</div>
+				<div lang-i18n="preview">Перегляд</div>
+			</button>
+			<button onclick="saveReport()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+				<div style="font-size:20px;">💾</div>
+				<div lang-i18n="save">Зберегти</div>
+			</button>
+			<button onclick="closeReportCreatorModal()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+				<div style="font-size:20px;">❌</div>
+				<div lang-i18n="close">Закрити</div>
+			</button>
 		</div>
 	</div>
+</div>
 	<!-- Модальне вікно вибору пов'язаного поля -->
 	<div id="fieldSelectionModal" style="display:none; position:fixed; z-index:20001; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5);justify-content:center; align-items:center;">
 		<div style="background:white; padding:20px; border-radius:10px; display:flex; width:550px; max-width:90%; box-shadow:0 0 10px rgba(0,0,0,0.3);">
@@ -517,50 +535,49 @@
 	</div>
 	<div id="textOptionsModal" class="modal" style="display: none;z-index:1006;">
 		<div class="modal-content" style="
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      gap: 20px;
-      max-width: 600px;
+      position: relative;
+      max-width: 360px;
       margin: 5% auto;
       padding: 20px;
       background-color: #fff;
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     ">
-			<!-- Ліва частина -->
-			<div style="flex: 1;">
-				<h3 lang-i18n="textSettings">Налаштування тексту</h3>
-				<label for="fontFamilySelect" lang-i18n="fontFamily">Шрифт:</label>
-				<br>
-				<select id="fontFamilySelect" style="width: 100%; margin-bottom: 10px;">
-					<option value="Arial">Arial</option>
-					<option value="Verdana">Verdana</option>
-					<option value="Times New Roman">Times New Roman</option>
-					<option value="Courier New">Courier New</option>
-					<option value="Georgia">Georgia</option>
-					<option value="Palatino Linotype">Palatino Linotype</option>
-				</select>
-				<label for="fontSizeInput" lang-i18n="fontSize">Розмір (px):</label>
-				<br>
-				<input type="number" id="fontSizeInput" value="16" min="8" max="72" style="width: 100%; margin-bottom: 10px;">
-				<label for="fontColorInput" lang-i18n="fontColor">Колір:</label>
-				<br>
-				<input type="color" id="fontColorInput" value="#000000" style="width: 100%;"> </div>
-			<!-- Права частина -->
-			<div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
-				<div class="checkbox-group" style="display: flex; flex-direction: column; gap: 10px;">
-					<label style="display: flex; align-items: center; gap: 8px;">
-						<input type="checkbox" id="fontWeightToggle" style="transform: scale(2);"> <span lang-i18n="bold">Жирний</span> </label>
-					<label style="display: flex; align-items: center; gap: 8px;">
-						<input type="checkbox" id="fontStyleToggle" style="transform: scale(2);"> <span lang-i18n="italic">Курсив</span> </label>
-					<label style="display: flex; align-items: center; gap: 8px;">
-						<input type="checkbox" id="textDecorationUnderline" style="transform: scale(2);"> <span lang-i18n="underline">Підкреслений</span> </label>
-					<label style="display: flex; align-items: center; gap: 8px;">
-						<input type="checkbox" id="textDecorationStrikethrough" style="transform: scale(2);"> <span lang-i18n="strikethrough">Закреслений</span> </label>
+			<!-- Заголовок + кнопка закрити у правому верхньому куті -->
+			<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+				<h3 style="margin: 0;" lang-i18n="textSettings">Налаштування тексту</h3>
+				<button onclick="closeTextOptionsModal()" style="width:48px; height:48px; font-size:20px; background:#1a7ef7; border:none; border-radius:8px; cursor:pointer; color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0;">✕</button>
+			</div>
+			<!-- Два стовпці: ліворуч — поля, праворуч — чекбокси -->
+			<div style="display: flex; flex-direction: row; gap: 20px;">
+				<!-- Ліва частина: шрифт, розмір, колір -->
+				<div style="flex: 1;">
+					<label for="fontFamilySelect" style="font-weight:600; display:block; margin-bottom:4px;" lang-i18n="fontFamily">Шрифт:</label>
+					<select id="fontFamilySelect" style="width: 100%; margin-bottom: 12px; padding: 5px; border:1px solid #ccc; border-radius:4px;">
+						<option value="Arial">Arial</option>
+						<option value="Verdana">Verdana</option>
+						<option value="Times New Roman">Times New Roman</option>
+						<option value="Courier New">Courier New</option>
+						<option value="Georgia">Georgia</option>
+						<option value="Palatino Linotype">Palatino Linotype</option>
+					</select>
+					<label for="fontSizeInput" style="font-weight:600; display:block; margin-bottom:4px;" lang-i18n="fontSize">Розмір (px):</label>
+					<input type="number" id="fontSizeInput" value="16" min="8" max="72" style="width: 100%; margin-bottom: 12px; padding:5px; border:1px solid #ccc; border-radius:4px;">
+					<label for="fontColorInput" style="font-weight:600; display:block; margin-bottom:4px;" lang-i18n="fontColor">Колір:</label>
+					<input type="color" id="fontColorInput" value="#000000" style="width: 100%; height:36px; padding:2px; border:1px solid #ccc; border-radius:4px; cursor:pointer;">
 				</div>
-				<div class="button-group" style="margin-top: 20px; text-align: right;">
-					<button onclick="closeTextOptionsModal()" style="width:64px; height:64px; font-size:24px;" lang-i18n="close">❌</button>
+				<!-- Права частина: чекбокси -->
+				<div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 4px;">
+					<div class="checkbox-group" style="display: flex; flex-direction: column; gap: 12px;">
+						<label style="display: flex; align-items: center; gap: 10px; cursor:pointer;">
+							<input type="checkbox" id="fontWeightToggle" style="width:18px; height:18px;"> <span lang-i18n="bold">Жирний</span> </label>
+						<label style="display: flex; align-items: center; gap: 10px; cursor:pointer;">
+							<input type="checkbox" id="fontStyleToggle" style="width:18px; height:18px;"> <span lang-i18n="italic">Курсив</span> </label>
+						<label style="display: flex; align-items: center; gap: 10px; cursor:pointer;">
+							<input type="checkbox" id="textDecorationUnderline" style="width:18px; height:18px;"> <span lang-i18n="underline">Підкреслений</span> </label>
+						<label style="display: flex; align-items: center; gap: 10px; cursor:pointer;">
+							<input type="checkbox" id="textDecorationStrikethrough" style="width:18px; height:18px;"> <span lang-i18n="strikethrough">Закреслений</span> </label>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -617,9 +634,19 @@
 		<div id="formCreatorModalContent" style="background:#fff; padding:20px; width:90%; max-width:1200px; height:90%; border-radius:10px; display:flex; gap:20px; overflow:hidden;">
 			<!-- Лівий контейнер -->
 			<div style="flex:1; display:flex; flex-direction:column; gap:5px; overflow:hidden;">
-				<h2 style="margin:0;" lang-i18n="formBuilderTitle">Конструктор форми</h2>
-				<div>
-					<label for="formNameInput" lang-i18n="formNameLabel">Назва форми:</label>
+				<!-- Рядок заголовка з кнопками графічних об'єктів -->
+				<div style="display:flex; align-items:center; justify-content:space-between;">
+					<h2 style="margin:0; white-space:nowrap;" lang-i18n="formBuilderTitle">Конструктор форми</h2>
+					<div style="display:flex; gap:4px; align-items:center;">
+						<button onclick="addShapeRect()" title="Прямокутник" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer; background:#f5f5f5;">□</button>
+						<button onclick="addShapeRoundRect()" title="Закруглений прямокутник" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer; background:#f5f5f5;">▢</button>
+						<button onclick="addShapeHLine()" title="Горизонтальна лінія" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer; background:#f5f5f5;">──</button>
+						<button onclick="addShapeVLine()" title="Вертикальна лінія" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer; background:#f5f5f5;">│</button>
+						<button onclick="openShapeColorPicker()" title="Колір фігури" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer; background:#f5f5f5;">🎨</button>
+					</div>
+				</div>
+				<div style="display:flex; align-items:center; gap:8px;">
+					<label for="formNameInput" lang-i18n="formNameLabel" style="white-space:nowrap;">Назва форми:</label>
 					<input type="text" id="formNameInput" value="Нова форма" style="width:calc(100% - 20px); padding:8px; font-size:16px;"> </div>
 				<div id="fieldSelectionPanel1" style="display:none; width:30%; height:30px; position: relative;">
 					<div style="display: flex; gap: 5px; height:30px;">
@@ -1626,7 +1653,62 @@
 <style id="simpleInterfaceStyle">
     /* Цей стиль буде керувати приховуванням панелі швидкого доступу */
 </style>
-<!-- Мова ініціалізується в settings.js через DOMContentLoaded → loadLanguage() -->	
+<!-- Мова ініціалізується в settings.js через DOMContentLoaded → loadLanguage() -->
+
+<!-- Модальне вікно підтвердження збереження -->
+<div id="confirmSaveModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+     background-color: rgba(0,0,0,0.5); z-index:10200; justify-content:center; align-items:center;">
+    <div style="background:#fff; padding:20px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.3);
+                max-width:400px; width:90%; display:flex; flex-direction:row; gap:20px; align-items:center;">
+        <!-- Текст -->
+        <div style="flex:1; font-size:16px;" id="confirmSaveText" lang-i18n="confirmSaveChanges">Зберегти зміни?</div>
+        <!-- Кнопки вертикально праворуч -->
+        <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+            <button id="confirmSaveSaveBtn" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:8px; cursor:pointer;">
+                <div>💾</div>
+                <div style="font-size:11px;" lang-i18n="save">Зберегти</div>
+            </button>
+            <button id="confirmSaveCloseBtn" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:8px; cursor:pointer;">
+                <div>❌</div>
+                <div style="font-size:11px;" lang-i18n="close">Закрити</div>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальне вікно вибору кольору фігури -->
+<div id="shapeColorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+     background-color: rgba(0,0,0,0.5); z-index:10210; justify-content:center; align-items:center;">
+    <div style="background:#fff; padding:20px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.3);
+                max-width:340px; width:90%; display:flex; flex-direction:row; gap:20px; align-items:center;">
+        <div style="flex:1; display:flex; flex-direction:column; gap:12px;">
+            <div style="font-weight:600; font-size:15px;">Колір фігури</div>
+            <label style="display:flex; align-items:center; gap:10px; font-size:14px;">
+                Колір обводки:
+                <input type="color" id="shapeStrokeColorInput" value="#333333" style="width:48px; height:32px; border:1px solid #ccc; border-radius:4px; cursor:pointer; padding:2px;">
+            </label>
+            <label style="display:flex; align-items:center; gap:10px; font-size:14px;">
+                Колір заливки:
+                <input type="color" id="shapeFillColorInput" value="#ffffff" style="width:48px; height:32px; border:1px solid #ccc; border-radius:4px; cursor:pointer; padding:2px;">
+            </label>
+            <label style="display:flex; align-items:center; gap:10px; font-size:14px;">
+                <input type="checkbox" id="shapeFillTransparentChk" style="width:16px;height:16px;">
+                Прозора заливка
+            </label>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+            <button onclick="applyShapeColor()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:8px; cursor:pointer;">
+                <div>✅</div>
+                <div style="font-size:11px;">Ок</div>
+            </button>
+            <button onclick="document.getElementById('shapeColorModal').style.display='none'" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:8px; cursor:pointer;">
+                <div>❌</div>
+                <div style="font-size:11px;" lang-i18n="cancel">Скасувати</div>
+            </button>
+        </div>
+    </div>
+</div>
+	
 </body>
 
 </html>
