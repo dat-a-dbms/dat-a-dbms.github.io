@@ -465,6 +465,9 @@
 					<button onclick="addShapeHLine()" title="Горизонтальна лінія" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">──</button>
 					<button onclick="addShapeVLine()" title="Вертикальна лінія" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">│</button>
 					<button onclick="openShapeColorPicker()" title="Колір фігури" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">🎨</button>
+					<button onclick="addScreenGrid()" title="Сітка" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">📐</button>
+					<button onclick="openTextOptions()" title="Налаштувати текст" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">📝</button>
+					
 				</div>
 			</div>
 
@@ -488,14 +491,10 @@
 				<div style="font-size:20px;">🔲</div>
 				<div lang-i18n="addSource">Поле</div>
 			</button>
-			<button onclick="addScreenGrid()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-				<div style="font-size:20px;">📐</div>
-				<div lang-i18n="addGrid">Сітка</div>
-			</button>
-			<button onclick="openTextOptions()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-				<div style="font-size:20px;">📝</div>
-				<div lang-i18n="textOptions">Текст</div>
-			</button>
+			<button onclick="addScreenTable()" title="Додати таблицю" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+					<img src="./img/spreadsheet.png" alt="Таблиця" style="width:28px; height:28px;">
+					<span>Таблиця</span>
+			</button>			
 			<button onclick="deleteActiveElement()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center; color:#900;">
 				<div style="font-size:20px;">🗑️</div>
 				<div lang-i18n="delete">Видалити</div>
@@ -643,16 +642,18 @@
 						<button onclick="addShapeHLine()" title="Горизонтальна лінія" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">──</button>
 						<button onclick="addShapeVLine()" title="Вертикальна лінія" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">│</button>
 						<button onclick="openShapeColorPicker()" title="Колір фігури" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">🎨</button>
+						<button onclick="addScreenGrid()" title="Сітка" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">📐</button>
+						<button onclick="openTextOptions()" title="Налаштувати текст" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">📝</button>
+
 					</div>
 				</div>
 				<div style="display:flex; align-items:center; gap:8px;">
 					<label for="formNameInput" lang-i18n="formNameLabel" style="white-space:nowrap;">Назва форми:</label>
-					<input type="text" id="formNameInput" value="Нова форма" style="width:calc(100% - 20px); padding:8px; font-size:16px;"> </div>
-				<div id="fieldSelectionPanel1" style="display:none; width:30%; height:30px; position: relative;">
-					<div style="display: flex; gap: 5px; height:30px;">
-						<select id="fieldPanelTableSelect1" style="flex-grow: 1; padding:5px;"> </select>
-						<select id="fieldPanelFieldSelect1" style="flex-grow: 1; padding:5px;"> </select>
-					</div>
+					<input type="text" id="formNameInput" value="Нова форма" style="flex:1; padding:8px; font-size:16px;">
+					<label style="white-space:nowrap; font-size:14px;" lang-i18n="formTableLabel">Таблиця:</label>
+					<select id="formTableSelect" style="padding:8px; font-size:14px; min-width:160px; border:1px solid #ccc; border-radius:4px;">
+						<option value="">— Оберіть таблицю —</option>
+					</select>
 				</div>
 				<!-- Полотно форми -->
 				<div id="formCanvas" style="flex-grow:1; border:1px solid #ccc; background-color:#f9f9f9; position:relative; width:calc(100% - 2px); height:100%;overflow:auto;"> </div>
@@ -668,14 +669,12 @@
 					<div style="font-size:20px;">🔲</div>
 					<div lang-i18n="addSource">Поле</div>
 				</button>
-				<button onclick="addScreenGrid()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-					<div style="font-size:20px;">📐</div>
-					<div lang-i18n="addGrid">Сітка</div>
+				
+				<button onclick="addScreenTable()" title="Додати таблицю" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+					<img src="./img/spreadsheet.png" alt="Таблиця" style="width:28px; height:28px;">
+					<span>Таблиця</span>
 				</button>
-				<button onclick="openTextOptions()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-					<div style="font-size:20px;">📝</div>
-					<div lang-i18n="textOptions">Текст</div>
-				</button>
+				
 				<button onclick="deleteActiveElement()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center; color:#900;">
 					<div style="font-size:20px;">🗑️</div>
 					<div lang-i18n="delete">Видалити</div>
@@ -1708,7 +1707,80 @@
         </div>
     </div>
 </div>
-	
+<div id="tableFieldModal" style="
+    display:none;
+    position:fixed;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    background:#fff;
+    border-radius:12px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.3);
+    z-index:10000;
+    width:600px;
+    max-width:90vw;
+    border:1px solid #e0e0e0;
+    overflow:hidden;
+    flex-direction:column;
+">
+    
+    <!-- 🔹 Верхній ряд -->
+    <div style="display:flex; align-items:center; gap:16px; padding:20px 20px 0 20px;">
+        <h3 style="margin:0; font-size:16px; font-weight:500; color:#333; white-space:nowrap;">
+            📊 Оберіть таблицю та поля у ній
+        </h3>
+
+        <select id="tableFieldTableSelect" style="
+            margin-left:auto;
+            max-width:250px;
+            padding:8px 12px;
+            font-size:14px;
+            border:1px solid #ccc;
+            border-radius:6px;
+            background:#fff;
+            cursor:pointer;
+        ">
+            <option value="">— Оберіть таблицю або запит —</option>
+        </select>
+    </div>
+
+    <!-- 🔹 Основна зона: grid + кнопки -->
+    <div style="
+        display:flex;
+        gap:16px;
+        padding:20px;
+    ">
+        <!-- 🔸 Grid (ліва частина) -->
+        <div style="flex:1;">
+            <div id="tableFieldCheckboxes" style="
+                display:grid;
+                grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
+                gap:8px 16px;
+                max-height:280px;
+                overflow-y:auto;
+                font-size:13px;
+            ">
+            </div>
+        </div>
+
+        <!-- 🔸 Кнопки (права колонка) -->
+        <div style="
+            display:flex;
+            flex-direction:column;
+            gap:12px;
+            align-items:center;
+        ">
+            <button onclick="saveTableSelection()" style="width:64px; height:64px; font-size:10px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                <span style="font-size:28px;">✅</span>
+                <span>OK</span>
+            </button>
+
+            <button onclick="closeTableFieldModal()" style="width:64px; height:64px; font-size:10px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                <span style="font-size:28px;">❌</span>
+                <span>Скасувати</span>
+            </button>
+        </div>
+    </div>
+</div>
 </body>
 
 </html>

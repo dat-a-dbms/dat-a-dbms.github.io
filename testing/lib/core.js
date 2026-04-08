@@ -261,7 +261,50 @@ function checkFieldName() {
 }
 
 //
+/**
+ * Каскадне оновлення зовнішніх ключів у дочірніх таблицях
+ * після зміни первинного ключа у батьківській таблиці.
+ *
+ * @param {string} parentTableName  — назва батьківської таблиці
+ * @param {string} pkCol            — назва PK-поля, що змінилося
+ * @param {*}      oldVal           — старе значення PK
+ * @param {*}      newVal           — нове значення PK
+ */
+function cascadeUpdateForeignKeys(parentTableName, pkCol, oldVal, newVal) {
+    if (oldVal === newVal || oldVal === null || oldVal === undefined) return;
+    if (String(oldVal) === String(newVal)) return;
 
+    database.tables.forEach(childTable => {
+        if (childTable.name === parentTableName) return;
+
+        childTable.schema.forEach((field, fieldIdx) => {
+            if (
+                field.foreignKey &&
+                field.refTable === parentTableName &&
+                field.refField === pkCol
+            ) {
+                // Оновити в SQLite
+                try {
+                    db.run(
+                        `UPDATE "${childTable.name}" SET "${field.title}" = ? WHERE "${field.title}" = ?;`,
+                        [newVal, oldVal]
+                    );
+                } catch (e) {
+                    console.warn(`cascadeUpdateFK: помилка у ${childTable.name}.${field.title}:`, e);
+                }
+
+                // Оновити в пам'яті (database.tables[...].data)
+                if (childTable.data) {
+                    childTable.data.forEach(row => {
+                        if (String(row[fieldIdx]) === String(oldVal)) {
+                            row[fieldIdx] = newVal;
+                        }
+                    });
+                }
+            }
+        });
+    });
+}
 
 /**
  * Функція saveTableData()
@@ -271,21 +314,22 @@ function checkFieldName() {
  * Данні беруться безпосередньо з rowData, а не з DOM.
  */
 function saveTableData() {
-    if (!currentEditTable || currentEditTable.name.startsWith('*')) {
+    if (!currentEditTable || !currentEditTable.name || currentEditTable.name.startsWith('*')) {
         Message(t("tableNotEditable"));
         return;
     }
-
-    const rowsData = currentEditTable.data; // масив рядків, як у advDataInput
+    const rowsData = currentEditTable.data;
     const schema = currentEditTable.schema;
-
     const pkCols = schema.filter(col => col.primaryKey).map(col => col.title);
 
-    // Перевірка унікальності PK
+    // Перевірка унікальності PK серед редагованих рядків
     if (pkCols.length > 0) {
         const seenPKs = new Set();
         for (let rowData of rowsData) {
-            const pkValueCombo = pkCols.map(pk => String(rowData[schema.findIndex(c => c.title === pk)] ?? "")).join("||");
+            const pkValueCombo = pkCols.map(pk => {
+                const idx = schema.findIndex(c => c.title === pk);
+                return String(rowData[idx] ?? "");
+            }).join("||");
             if (pkValueCombo.trim() !== "") {
                 if (seenPKs.has(pkValueCombo)) {
                     Message(t("pkDuplicateError", pkValueCombo));
@@ -296,28 +340,21 @@ function saveTableData() {
         }
     }
 
-    // Збереження кожного рядка
     rowsData.forEach(rowData => {
         let allEmpty = rowData.every((val, idx) => {
             const colType = (schema[idx]?.type || "").toLowerCase();
             return val === null || val === "" || (colType === "boolean" && val === 0);
         });
-        if (allEmpty) return; // пропускаємо порожні рядки
+        if (allEmpty) return;
 
-        // Створюємо об'єкт значень для колонки
         const valuesObj = {};
         schema.forEach((col, idx) => {
             let val = rowData[idx];
-
-            // Санітизувати дані за типом
-            const typeStr = typeToSQL(col.type || "");
+            const typeStr = typeToSQL(col.type || " ");
             if (typeStr === "TEXT" && (col.type || "").toUpperCase() !== "BLOB") val = String(val ?? "").slice(0, 64);
-            if (typeStr === "INTEGER") val = val === null ? "" : Number(val);
-            if (typeStr === "REAL")    val = val === null ? "" : Number(val);
+            if (typeStr === "INTEGER") val = val === null ? null : Number(val);
+            if (typeStr === "REAL") val = val === null ? null : Number(val);
             if (typeStr === "BOOLEAN") val = val ? 1 : 0;
-            // IMAGE/FILE зберігаємо як є (base64/url/blob)
-            if ((col.type || "").toLowerCase() === "image") val = val ?? "";
-
             valuesObj[col.title] = val;
         });
 
@@ -327,14 +364,24 @@ function saveTableData() {
         const quotedCols = colNames.map(k => `"${k}"`).join(", ");
 
         if (pkCols.length > 0) {
-            // UPDATE або INSERT
             const pkIdxs = pkCols.map(pk => colNames.indexOf(pk));
             const whereClause = pkCols.map(pk => `"${pk}" = ?`).join(" AND ");
-            const pkVals = pkIdxs.map(i => colVals[i]);
-            let exists = false;
 
+            // 🆕 Безпечне отримання оригінальних PK
+            let originalPkVals;
+            if (rowData._pkSnapshot) {
+                originalPkVals = pkCols.map(pk => rowData._pkSnapshot[pk]);
+            } else {
+                // Якщо знімок втрачено, припускаємо, що PK не змінювався
+                originalPkVals = pkIdxs.map(i => colVals[i]);
+            }
+
+            let exists = false;
             try {
-                const res = db.exec(`SELECT COUNT(*) FROM "${currentEditTable.name}" WHERE ${whereClause};`, pkVals);
+                const res = db.exec(
+                    `SELECT COUNT(*) FROM "${currentEditTable.name}" WHERE ${whereClause};`,
+                    originalPkVals
+                );
                 exists = res.length && res[0].values[0][0] > 0;
             } catch (e) {
                 console.warn("Помилка перевірки існування PK:", e);
@@ -342,17 +389,48 @@ function saveTableData() {
 
             if (exists) {
                 const setClause = colNames.map(k => `"${k}" = ?`).join(", ");
-                db.run(`UPDATE "${currentEditTable.name}" SET ${setClause} WHERE ${whereClause};`, [...colVals, ...pkVals]);
+                db.run(
+                    `UPDATE "${currentEditTable.name}" SET ${setClause} WHERE ${whereClause};`,
+                    [...colVals, ...originalPkVals]
+                );
+            
+                // 🆕 Каскадне оновлення FK у дочірніх таблицях при зміні PK
+                pkCols.forEach((pk, i) => {
+                    const oldVal = originalPkVals[i];
+                    const newVal = colVals[colNames.indexOf(pk)];
+                    if (String(oldVal) !== String(newVal)) {
+                        cascadeUpdateForeignKeys(currentEditTable.name, pk, oldVal, newVal);
+                    }
+                });
             } else {
-                db.run(`INSERT INTO "${currentEditTable.name}" (${quotedCols}) VALUES (${placeholders});`, colVals);
+                // Додаткова перевірка: чи не існує вже запис з НОВИМ PK (захист від дублів)
+                try {
+                    const newPkCheck = db.exec(
+                        `SELECT COUNT(*) FROM "${currentEditTable.name}" WHERE ${whereClause};`,
+                        pkIdxs.map(i => colVals[i])
+                    );
+                    if (newPkCheck.length && newPkCheck[0].values[0][0] > 0) {
+                        Message(t("pkDuplicateError", pkCols.join(", ")));
+                        return;
+                    }
+                } catch (e) {}
+
+                db.run(
+                    `INSERT INTO "${currentEditTable.name}" (${quotedCols}) VALUES (${placeholders});`,
+                    colVals
+                );
+                // 🆕 Оновлюємо знімок після успішного INSERT, щоб наступні збереження не дублювали
+                rowData._pkSnapshot = {};
+                pkCols.forEach(pk => {
+                    const idx = schema.findIndex(c => c.title === pk);
+                    rowData._pkSnapshot[pk] = colVals[colNames.indexOf(pk)];
+                });
             }
         } else {
-            // Таблиця без PK
             db.run(`INSERT OR REPLACE INTO "${currentEditTable.name}" (${quotedCols}) VALUES (${placeholders});`, colVals);
         }
     });
 
-    // Оновлюємо currentEditTable.data після збереження
     try {
         const res = db.exec(`SELECT * FROM "${currentEditTable.name}"`);
         currentEditTable.data = res.length ? res[0].values : [];
@@ -360,7 +438,6 @@ function saveTableData() {
         console.warn("Не вдалося оновити дані після збереження:", e);
         currentEditTable.data = [];
     }
-
     saveDatabase();
     Message(t("dataSaved"));
     closeEditModal();
@@ -1008,9 +1085,9 @@ function saveSchema() {
         fieldsSQL.push(`PRIMARY KEY (${pkFields.join(", ")})`);
     }
 
-    const foreignKeys = schema
-        .filter(f => f.foreignKey && f.refTable && f.refField)
-        .map(f => `FOREIGN KEY ("${f.title}") REFERENCES "${f.refTable}"("${f.refField}")`);
+	const foreignKeys = schema
+		.filter(f => f.foreignKey && f.refTable && f.refField)
+		.map(f => `FOREIGN KEY ("${f.title}") REFERENCES "${f.refTable}"("${f.refField}") ON UPDATE CASCADE`);
 
     const fullFieldsSQL = [...fieldsSQL, ...foreignKeys].join(", ");
     const createSQL = `CREATE TABLE "${newTableName}" (${fullFieldsSQL});`;
@@ -1572,14 +1649,15 @@ function copySelectedTable() {
             return def;
         });
 
-        const foreignKeys = newTable.schema
-            .filter(f => f.foreignKey && f.refTable && f.refField)
-            .map(f => `FOREIGN KEY ("${f.title}") REFERENCES "${f.refTable}"("${f.refField}")`);
+		const foreignKeys = newTable.schema
+			.filter(f => f.foreignKey && f.refTable && f.refField)
+			.map(f => `FOREIGN KEY ("${f.title}") REFERENCES "${f.refTable}"("${f.refField}") ON UPDATE CASCADE`);
+
 
         const createSQL = `CREATE TABLE "${newTable.name}" (${[...fields, ...foreignKeys].join(", ")});`;
         db.run("PRAGMA foreign_keys = OFF;");
         db.run(createSQL);
-       
+     
 
 
         // Вставити всі записи

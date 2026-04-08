@@ -21,6 +21,15 @@ function createConstructor() {
     document.getElementById(constructorMode + "Canvas").classList.remove('grid-visible');
     isGridVisible = false;
     isDesignerDirty = false;
+
+    // Для форм: наповнити спадний список таблиць і скинути вибір
+    if (constructorMode === "form") {
+        const fts = document.getElementById("formTableSelect");
+        if (fts) {
+            populateTableSelect(fts, "— Оберіть таблицю —", true);
+            fts.value = "";
+        }
+    }
 }
 
 // --- спільна функція наповнення select таблицями/запитами ---
@@ -80,7 +89,9 @@ function initFieldPanelListeners(tableSelect, fieldSelect, fieldClass) {
     });
 
     fieldSelect.addEventListener("change", () => {
-        const selectedTableName = tableSelect.value;
+        // Для форми таблиця визначається через formTableSelect (заблокований)
+        const formTableSel = (constructorMode === "form") ? document.getElementById("formTableSelect") : null;
+        const selectedTableName = formTableSel ? formTableSel.value : tableSelect.value;
         const selectedFieldName = fieldSelect.value;
         if (activeElement && activeElement.classList.contains(fieldClass) && selectedTableName && selectedFieldName) {
             const fieldTextDiv = activeElement.querySelector('.field-text');
@@ -92,7 +103,7 @@ function initFieldPanelListeners(tableSelect, fieldSelect, fieldClass) {
         } else if (activeElement && activeElement.classList.contains(fieldClass)) {
             const fieldTextDiv = activeElement.querySelector('.field-text');
             if (fieldTextDiv) {
-                fieldTextDiv.innerText = tableSelect.value ? `${tableSelect.value}.` : t("designerFieldData");
+                fieldTextDiv.innerText = selectedTableName ? `${selectedTableName}.` : t("designerFieldData");
             }
             delete activeElement.dataset.fieldName;
         }
@@ -293,22 +304,44 @@ function populateFieldSelectionPanel() {
 function populateFieldSelectionPanel() {
     console.log("constructorMode=", constructorMode);
     const fieldPanelTableSelect = document.getElementById("fieldPanelTableSelect");
+    const fieldPanelFieldSelect = document.getElementById("fieldPanelFieldSelect");
 
-    // Очищення та наповнення через єдину функцію (таблиці + запити)
-    populateTableSelect(fieldPanelTableSelect, t("designerSelectTable"), true);
+    if (constructorMode === "form") {
+        // У режимі форми: таблиця фіксована — беремо з formTableSelect
+        const formTableSelect = document.getElementById("formTableSelect");
+        const lockedTable = formTableSelect ? formTableSelect.value : "";
 
-    // Відновлення вибраного значення, якщо елемент активний
-    if (activeElement && activeElement.dataset.tableName) {
-        fieldPanelTableSelect.value = activeElement.dataset.tableName;
+        // Наповнюємо список таблиць, але блокуємо вибір
+        populateTableSelect(fieldPanelTableSelect, t("designerSelectTable"), true);
+        fieldPanelTableSelect.value = lockedTable;
+        fieldPanelTableSelect.disabled = true;
+
+        // Наповнюємо список полів для обраної таблиці
         fieldPanelTableSelect.dispatchEvent(new Event('change'));
-    } else {
-        fieldPanelTableSelect.value = "";
-    }
 
-    if (activeElement && activeElement.dataset.fieldName) {
-        document.getElementById("fieldPanelFieldSelect").value = activeElement.dataset.fieldName;
+        // Відновлюємо вибране поле активного елемента
+        if (activeElement && activeElement.dataset.fieldName) {
+            fieldPanelFieldSelect.value = activeElement.dataset.fieldName;
+        } else {
+            fieldPanelFieldSelect.value = "";
+        }
     } else {
-        document.getElementById("fieldPanelFieldSelect").value = "";
+        // Для звітів: звичайна поведінка
+        fieldPanelTableSelect.disabled = false;
+        populateTableSelect(fieldPanelTableSelect, t("designerSelectTable"), true);
+
+        if (activeElement && activeElement.dataset.tableName) {
+            fieldPanelTableSelect.value = activeElement.dataset.tableName;
+            fieldPanelTableSelect.dispatchEvent(new Event('change'));
+        } else {
+            fieldPanelTableSelect.value = "";
+        }
+
+        if (activeElement && activeElement.dataset.fieldName) {
+            fieldPanelFieldSelect.value = activeElement.dataset.fieldName;
+        } else {
+            fieldPanelFieldSelect.value = "";
+        }
     }
 }
 
@@ -410,6 +443,247 @@ function initializeCanvasElement(element) {
     });
 }
 
+// =============================================
+// === ЛОГІКА ТАБЛИЦІ В КОНСТРУКТОРІ ===
+// =============================================
+let activeTableElement = null;
+
+function addScreenTable() {
+    const canvas = screenCanvas;
+    const cm = constructorMode;
+    const el = document.createElement("div");
+    el.className = `${cm}-element ${cm}-table`;
+    el.dataset.type = "table";
+    el.dataset.tableName = "";
+    el.dataset.selectedFields = "[]";
+    Object.assign(el.style, {
+        position: "absolute", left: "80px", top: "100px", width: "340px", height: "200px",
+        border: "1px solid  #0000ff", backgroundColor: "#fffaf0",
+        cursor: "grab", boxSizing: "border-box", padding: "4px"
+    });
+    el.innerHTML = `<div style="color:#888; text-align:center; margin-top:35%; font-size:13px; pointer-events:none;">📊 ${t("designerClickToConfigure") || "Натисніть, щоб налаштувати таблицю"}</div>`;
+    
+    canvas.appendChild(el);
+    addResizeHandles(el);
+    makeDraggableAndResizable(el);
+    isDesignerDirty = true;
+
+    // Оновлений обробник кліку з перевіркою відстані від меж
+    el.addEventListener("click", (e) => {
+        if (e.target.classList.contains("resize-handle")) return;
+        e.stopPropagation();
+        
+        // Перевірка: чи клік на відстані не менше 10px від меж
+        const rect = el.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        const BORDER_TOLERANCE = 10;
+        
+        const nearBorder = clickX < BORDER_TOLERANCE || 
+                          clickX > rect.width - BORDER_TOLERANCE ||
+                          clickY < BORDER_TOLERANCE || 
+                          clickY > rect.height - BORDER_TOLERANCE;
+        
+        // Якщо клік не біля межі - відкриваємо налаштування
+        if (!nearBorder) {
+            activeTableElement = el;
+            openTableFieldModal();
+        }
+    });
+}
+
+function openTableFieldModal() {
+    if (!activeTableElement) return;
+    populateTableFieldModal();
+    document.getElementById("tableFieldModal").style.display = "flex";
+}
+
+function closeTableFieldModal() {
+    document.getElementById("tableFieldModal").style.display = "none";
+    activeTableElement = null;
+}
+
+function populateTableFieldModal() {
+    const sel = document.getElementById("tableFieldTableSelect");
+    sel.innerHTML = `<option value="">${t("designerSelectTable")}</option>`;
+    
+    database.tables.forEach(tbl => {
+        const opt = document.createElement("option");
+        opt.value = tbl.name; opt.textContent = tbl.name;
+        sel.appendChild(opt);
+    });
+    if (constructorMode === "report") {
+        queries.results.forEach(q => {
+            const opt = document.createElement("option");
+            opt.value = `*${q.name}`; opt.textContent = `*${q.name}`;
+            sel.appendChild(opt);
+        });
+    }
+
+    const currentTable = activeTableElement.dataset.tableName || "";
+    if (currentTable) sel.value = currentTable;
+    renderTableFieldCheckboxes(sel.value);
+    sel.onchange = () => renderTableFieldCheckboxes(sel.value);
+}
+
+function renderTableFieldCheckboxes(tableName) {
+    const container = document.getElementById("tableFieldCheckboxes");
+    container.innerHTML = "";
+    if (!tableName) return;
+
+    const cleanName = tableName.startsWith('*') ? tableName.substring(1) : tableName;
+    const table = database.tables.find(t => t.name === cleanName) || queries.results.find(q => q.name === cleanName);
+    if (!table) return;
+
+    const savedFields = JSON.parse(activeTableElement.dataset.selectedFields || "[]");
+    
+    table.schema.forEach(col => {
+        const label = document.createElement("label");
+        label.style.display = "flex";
+        label.style.alignItems = "center";
+        label.style.gap = "6px";
+        label.style.cursor = "pointer";
+        label.style.padding = "4px 0";
+        label.style.fontSize = "13px";
+        label.style.whiteSpace = "nowrap";
+        
+        const chk = document.createElement("input");
+        chk.type = "checkbox";
+        chk.value = col.title;
+        chk.id = `chk_${col.title.replace(/\s/g, '_')}`;
+        chk.checked = savedFields.length === 0 || savedFields.includes(col.title);
+        chk.style.cursor = "pointer";
+        chk.style.width = "16px";
+        chk.style.height = "16px";
+        
+        const span = document.createElement("span");
+        span.textContent = col.title;
+        span.style.cursor = "pointer";
+        span.style.overflow = "hidden";
+        span.style.textOverflow = "ellipsis";
+        
+        label.appendChild(chk);
+        label.appendChild(span);
+        container.appendChild(label);
+    });
+}
+
+function saveTableSelection() {
+    const tableName = document.getElementById("tableFieldTableSelect").value;
+    if (!tableName) { Message("Оберіть таблицю або запит"); return; }
+    
+    const checked = [...document.getElementById("tableFieldCheckboxes").querySelectorAll("input[type=checkbox]:checked")].map(c => c.value);
+    if (checked.length === 0) { Message("Оберіть хоча б одне поле"); return; }
+
+    activeTableElement.dataset.tableName = tableName;
+    activeTableElement.dataset.selectedFields = JSON.stringify(checked);
+    isDesignerDirty = true;
+    
+    renderTablePreviewInDesigner(activeTableElement, tableName, checked);
+    closeTableFieldModal();
+}
+
+// Легкий прев'ю на canvas (не викликає editData, щоб не гальмувати UI)
+function renderTablePreviewInDesigner(container, tableName, fields) {
+    // Зберігаємо поточні маркери та позицію
+    const hadHandles = container.querySelectorAll('.resize-handle').length > 0;
+    const savedLeft = container.style.left;
+    const savedTop = container.style.top;
+    const savedWidth = container.style.width;
+    const savedHeight = container.style.height;
+    
+    container.innerHTML = "";
+    
+    // Відновлюємо позицію та розміри
+    container.style.left = savedLeft;
+    container.style.top = savedTop;
+    container.style.width = savedWidth;
+    container.style.height = savedHeight;
+    
+    const result = findTableOrQueryResult(tableName);
+    if (!result || !result.table) {
+        container.innerHTML = `<div style="color:#888; text-align:center; margin-top:35%; font-size:13px; pointer-events:none;">${t("designerTableNotFound") || "Таблицю не знайдено"}</div>`;
+        return;
+    }
+
+    const table = result.table;
+    const isReadOnly = result.isQuery === true;
+
+    const tbl = document.createElement("table");
+    tbl.style.width = "100%"; 
+    tbl.style.borderCollapse = "collapse"; 
+    tbl.style.fontSize = "11px";
+    tbl.style.pointerEvents = "none"; // Блокуємо взаємодію на canvas
+
+    const thead = document.createElement("thead");
+    const hr = document.createElement("tr");
+    fields.forEach(f => {
+        const th = document.createElement("th"); 
+        th.textContent = f;
+        th.style.border = "1px solid #ccc"; 
+        th.style.padding = "3px"; 
+        th.style.background = "#eee";
+        th.style.fontSize = "11px";
+        th.style.whiteSpace = "nowrap";
+        hr.appendChild(th);
+    });
+    thead.appendChild(hr); 
+    tbl.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+    const previewData = table.data?.slice(0, 3) || [];
+    previewData.forEach(row => {
+        const tr = document.createElement("tr");
+        fields.forEach(f => {
+            const td = document.createElement("td");
+            td.style.border = "1px solid #ccc"; 
+            td.style.padding = "3px";
+            td.style.fontSize = "10px";
+            td.style.whiteSpace = "nowrap";
+            const colIdx = table.schema.findIndex(c => c.title === f);
+            let cellValue = colIdx !== -1 ? (row?.[colIdx] ?? "") : "";
+            
+            // Спрощене відображення для зображень/файлів у прев'ю
+            const typeStr = String(table.schema[colIdx]?.type || "").toLowerCase();
+            if (typeStr === "image" || typeStr === "зображення") {
+                if (cellValue && typeof cellValue === "string" && looksLikeImageUrl(cellValue)) {
+                    td.innerHTML = "🖼️";
+                } else if (cellValue instanceof Uint8Array) {
+                    td.innerHTML = "🖼️";
+                } else if (cellValue) {
+                    td.innerHTML = "📷";
+                } else {
+                    td.textContent = "";
+                }
+            } else if (typeStr === "file" || typeStr === "файл") {
+                td.innerHTML = cellValue ? "📎" : "";
+            } else {
+                td.textContent = String(cellValue).length > 30 ? String(cellValue).slice(0, 27) + "..." : String(cellValue);
+            }
+            tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);
+    container.appendChild(tbl);
+    
+    // Якщо даних немає
+    if (previewData.length === 0) {
+        const emptyDiv = document.createElement("div");
+        emptyDiv.style.textAlign = "center";
+        emptyDiv.style.padding = "20px";
+        emptyDiv.style.color = "#999";
+        emptyDiv.style.fontSize = "12px";
+        emptyDiv.textContent = t("reportNoData") || "Немає даних";
+        container.appendChild(emptyDiv);
+    }
+    
+    // Відновлюємо маркери, якщо вони були
+    if (hadHandles) {
+        addResizeHandles(container);
+    }
+}
+
 /**
  * Відтворення об'єктів збереженого звіту/форми
  **/
@@ -448,6 +722,51 @@ function renderCanvas(stored) {
             makeDraggableAndResizable(div);
             return;
         }
+
+
+        if (el.type === "table") {
+            const div = document.createElement("div");
+            div.className = `${cm}-element ${cm}-table`;
+            Object.assign(div.style, {
+                position: "absolute", left: el.left+"px", top: el.top+"px", width: el.width+"px", height: el.height+"px",
+                border: "1px solid #0000ff", backgroundColor: "#fffaf0",
+                cursor: "grab", boxSizing: "border-box", padding: "4px"
+            });
+            div.dataset.type = "table";
+            div.dataset.tableName = el.tableName || "";
+            div.dataset.selectedFields = JSON.stringify(el.selectedFields || []);
+        
+            // Оновлений обробник кліку з перевіркою відстані від меж
+            div.addEventListener("click", (e) => {
+                if (e.target.classList.contains("resize-handle")) return;
+                e.stopPropagation();
+                
+                // Перевірка: чи клік на відстані не менше 10px від меж
+                const rect = div.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+                const BORDER_TOLERANCE = 10;
+                
+                const nearBorder = clickX < BORDER_TOLERANCE || 
+                                  clickX > rect.width - BORDER_TOLERANCE ||
+                                  clickY < BORDER_TOLERANCE || 
+                                  clickY > rect.height - BORDER_TOLERANCE;
+                
+                // Якщо клік не біля межі - відкриваємо налаштування
+                if (!nearBorder) {
+                    activeTableElement = div;
+                    openTableFieldModal();
+                }
+            });
+        
+            if (el.tableName && el.selectedFields) renderTablePreviewInDesigner(div, el.tableName, el.selectedFields);
+            else div.innerHTML = `<div style="color:#888; text-align:center; margin-top:35%; font-size:13px; pointer-events:none;">📊 Натисніть, щоб налаштувати таблицю</div>`;
+        
+            cCanvas.appendChild(div);
+            addResizeHandles(div);
+            makeDraggableAndResizable(div);
+            return;
+        }     
 
         // --- Текстові елементи ---
         const div = document.createElement("div");
@@ -784,7 +1103,20 @@ function makeDraggableAndResizable(el) {
         }
     });
 }
-
+//
+function findTableOrQueryResult(tableName) {
+    if (!tableName) return null;
+    
+    let table = database.tables.find(t => t.name === tableName);
+    if (table) return { table, isQuery: false };
+    
+    const cleanName = tableName.startsWith('*') ? tableName.substring(1) : tableName;
+    let queryResult = queries.results.find(q => q.name === cleanName);
+    
+    if (queryResult) return { table: queryResult, isQuery: true };
+    
+    return null;
+}
 // =============================================
 // === ГРАФІЧНІ ОБ'ЄКТИ (ФІГУРИ) ===
 // =============================================

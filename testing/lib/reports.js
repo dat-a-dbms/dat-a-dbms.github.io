@@ -96,6 +96,7 @@ function previewSelectedReport() {
         previewReport(report); // функція вже реалізована для перегляду
 }
 
+
 function previewReport(report = null) {
     const previewModal = document.getElementById("reportPreviewModal");
     const previewCanvas = document.getElementById("reportPreviewCanvas");
@@ -112,7 +113,6 @@ function previewReport(report = null) {
         reportName = document.getElementById("reportNameInput").value.trim();
         const canvasElements = document.querySelectorAll("#reportCanvas .report-element");
         elements = Array.from(canvasElements).map(el => {
-            // 🆕 Збір фігур з canvas
             if (el.classList.contains("report-shape")) {
                 return {
                     type: "shape",
@@ -124,6 +124,17 @@ function previewReport(report = null) {
                     top: el.style.top,
                     width: el.style.width,
                     height: el.style.height
+                };
+            }
+            if (el.classList.contains("report-table")) {
+                return {
+                    type: "table",
+                    left: el.style.left,
+                    top: el.style.top,
+                    width: el.style.width,
+                    height: el.style.height,
+                    tableName: el.dataset.tableName || '',
+                    selectedFields: JSON.parse(el.dataset.selectedFields || "[]")
                 };
             }
             const type = el.classList.contains("report-label") ? "label" : "field";
@@ -150,7 +161,7 @@ function previewReport(report = null) {
     titleEl.innerText = reportName;
 
     elements.forEach(el => {
-        // 🆕 Рендеринг фігур (завжди під текстом)
+        // Рендеринг фігур
         if (el.type === "shape") {
             const shapeDiv = document.createElement("div");
             shapeDiv.className = `report-shape shape-${el.shapeType}`;
@@ -181,7 +192,229 @@ function previewReport(report = null) {
             return;
         }
 
-        // Рендеринг тексту та полів
+        // Рендеринг таблиць з підтримкою зовнішніх ключів
+        if (el.type === "table") {
+            const frame = document.createElement("div");
+            frame.className = "report-table";
+            Object.assign(frame.style, {
+                position: "absolute",
+                left: addPx(el.left),
+                top: addPx(el.top),
+                width: addPx(el.width),
+                height: addPx(el.height),
+                backgroundColor: "#fff",
+                padding: "0",
+                boxSizing: "border-box",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden"
+            });
+            
+            const tableWrapper = document.createElement("div");
+            tableWrapper.style.overflow = "auto";
+            tableWrapper.style.flex = "1";
+            tableWrapper.style.minHeight = "0";
+            
+            const tableEl = document.createElement("table");
+            tableEl.style.width = "100%";
+            tableEl.style.borderCollapse = "collapse";
+            tableEl.style.tableLayout = "auto";
+            tableEl.style.minWidth = "100%";
+            tableEl.style.fontSize = "11px";
+            
+            const thead = document.createElement("thead");
+            thead.style.backgroundColor = "#eee";
+            thead.style.position = "sticky";
+            thead.style.top = "0";
+            thead.style.zIndex = "10";
+            
+            const tbody = document.createElement("tbody");
+            
+            tableEl.appendChild(thead);
+            tableEl.appendChild(tbody);
+            tableWrapper.appendChild(tableEl);
+            frame.appendChild(tableWrapper);
+            previewCanvas.appendChild(frame);
+            
+            // Отримуємо дані для таблиці
+            const result = findTableOrQueryResult(el.tableName);
+            
+            if (!result || !result.table) {
+                tbody.innerHTML = `<tr><td style="padding:20px; text-align:center; color:#999;">${t("reportSourceNotFound")}</td></tr>`;
+                return;
+            }
+            
+            const tableObj = result.table;
+            const selectedFields = el.selectedFields || [];
+            
+            // Фільтруємо схему та дані
+            let filteredSchema = tableObj.schema;
+            let filteredData = tableObj.data;
+            
+            if (selectedFields.length > 0) {
+                filteredSchema = tableObj.schema.filter(col => 
+                    selectedFields.includes(col.title)
+                );
+                
+                const fieldIndices = selectedFields.map(field => 
+                    tableObj.schema.findIndex(col => col.title === field)
+                ).filter(idx => idx !== -1);
+                
+                filteredData = tableObj.data.map(row => 
+                    fieldIndices.map(idx => row[idx])
+                );
+            }
+            
+            // Рендеримо заголовок
+            const headerRow = document.createElement("tr");
+            filteredSchema.forEach((col) => {
+                const th = document.createElement("th");
+                // Позначаємо поля із зовнішнім ключем
+                const isFk = col.foreignKey && col.refTable && col.refField;
+                th.textContent = isFk ? col.title : col.title;
+                th.style.backgroundColor = "#eee";
+                th.style.padding = "6px";
+                th.style.border = "1px solid #ddd";
+                th.style.fontSize = "11px";
+                th.style.whiteSpace = "nowrap";
+                th.style.position = "relative";
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            
+            // Рендеримо тіло з підстановкою значень для зовнішніх ключів
+            filteredData.forEach((rowData, rowIndex) => {
+                const tr = document.createElement("tr");
+                const originalRow = tableObj.data[rowIndex]; // Оригінальний рядок для FK
+                
+                filteredSchema.forEach((col, colIndex) => {
+                    const td = document.createElement("td");
+                    td.style.border = "1px solid #ddd";
+                    td.style.padding = "4px 6px";
+                    td.style.fontSize = "11px";
+                    td.style.whiteSpace = "nowrap";
+                    
+                    // Отримуємо оригінальний індекс колонки в таблиці
+                    const originalColIndex = tableObj.schema.findIndex(c => c.title === col.title);
+                    let cellValue = rowData[colIndex];
+                    
+                    // Перевіряємо, чи це зовнішній ключ
+                    const isForeignKey = col.foreignKey && col.refTable && col.refField;
+                    
+                    if (isForeignKey) {
+                        // Шукаємо пов'язану таблицю
+                        const refTable = database.tables.find(t => t.name === col.refTable);
+                        if (refTable && refTable.data) {
+                            // Знаходимо індекс поля, за яким зв'язуємо (зазвичай PK)
+                            const refKeyIndex = refTable.schema.findIndex(f => f.title === col.refField);
+                            // Знаходимо індекс поля для відображення (якщо є підстановка)
+                            let displayIndex = refKeyIndex;
+                            if (col.subst) {
+                                const substIdx = refTable.schema.findIndex(f => f.title === col.title);
+                                if (substIdx !== -1) displayIndex = substIdx;
+                            }
+                            
+                            // Шукаємо рядок у пов'язаній таблиці
+                            const refRow = refTable.data.find(r => String(r[refKeyIndex]) === String(cellValue));
+                            if (refRow && displayIndex !== -1) {
+                                cellValue = refRow[displayIndex];
+                            } else if (cellValue === null || cellValue === undefined || cellValue === "") {
+                                cellValue = "";
+                            }
+                        }
+                    }
+                    
+                    // Обробка типів даних
+                    const typeStr = String(col?.type || "").toLowerCase();
+                    
+                    // Зображення
+                    if (typeStr === "image" || typeStr === "зображення") {
+                        td.innerHTML = "";
+                        td.style.textAlign = "center";
+                        if (cellValue && typeof cellValue === "string" && looksLikeImageUrl(cellValue)) {
+                            const img = document.createElement("img");
+                            img.src = cellValue;
+                            img.style.maxWidth = "60px";
+                            img.style.maxHeight = "40px";
+                            img.style.objectFit = "contain";
+                            td.appendChild(img);
+                        } else if (cellValue instanceof Uint8Array) {
+                            const imgData = extractImage(cellValue);
+                            if (imgData) {
+                                const blob = new Blob([imgData.data], { type: imgData.type });
+                                const url = URL.createObjectURL(blob);
+                                const img = document.createElement("img");
+                                img.src = url;
+                                img.style.maxWidth = "60px";
+                                img.style.maxHeight = "40px";
+                                img.style.objectFit = "contain";
+                                td.appendChild(img);
+                            } else {
+                                td.textContent = "📷";
+                            }
+                        } else if (cellValue) {
+                            td.textContent = "📷";
+                        } else {
+                            td.textContent = "";
+                        }
+                    }
+                    // Файли
+                    else if (typeStr === "file" || typeStr === "файл") {
+                        td.innerHTML = "";
+                        td.style.textAlign = "center";
+                        if (cellValue) {
+                            const link = document.createElement("a");
+                            link.textContent = "📎";
+                            link.href = "#";
+                            link.style.cursor = "pointer";
+                            link.style.textDecoration = "none";
+                            link.style.fontSize = "16px";
+                            link.title = t("reportClickToOpen");
+                            link.onclick = (e) => {
+                                e.preventDefault();
+                                if (typeof openFileFromData === "function") {
+                                    openFileFromData(cellValue);
+                                }
+                            };
+                            td.appendChild(link);
+                        } else {
+                            td.textContent = "";
+                        }
+                    }
+                    // Логічний тип
+                    else if (typeStr === "boolean" || typeStr === "так/ні") {
+                        td.textContent = (cellValue == 1 || cellValue === true) ? "✓" : "✗";
+                        td.style.textAlign = "center";
+                    }
+                    // Звичайний текст
+                    else {
+                        td.textContent = (cellValue !== null && cellValue !== undefined) ? String(cellValue) : "";
+                    }
+                    
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            
+            // Якщо даних немає
+            if (filteredData.length === 0) {
+                const tr = document.createElement("tr");
+                const td = document.createElement("td");
+                td.colSpan = filteredSchema.length;
+                td.textContent = t("reportNoData");
+                td.style.textAlign = "center";
+                td.style.padding = "20px";
+                td.style.color = "#999";
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+            }
+            
+            return;
+        }
+
+        // Рендеринг текстових полів та написів (існуючий код)
         const clone = document.createElement("div");
         Object.assign(clone.style, {
             position: "absolute",
@@ -219,21 +452,31 @@ function previewReport(report = null) {
                     clone.innerText = t("reportFieldNotFound");
                 } else {
                     const colSchema = table.schema[colIndex];
-                    if (colSchema.foreignKey && colSchema.subst && colSchema.refTable && colSchema.refField) {
+                    // Обробка зовнішнього ключа для окремого поля
+                    if (colSchema.foreignKey && colSchema.refTable && colSchema.refField) {
                         const refTable = findTableOrQuery(colSchema.refTable);
                         if (refTable && refTable.data.length > 0) {
-                            const refColIndex = refTable.schema.findIndex(c => c.title === fieldName);
-                            const refFieldIndex = refTable.schema.findIndex(c => c.title === colSchema.refField);
-                            if (refColIndex !== -1 && refFieldIndex !== -1) {
-                                const lines = table.data.map(row => {
-                                    const fkValue = row[colIndex];
-                                    const refRow = refTable.data.find(r => String(r[refFieldIndex]) === String(fkValue));
-                                    return refRow ? refRow[refColIndex] : " ";
-                                });
-                                clone.innerText = lines.join("\n");
-                            } else clone.innerText = t("reportRefFieldNotFound");
-                        } else clone.innerText = t("reportRefTableEmpty");
-                    } else if (colSchema.type && String(colSchema.type).toLowerCase().includes("зображен")) {
+                            const refKeyIndex = refTable.schema.findIndex(c => c.title === colSchema.refField);
+                            let displayIndex = refKeyIndex;
+                            if (colSchema.subst) {
+                                const substIdx = refTable.schema.findIndex(c => c.title === fieldName);
+                                if (substIdx !== -1) displayIndex = substIdx;
+                            }
+                            
+                            const lines = table.data.map(row => {
+                                const fkValue = row[colIndex];
+                                const refRow = refTable.data.find(r => String(r[refKeyIndex]) === String(fkValue));
+                                if (refRow && displayIndex !== -1) {
+                                    return refRow[displayIndex];
+                                }
+                                return fkValue !== null && fkValue !== undefined ? String(fkValue) : " ";
+                            });
+                            clone.innerText = lines.join("\n");
+                        } else {
+                            clone.innerText = t("reportRefTableEmpty");
+                        }
+                    } 
+                    else if (colSchema.type && String(colSchema.type).toLowerCase().includes("зображен")) {
                         if (table.data.length === 1) {
                             const url = table.data[0][colIndex];
                             clone.innerHTML = "";
@@ -243,8 +486,11 @@ function previewReport(report = null) {
                                 Object.assign(img.style, { width: "100%", height: "100%", objectFit: "contain", display: "block" });
                                 clone.appendChild(img);
                             }
-                        } else clone.innerText = table.data.map(row => row[colIndex] ?? " ").join("\n");
-                    } else {
+                        } else {
+                            clone.innerText = table.data.map(row => row[colIndex] ?? " ").join("\n");
+                        }
+                    } 
+                    else {
                         const values = table.data.map(row => row[colIndex] ?? " ");
                         if (table.data.length === 1 && looksLikeImageUrl(values[0])) {
                             clone.innerHTML = "";
@@ -252,7 +498,9 @@ function previewReport(report = null) {
                             img.src = values[0];
                             Object.assign(img.style, { width: "100%", height: "100%", objectFit: "contain", display: "block" });
                             clone.appendChild(img);
-                        } else clone.innerText = values.join("\n");
+                        } else {
+                            clone.innerText = values.join("\n");
+                        }
                     }
                 }
             }
@@ -280,6 +528,18 @@ function saveReport() {
                 top: el.offsetTop,
                 width: el.offsetWidth,
                 height: el.offsetHeight,
+            };
+        }
+        // 🆕 Збереження таблиць
+        if (el.classList.contains("report-table")) {
+            return {
+                type: "table",
+                left: el.offsetLeft,
+                top: el.offsetTop,
+                width: el.offsetWidth,
+                height: el.offsetHeight,
+                tableName: el.dataset.tableName || null,
+                selectedFields: JSON.parse(el.dataset.selectedFields || "[]")
             };
         }
         // Текстові поля та написи
@@ -364,6 +624,24 @@ function printReportPreview() {
                     .field-text {
                         font-style: italic;
                     }
+                    .report-table {
+                        position: absolute;
+                        box-sizing: border-box;
+                        overflow: auto;
+                    }
+                    .report-table table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        font-size: 11px;
+                    }
+                    .report-table th, .report-table td {
+                        border: 1px solid #ddd;
+                        padding: 4px 6px;
+                        white-space: nowrap;
+                    }
+                    .report-table th {
+                        background-color: #eee;
+                    }
                 </style>
             </head>
             <body>
@@ -375,10 +653,27 @@ function printReportPreview() {
                         window.print();
                         window.onafterprint = () => window.close();
                     };
-                </script>
+                <\/script>
             </body>
             </html>
         `);
     
         printWindow.document.close();
     }
+
+// Допоміжна функція для пошуку таблиці або запиту
+function findTableOrQueryResult(tableName) {
+    if (!tableName) return null;
+    
+    // 1. Шукаємо у звичайних таблицях
+    let table = database.tables.find(t => t.name === tableName);
+    if (table) return { table, isQuery: false };
+    
+    // 2. Шукаємо у результатах запитів
+    const cleanName = tableName.startsWith('*') ? tableName.substring(1) : tableName;
+    let queryResult = queries.results.find(q => q.name === cleanName || q.name === `запит "${cleanName.replace(/\*запит "|"/g, '')}"`);
+    
+    if (queryResult) return { table: queryResult, isQuery: true };
+    
+    return null;
+}

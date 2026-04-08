@@ -659,13 +659,36 @@ function editData(tableName) {
                 ...f
             }));
             columns = table.schema.map(col => col.title);
-            rows = table.data || [];
+            
+            // Отримуємо список полів первинного ключа
+            const pkCols = table.schema.filter(col => col.primaryKey).map(col => col.title);
+            const pkIndices = pkCols.map(pk => columns.indexOf(pk));
+            
+            // Створюємо копію даних зі знімком PK
+            rows = (table.data || []).map(row => {
+                // Створюємо копію рядка, щоб не мутувати оригінал
+                const rowCopy = [...row];
+                
+                // Додаємо знімок PK значень для цього рядка
+                const pkSnapshot = {};
+                pkCols.forEach((pk, idx) => {
+                    pkSnapshot[pk] = row[pkIndices[idx]];
+                });
+                rowCopy._pkSnapshot = pkSnapshot;
+                
+                return rowCopy;
+            });
         }
     }
 
     if (!table) {
         Message(t("aeditTableQueryNotFound"));
         return;
+    }
+
+    // Зберігаємо дані зі знімками назад у таблицю
+    if (!isReadOnly && table) {
+        table.data = rows;
     }
 
     currentEditTable = table;
@@ -782,7 +805,10 @@ function editData(tableName) {
     // --- Рядки ---
     rows.forEach(rowData => {
         const tr = document.createElement("tr");
-        rowData.forEach((cellData, index) => {
+        // Витягуємо дані без службового поля _pkSnapshot
+        const actualRowData = rowData._pkSnapshot ? rowData.slice(0, columns.length) : rowData;
+        
+        actualRowData.forEach((cellData, index) => {
             const td = document.createElement("td");
             const colSchema = table.schema[index];
 
