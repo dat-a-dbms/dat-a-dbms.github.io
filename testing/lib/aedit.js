@@ -570,6 +570,15 @@ function advDataInput(container, cellData, col, rowData, index, isReadOnly) {
                 const clean = text.replace(/\r?\n/g, "").replace(/\s+$/g, "");
                 document.execCommand("insertText", false, clean);
             });
+
+            container.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "none";
+            });
+
+            container.addEventListener("drop", (e) => {
+                e.preventDefault();
+            });
     
             container.addEventListener("input", () => {
                 const oldText = container.innerText;

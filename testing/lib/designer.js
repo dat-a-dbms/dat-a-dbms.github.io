@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Спільні обробники canvas (mousedown / mousemove / mouseup) ---
-    function handleCanvasMouseDown(e, elementClass, labelClass, fieldClass) {
+    function handleCanvasMouseDown(e, elementClass, labelClass, fieldClass, buttonClass) {
         const element = e.target.closest(`.${elementClass}`);
         const handle  = e.target.closest(".resize-handle");
 
@@ -202,7 +202,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         fieldSelectionModal.style.display = "none";
                     }
-                }
+                } else if (activeElement.classList.contains(buttonClass)) {
+					if (!nearLeft && !nearRight && !nearTop && !nearBottom) {
+						// Клік в центрі кнопки - не перетягуємо
+						isDragging = false;
+						// Відкриття налаштувань через окремий слухач
+					} else {
+						isDragging = true;
+						element.style.cursor = "grabbing";
+					}
+				} 
             }
 
             if (isDragging || isResizing || (activeElement.classList.contains(labelClass) && !isDragging)) {
@@ -265,7 +274,7 @@ function handleCanvasMouseUp() {
     resizeHandle = null;
 }
 
-    formCanvas.addEventListener("mousedown",  (e) => handleCanvasMouseDown(e, "form-element",   "form-label",   "form-field"));
+	formCanvas.addEventListener("mousedown", (e) => handleCanvasMouseDown(e, "form-element", "form-label", "form-field", "form-button"));
     formCanvas.addEventListener("mousemove",  handleCanvasMouseMove);
     formCanvas.addEventListener("mouseup",    handleCanvasMouseUp);
 
@@ -491,6 +500,172 @@ function addScreenTable() {
         }
     });
 }
+//=============================================================
+// Створення кнопки
+function addScreenButton() {
+    const canvas = screenCanvas;
+    const cm = constructorMode;
+    
+    const button = document.createElement("div");
+    button.className = `${cm}-element ${cm}-button form-button`;
+    button.dataset.type = "button";
+    button.dataset.buttonText = "Кнопка";
+    button.dataset.textColor = "#ffffff";
+    button.dataset.bgColor = "#007bff";
+    button.dataset.borderColor = "#0056b3";
+    
+    Object.assign(button.style, {
+        position: "absolute",
+        left: "80px",
+        top: "140px",
+        width: "120px",
+        height: "40px",
+        backgroundColor: "#007bff",
+        color: "#ffffff",
+        border: "2px solid #0056b3",
+        borderRadius: "5px",
+        cursor: "grab",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "Arial",
+        fontSize: "14px",
+        fontWeight: "normal",
+        boxSizing: "border-box",
+        padding: "0 10px",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis"
+    });
+    
+    button.textContent = "Кнопка";
+    
+    // Додаємо обробник кліку для відкриття налаштувань
+    button.addEventListener("click", (e) => {
+        // Перевіряємо, чи клік не на маркері зміни розміру
+        if (e.target.classList.contains("resize-handle")) return;
+        
+        const rect = button.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        const BORDER_TOLERANCE = 10;
+        
+        const nearBorder = clickX < BORDER_TOLERANCE || 
+                          clickX > rect.width - BORDER_TOLERANCE ||
+                          clickY < BORDER_TOLERANCE || 
+                          clickY > rect.height - BORDER_TOLERANCE;
+        
+        if (!nearBorder) {
+            activeElement = button;
+            openButtonSettingsModal();
+        }
+    });
+    
+    canvas.appendChild(button);
+    addResizeHandles(button);
+    makeDraggableAndResizable(button);
+    isDesignerDirty = true;
+}
+
+// Функція відкриття модального вікна налаштувань кнопки
+function openButtonSettingsModal() {
+    if (!activeElement || !activeElement.classList.contains("form-button")) {
+        Message(t("designerSelectButton") || "Виберіть кнопку для налаштування");
+        return;
+    }
+
+    document.getElementById("buttonTextInput").value = activeElement.dataset.buttonText || "Кнопка";
+    document.getElementById("buttonTextColorInput").value = activeElement.dataset.textColor || "#ffffff";
+    document.getElementById("buttonBgColorInput").value = activeElement.dataset.bgColor || "#007bff";
+    document.getElementById("buttonBorderColorInput").value = activeElement.dataset.borderColor || "#0056b3";
+
+    // --- Наповнення списків форм і запитів ---
+    const formSel = document.getElementById("btnActionFormSelect");
+    formSel.innerHTML = '<option value="">— Оберіть форму —</option>';
+    (database.forms || []).forEach(f => {
+        const opt = document.createElement("option");
+        opt.value = f.name;
+        opt.textContent = f.name;
+        formSel.appendChild(opt);
+    });
+
+    const querySel = document.getElementById("btnActionQuerySelect");
+    querySel.innerHTML = '<option value="">— Оберіть запит —</option>';
+    (queries.definitions || []).forEach(q => {
+        const opt = document.createElement("option");
+        opt.value = q.name;
+        opt.textContent = q.name;
+        querySel.appendChild(opt);
+    });
+
+    // --- Відновлення збереженої дії ---
+    const savedAction = activeElement.dataset.buttonAction || "none";
+    const savedTarget = activeElement.dataset.buttonActionTarget || "";
+    document.querySelectorAll('input[name="btnAction"]').forEach(r => {
+        r.checked = (r.value === savedAction);
+    });
+    formSel.value = (savedAction === "openForm") ? savedTarget : "";
+    querySel.value = (savedAction === "runQuery") ? savedTarget : "";
+
+    // --- Показ/сховок спадних списків ---
+    _updateBtnActionSelects(savedAction);
+
+    // --- Обробники радіокнопок ---
+    document.querySelectorAll('input[name="btnAction"]').forEach(r => {
+        r.onchange = () => _updateBtnActionSelects(r.value);
+    });
+
+    document.getElementById("buttonSettingsModal").style.display = "flex";
+}
+
+function _updateBtnActionSelects(action) {
+    document.getElementById("btnActionFormSelect").style.display  = (action === "openForm")  ? "block" : "none";
+    document.getElementById("btnActionQuerySelect").style.display = (action === "runQuery")  ? "block" : "none";
+}
+
+// Функція збереження налаштувань кнопки
+function saveButtonSettings() {
+    if (!activeElement || !activeElement.classList.contains("form-button")) return;
+
+    const text = document.getElementById("buttonTextInput").value;
+    const textColor = document.getElementById("buttonTextColorInput").value;
+    const bgColor = document.getElementById("buttonBgColorInput").value;
+    const borderColor = document.getElementById("buttonBorderColorInput").value;
+
+    // Зчитуємо дію
+    const actionRadio = document.querySelector('input[name="btnAction"]:checked');
+    const action = actionRadio ? actionRadio.value : "none";
+    let actionTarget = "";
+    if (action === "openForm")  actionTarget = document.getElementById("btnActionFormSelect").value;
+    if (action === "runQuery")  actionTarget = document.getElementById("btnActionQuerySelect").value;
+
+    activeElement.dataset.buttonText = text;
+    activeElement.dataset.textColor = textColor;
+    activeElement.dataset.bgColor = bgColor;
+    activeElement.dataset.borderColor = borderColor;
+    activeElement.dataset.buttonAction = action;
+    activeElement.dataset.buttonActionTarget = actionTarget;
+
+    // ⚠️ Цей рядок видаляє ВСІ дочірні вузли, включаючи маркери (.resize-handle)
+    activeElement.textContent = text;
+
+    activeElement.style.color = textColor;
+    activeElement.style.backgroundColor = bgColor;
+    activeElement.style.border = `2px solid ${borderColor}`;
+
+    // ✅ Відновлюємо маркери та переналаштовуємо обробники drag/resize
+    addResizeHandles(activeElement);
+    makeDraggableAndResizable(activeElement);
+
+    isDesignerDirty = true;
+    closeButtonSettingsModal();
+}
+
+function closeButtonSettingsModal() {
+    document.getElementById("buttonSettingsModal").style.display = "none";
+}
+
+
 
 function openTableFieldModal() {
     if (!activeTableElement) return;
@@ -723,6 +898,66 @@ function renderCanvas(stored) {
             return;
         }
 
+
+        // обробка кнопок у renderCanvas
+        if (el.type === "button") {
+            const div = document.createElement("div");
+            div.classList.add(cm + "-element", cm + "-button", "form-button");
+            div.dataset.type = "button";
+            div.dataset.buttonText = el.text || "Кнопка";
+            div.dataset.textColor = el.textColor || "#ffffff";
+            div.dataset.bgColor = el.bgColor || "#007bff";
+            div.dataset.borderColor = el.borderColor || "#0056b3";
+            div.dataset.buttonAction = el.buttonAction || "none";
+			div.dataset.buttonActionTarget = el.buttonActionTarget || "";
+            
+            Object.assign(div.style, {
+                position: "absolute",
+                left: el.left + "px",
+                top: el.top + "px",
+                width: el.width + "px",
+                height: el.height + "px",
+                backgroundColor: el.bgColor || "#007bff",
+                color: el.textColor || "#ffffff",
+                border: `2px solid ${el.borderColor || "#0056b3"}`,
+                borderRadius: "5px",
+                cursor: "grab",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontFamily: el.fontFamily || "Arial",
+                fontSize: el.fontSize || "14px",
+                fontWeight: el.fontWeight || "normal",
+                boxSizing: "border-box",
+                padding: "0 10px",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis"
+            });
+            
+            div.textContent = el.text || "Кнопка";
+            
+            div.addEventListener("click", (e) => {
+                if (e.target.classList.contains("resize-handle")) return;
+                const rect = div.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+                const BORDER_TOLERANCE = 10;
+                const nearBorder = clickX < BORDER_TOLERANCE || 
+                                  clickX > rect.width - BORDER_TOLERANCE ||
+                                  clickY < BORDER_TOLERANCE || 
+                                  clickY > rect.height - BORDER_TOLERANCE;
+                if (!nearBorder) {
+                    activeElement = div;
+                    openButtonSettingsModal();
+                }
+            });
+            
+            cCanvas.appendChild(div);
+            addResizeHandles(div);
+            makeDraggableAndResizable(div);
+            return;
+        }
 
         if (el.type === "table") {
             const div = document.createElement("div");

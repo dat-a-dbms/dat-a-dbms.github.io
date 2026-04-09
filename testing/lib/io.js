@@ -105,80 +105,82 @@ function decodeFileBlob(uint8array) {
 
 // Завантаження БД з IndexedDB або створення нової
 async function loadDatabase() {
-        console.log("loadDatabase")
-        const name = database.fileName || "my_database";
-        const data = await idbLoad(name + ".db-data");
-        console.log("name =",name)
+    console.log("loadDatabase")
+    const name = database.fileName || "my_database";
+    const data = await idbLoad(name + ".db-data");
+    console.log("name =", name)
 
-        if (data) {
-            db = new SQL.Database(data);
-            console.log("База даних завантажена: ",db);
-            syncStoreFilesInDbSetting();            
-            // Завантажити запити тільки якщо є база
-            const savedQueries = localStorage.getItem(name + ".queries-data");
-            if (savedQueries) {
-                queries.definitions = JSON.parse(savedQueries);
-                console.log("Визначення запитів завантажено: ",queries.definitions);
-                
-            } else {
-                queries.definitions = [];
-            }
-            
-            const savedQueryResults = localStorage.getItem(name + ".query-results");
-            if (savedQueryResults) {
-                queries.results = JSON.parse(savedQueryResults);
-                console.log("Результати запитів завантажено:", queries.results);
-            } else {
-                queries.results = [];
-            }
-
-            const savedReports = localStorage.getItem(name + ".reports-data");
-            if (savedReports) {
-                database.reports = JSON.parse(savedReports);
-                console.log("Звіти завантажено: ",database.reports);               
-            } else {
-                database.reports = [];
-            }
-            
-            const savedForms = localStorage.getItem(name + ".forms-data");
-            if (savedForms) {
-                database.forms = JSON.parse(savedForms);
-                console.log("Форми завантажено: ",database.forms);
-            } else {
-                database.forms = [];
-            }
-            
-            const savedRelations = localStorage.getItem(name + ".relations-data");
-            if (savedRelations) {
-                database.relations = JSON.parse(savedRelations);
-                console.log("Зв'язки завантажено: ", database.relations);
-            } else {
-                database.relations = [];
-            }
-
+    if (data) {
+        db = new SQL.Database(data);
+        console.log("База даних завантажена: ", db);
+        syncStoreFilesInDbSetting();            
+        
+        // Завантажити запити тільки якщо є база
+        const savedQueries = localStorage.getItem(name + ".queries-data");
+        if (savedQueries) {
+            queries.definitions = JSON.parse(savedQueries);
+            console.log("Визначення запитів завантажено: ", queries.definitions);
         } else {
-            db = new SQL.Database(); // створюємо нову БД, але без запитів
-            syncStoreFilesInDbSetting();
-            queries.definitions = []; // обнуляємо, бо бази немає
-            database.reports = [];
-            database.forms = [];
-            console.log("Нова база даних створена");
+            queries.definitions = [];
         }
-        newDbFile = false;
-        queries.results = []; // Завжди очищати результати
-        const itl = document.getElementById("import-table-link");
-        if (itl) {
-			itl.style.display = "block";
-		}
-        updateMainTitle();
-        updateQuickAccessPanel(
-                  getCurrentTableNames(),
-                  getCurrentQueryNames(),
-                  getCurrentReportNames(),
-                  getCurrentFormNames()
-                ); 
-		localStorage.setItem('lastOpenedFile', name);
-                    
+        
+        const savedQueryResults = localStorage.getItem(name + ".query-results");
+        if (savedQueryResults) {
+            queries.results = JSON.parse(savedQueryResults);
+            console.log("Результати запитів завантажено:", queries.results);
+        } else {
+            queries.results = [];
+        }
+
+        const savedReports = localStorage.getItem(name + ".reports-data");
+        if (savedReports) {
+            database.reports = JSON.parse(savedReports);
+            console.log("Звіти завантажено: ", database.reports);               
+        } else {
+            database.reports = [];
+        }
+        
+        const savedForms = localStorage.getItem(name + ".forms-data");
+        if (savedForms) {
+            database.forms = JSON.parse(savedForms);
+            console.log("Форми завантажено: ", database.forms);
+        } else {
+            database.forms = [];
+        }
+        
+        const savedRelations = localStorage.getItem(name + ".relations-data");
+        if (savedRelations) {
+            database.relations = JSON.parse(savedRelations);
+            console.log("Зв'язки завантажено: ", database.relations);
+        } else {
+            database.relations = [];
+        }
+
+        //АВТОМАТИЧНЕ ВІДКРИТТЯ СТАРТОВОЇ ФОРМИ
+        autoOpenStartupForm();
+
+    } else {
+        db = new SQL.Database();
+        syncStoreFilesInDbSetting();
+        queries.definitions = [];
+        database.reports = [];
+        database.forms = [];
+        console.log("Нова база даних створена");
+    }
+    newDbFile = false;
+    queries.results = [];
+    const itl = document.getElementById("import-table-link");
+    if (itl) {
+        itl.style.display = "block";
+    }
+    updateMainTitle();
+    updateQuickAccessPanel(
+        getCurrentTableNames(),
+        getCurrentQueryNames(),
+        getCurrentReportNames(),
+        getCurrentFormNames()
+    ); 
+    localStorage.setItem('lastOpenedFile', name);
 }
 
 // Збереження БД у IndexedDB
