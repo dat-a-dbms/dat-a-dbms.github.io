@@ -8,7 +8,6 @@ let resizeHandle = null;
 let initialX, initialY;
 let initialLeft, initialTop, initialWidth, initialHeight;
 let currentEditElement = null;
-
 // Конструктор звітів та форм
 function createConstructor() {
     document.getElementById(constructorMode + "CreatorModal").style.display = "flex";
@@ -21,7 +20,6 @@ function createConstructor() {
     document.getElementById(constructorMode + "Canvas").classList.remove('grid-visible');
     isGridVisible = false;
     isDesignerDirty = false;
-
     // Для форм: наповнити спадний список таблиць і скинути вибір
     if (constructorMode === "form") {
         const fts = document.getElementById("formTableSelect");
@@ -31,7 +29,6 @@ function createConstructor() {
         }
     }
 }
-
 // --- спільна функція наповнення select таблицями/запитами ---
 function populateTableSelect(selectEl, placeholder, includeQueries) {
     selectEl.innerHTML = `<option value=''>${placeholder}</option>`;
@@ -50,7 +47,6 @@ function populateTableSelect(selectEl, placeholder, includeQueries) {
         });
     }
 }
-
 // Застаріла обгортка — лишена для сумісності, якщо викликається ззовні
 function populateFieldPanelTableSelect() {
     const el = document.getElementById("fieldPanelTableSelect") || fieldPanelTableSelect;
@@ -60,15 +56,11 @@ function populateFieldPanelTableSelect() {
 function cancelFieldSelection() {
     document.getElementById("fieldSelectionModal").style.display = "none";
 }
-
 // --- спільна функція для форм і звітів ---
 function initFieldPanelListeners(tableSelect, fieldSelect, fieldClass) {
     tableSelect.addEventListener("change", () => {
         const selectedTableName = tableSelect.value;
-        const selectedTable =
-            database.tables.find(t => t.name === selectedTableName) ||
-            queries.results.find(q => `*${q.name}` === selectedTableName);
-
+        const selectedTable = database.tables.find(t => t.name === selectedTableName) || queries.results.find(q => `*${q.name}` === selectedTableName);
         fieldSelect.innerHTML = "<option value=''>" + t("designerSelectField") + "</option>";
         if (selectedTable) {
             selectedTable.schema.forEach(field => {
@@ -87,7 +79,6 @@ function initFieldPanelListeners(tableSelect, fieldSelect, fieldClass) {
             activeElement.dataset.tableName = selectedTableName;
         }
     });
-
     fieldSelect.addEventListener("change", () => {
         // Для форми таблиця визначається через formTableSelect (заблокований)
         const formTableSel = (constructorMode === "form") ? document.getElementById("formTableSelect") : null;
@@ -109,21 +100,16 @@ function initFieldPanelListeners(tableSelect, fieldSelect, fieldClass) {
         }
     });
 }
-
-
 // ЄДИНИЙ DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
     const reportCanvas = document.getElementById("reportCanvas");
-    const formCanvas   = document.getElementById("formCanvas");
+    const formCanvas = document.getElementById("formCanvas");
     const fieldSelectionModal = document.getElementById("fieldSelectionModal");
-
     const fieldPanelTableSelect1 = document.getElementById("fieldPanelTableSelect");
     const fieldPanelFieldSelect1 = document.getElementById("fieldPanelFieldSelect");
-
     // Слухачі для форм і звітів
     initFieldPanelListeners(fieldPanelTableSelect1, fieldPanelFieldSelect1, "form-field");
     initFieldPanelListeners(fieldPanelTableSelect1, fieldPanelFieldSelect1, "report-field");
-
     // --- Налаштування тексту ---
     document.getElementById("fontFamilySelect").addEventListener("change", (e) => {
         if (activeElement && isTextElement(activeElement)) activeElement.style.fontFamily = e.target.value;
@@ -149,46 +135,38 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('input[name="textAlign"]').forEach(radio => {
         radio.addEventListener('change', updateTextAlign);
     });
-
     // --- Спільні обробники canvas (mousedown / mousemove / mouseup) ---
     function handleCanvasMouseDown(e, elementClass, labelClass, fieldClass, buttonClass) {
         const element = e.target.closest(`.${elementClass}`);
-        const handle  = e.target.closest(".resize-handle");
-
+        const handle = e.target.closest(".resize-handle");
         document.querySelectorAll(`.${elementClass}.selected`).forEach(el => el.classList.remove("selected"));
         fieldSelectionModal.style.display = "none";
         closeTextOptionsModal();
-
         if (element) {
             activeElement = element;
             activeElement.classList.add("selected");
             const rect = activeElement.getBoundingClientRect();
-
-            initialLeft   = activeElement.offsetLeft;
-            initialTop    = activeElement.offsetTop;
-            initialWidth  = rect.width;
+            initialLeft = activeElement.offsetLeft;
+            initialTop = activeElement.offsetTop;
+            initialWidth = rect.width;
             initialHeight = rect.height;
-            initialX      = e.clientX;
-            initialY      = e.clientY;
-
+            initialX = e.clientX;
+            initialY = e.clientY;
             if (handle) {
-                isResizing  = true;
+                isResizing = true;
                 resizeHandle = handle;
                 element.style.cursor = handle.style.cursor;
             } else {
                 isDragging = true;
                 element.style.cursor = "grabbing";
-
                 const BORDER_TOLERANCE = 10;
-                const elementRect    = activeElement.getBoundingClientRect();
+                const elementRect = activeElement.getBoundingClientRect();
                 const relativeClickX = e.clientX - elementRect.left;
                 const relativeClickY = e.clientY - elementRect.top;
-
-                const nearLeft   = relativeClickX < BORDER_TOLERANCE;
-                const nearRight  = elementRect.width  - relativeClickX < BORDER_TOLERANCE;
-                const nearTop    = relativeClickY < BORDER_TOLERANCE;
+                const nearLeft = relativeClickX < BORDER_TOLERANCE;
+                const nearRight = elementRect.width - relativeClickX < BORDER_TOLERANCE;
+                const nearTop = relativeClickY < BORDER_TOLERANCE;
                 const nearBottom = elementRect.height - relativeClickY < BORDER_TOLERANCE;
-
                 if (activeElement.classList.contains(labelClass)) {
                     if (!nearLeft && !nearRight && !nearTop && !nearBottom) {
                         isDragging = false;
@@ -203,17 +181,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         fieldSelectionModal.style.display = "none";
                     }
                 } else if (activeElement.classList.contains(buttonClass)) {
-					if (!nearLeft && !nearRight && !nearTop && !nearBottom) {
-						// Клік в центрі кнопки - не перетягуємо
-						isDragging = false;
-						// Відкриття налаштувань через окремий слухач
-					} else {
-						isDragging = true;
-						element.style.cursor = "grabbing";
-					}
-				} 
+                    if (!nearLeft && !nearRight && !nearTop && !nearBottom) {
+                        // Клік в центрі кнопки - не перетягуємо
+                        isDragging = false;
+                        // Відкриття налаштувань через окремий слухач
+                    } else {
+                        isDragging = true;
+                        element.style.cursor = "grabbing";
+                    }
+                }
             }
-
             if (isDragging || isResizing || (activeElement.classList.contains(labelClass) && !isDragging)) {
                 e.preventDefault();
             }
@@ -221,70 +198,61 @@ document.addEventListener('DOMContentLoaded', () => {
             activeElement = null;
         }
     }
-
-// спільна функція замість дублювання mousemove
-function handleCanvasMouseMove(e) {
-    if (!activeElement) return;
-    const dx = e.clientX - initialX;
-    const dy = e.clientY - initialY;
-
-    if (isDragging) {
-        activeElement.style.left = `${initialLeft + dx}px`;
-        activeElement.style.top  = `${initialTop  + dy}px`;
-        // 🆕 Оновлення направляючих при перетягуванні через canvas
-        updateSnapGuides(activeElement.parentElement, activeElement);
-    } else if (isResizing) {
-        let newWidth  = initialWidth;
-        let newHeight = initialHeight;
-        let newLeft   = initialLeft;
-        let newTop    = initialTop;
-
-        if (resizeHandle.classList.contains("bottom-right")) {
-            newWidth  = Math.max(50, initialWidth  + dx);
-            newHeight = Math.max(30, initialHeight + dy);
-        } else if (resizeHandle.classList.contains("bottom-left")) {
-            newWidth  = Math.max(50, initialWidth  - dx);
-            newHeight = Math.max(30, initialHeight + dy);
-            newLeft   = initialLeft + dx;
-        } else if (resizeHandle.classList.contains("top-right")) {
-            newWidth  = Math.max(50, initialWidth  + dx);
-            newHeight = Math.max(30, initialHeight - dy);
-            newTop    = initialTop + dy;
-        } else if  (resizeHandle.classList.contains("top-left")) {
-            newWidth  = Math.max(50, initialWidth  - dx);
-            newHeight = Math.max(30, initialHeight - dy);
-            newLeft   = initialLeft + dx;
-            newTop    = initialTop  + dy;
+    // спільна функція замість дублювання mousemove
+    function handleCanvasMouseMove(e) {
+        if (!activeElement) return;
+        const dx = e.clientX - initialX;
+        const dy = e.clientY - initialY;
+        if (isDragging) {
+            activeElement.style.left = `${initialLeft + dx}px`;
+            activeElement.style.top = `${initialTop  + dy}px`;
+            // 🆕 Оновлення направляючих при перетягуванні через canvas
+            updateSnapGuides(activeElement.parentElement, activeElement);
+        } else if (isResizing) {
+            let newWidth = initialWidth;
+            let newHeight = initialHeight;
+            let newLeft = initialLeft;
+            let newTop = initialTop;
+            if (resizeHandle.classList.contains("bottom-right")) {
+                newWidth = Math.max(50, initialWidth + dx);
+                newHeight = Math.max(30, initialHeight + dy);
+            } else if (resizeHandle.classList.contains("bottom-left")) {
+                newWidth = Math.max(50, initialWidth - dx);
+                newHeight = Math.max(30, initialHeight + dy);
+                newLeft = initialLeft + dx;
+            } else if (resizeHandle.classList.contains("top-right")) {
+                newWidth = Math.max(50, initialWidth + dx);
+                newHeight = Math.max(30, initialHeight - dy);
+                newTop = initialTop + dy;
+            } else if (resizeHandle.classList.contains("top-left")) {
+                newWidth = Math.max(50, initialWidth - dx);
+                newHeight = Math.max(30, initialHeight - dy);
+                newLeft = initialLeft + dx;
+                newTop = initialTop + dy;
+            }
+            activeElement.style.width = `${newWidth}px`;
+            activeElement.style.height = `${newHeight}px`;
+            activeElement.style.left = `${newLeft}px`;
+            activeElement.style.top = `${newTop}px`;
         }
-
-        activeElement.style.width  = `${newWidth}px`;
-        activeElement.style.height = `${newHeight}px`;
-        activeElement.style.left   = `${newLeft}px`;
-        activeElement.style.top    = `${newTop}px`;
     }
-}
-
-// спільна функція замість дублювання mouseup
-function handleCanvasMouseUp() {
-    if (activeElement) activeElement.style.cursor = "grab";
-    // 🆕 Очищення направляючих при відпусканні мишки на canvas
-    clearGuides(screenCanvas);
-    isDragging   = false;
-    isResizing   = false;
-    resizeHandle = null;
-}
-
-	formCanvas.addEventListener("mousedown", (e) => handleCanvasMouseDown(e, "form-element", "form-label", "form-field", "form-button"));
-    formCanvas.addEventListener("mousemove",  handleCanvasMouseMove);
-    formCanvas.addEventListener("mouseup",    handleCanvasMouseUp);
-
+    // спільна функція замість дублювання mouseup
+    function handleCanvasMouseUp() {
+        if (activeElement) activeElement.style.cursor = "grab";
+        // 🆕 Очищення направляючих при відпусканні мишки на canvas
+        clearGuides(screenCanvas);
+        isDragging = false;
+        isResizing = false;
+        resizeHandle = null;
+    }
+    formCanvas.addEventListener("mousedown", (e) => handleCanvasMouseDown(e, "form-element", "form-label", "form-field", "form-button"));
+    formCanvas.addEventListener("mousemove", handleCanvasMouseMove);
+    formCanvas.addEventListener("mouseup", handleCanvasMouseUp);
     reportCanvas.addEventListener("mousedown", (e) => handleCanvasMouseDown(e, "report-element", "report-label", "report-field"));
     reportCanvas.addEventListener("mousemove", handleCanvasMouseMove);
-    reportCanvas.addEventListener("mouseup",   handleCanvasMouseUp);
+    reportCanvas.addEventListener("mouseup", handleCanvasMouseUp);
 });
-
 // =============================================
-
 function updateTextAlign() {
     const selected = document.querySelector('input[name="textAlign"]:checked');
     if (activeElement && selected) {
@@ -314,20 +282,16 @@ function populateFieldSelectionPanel() {
     console.log("constructorMode=", constructorMode);
     const fieldPanelTableSelect = document.getElementById("fieldPanelTableSelect");
     const fieldPanelFieldSelect = document.getElementById("fieldPanelFieldSelect");
-
     if (constructorMode === "form") {
         // У режимі форми: таблиця фіксована — беремо з formTableSelect
         const formTableSelect = document.getElementById("formTableSelect");
         const lockedTable = formTableSelect ? formTableSelect.value : "";
-
         // Наповнюємо список таблиць, але блокуємо вибір
         populateTableSelect(fieldPanelTableSelect, t("designerSelectTable"), true);
         fieldPanelTableSelect.value = lockedTable;
         fieldPanelTableSelect.disabled = true;
-
         // Наповнюємо список полів для обраної таблиці
         fieldPanelTableSelect.dispatchEvent(new Event('change'));
-
         // Відновлюємо вибране поле активного елемента
         if (activeElement && activeElement.dataset.fieldName) {
             fieldPanelFieldSelect.value = activeElement.dataset.fieldName;
@@ -338,14 +302,12 @@ function populateFieldSelectionPanel() {
         // Для звітів: звичайна поведінка
         fieldPanelTableSelect.disabled = false;
         populateTableSelect(fieldPanelTableSelect, t("designerSelectTable"), true);
-
         if (activeElement && activeElement.dataset.tableName) {
             fieldPanelTableSelect.value = activeElement.dataset.tableName;
             fieldPanelTableSelect.dispatchEvent(new Event('change'));
         } else {
             fieldPanelTableSelect.value = "";
         }
-
         if (activeElement && activeElement.dataset.fieldName) {
             fieldPanelFieldSelect.value = activeElement.dataset.fieldName;
         } else {
@@ -354,62 +316,47 @@ function populateFieldSelectionPanel() {
     }
 }
 
-
-
-
-
-
 function openTextOptions() {
     if (!activeElement || !isTextElement(activeElement)) {
         Message(t("designerSelectTextEl"));
         return;
     }
-
-    const fontFamilySelect          = document.getElementById("fontFamilySelect");
-    const fontSizeInput             = document.getElementById("fontSizeInput");
-    const fontColorInput            = document.getElementById("fontColorInput");
-    const fontWeightToggle          = document.getElementById("fontWeightToggle");
-    const fontStyleToggle           = document.getElementById("fontStyleToggle");
-    const textDecorationUnderline   = document.getElementById("textDecorationUnderline");
+    const fontFamilySelect = document.getElementById("fontFamilySelect");
+    const fontSizeInput = document.getElementById("fontSizeInput");
+    const fontColorInput = document.getElementById("fontColorInput");
+    const fontWeightToggle = document.getElementById("fontWeightToggle");
+    const fontStyleToggle = document.getElementById("fontStyleToggle");
+    const textDecorationUnderline = document.getElementById("textDecorationUnderline");
     const textDecorationStrikethrough = document.getElementById("textDecorationStrikethrough");
-    const textAlignRadios           = document.querySelectorAll('input[name="textAlign"]');
-
-    fontFamilySelect.value    = activeElement.style.fontFamily.replace(/['"]/g, '') || 'Arial';
-    fontSizeInput.value       = parseInt(activeElement.style.fontSize) || 16;
-    fontColorInput.value      = activeElement.style.color || '#000000';
-    fontWeightToggle.checked  = activeElement.style.fontWeight === 'bold';
-    fontStyleToggle.checked   = activeElement.style.fontStyle  === 'italic';
-
+    const textAlignRadios = document.querySelectorAll('input[name="textAlign"]');
+    fontFamilySelect.value = activeElement.style.fontFamily.replace(/['"]/g, '') || 'Arial';
+    fontSizeInput.value = parseInt(activeElement.style.fontSize) || 16;
+    fontColorInput.value = activeElement.style.color || '#000000';
+    fontWeightToggle.checked = activeElement.style.fontWeight === 'bold';
+    fontStyleToggle.checked = activeElement.style.fontStyle === 'italic';
     const textDecoration = activeElement.style.textDecoration;
-    textDecorationUnderline.checked      = textDecoration.includes('underline');
-    textDecorationStrikethrough.checked  = textDecoration.includes('line-through');
-
+    textDecorationUnderline.checked = textDecoration.includes('underline');
+    textDecorationStrikethrough.checked = textDecoration.includes('line-through');
     const currentAlign = activeElement.style.textAlign || 'left';
     textAlignRadios.forEach(radio => {
         radio.checked = radio.value === currentAlign;
     });
-
     document.getElementById("textOptionsModal").style.display = "flex";
 }
 
 function updateTextDecoration() {
-    const textDecorationUnderline      = document.getElementById("textDecorationUnderline");
-    const textDecorationStrikethrough  = document.getElementById("textDecorationStrikethrough");
-
+    const textDecorationUnderline = document.getElementById("textDecorationUnderline");
+    const textDecorationStrikethrough = document.getElementById("textDecorationStrikethrough");
     const decorations = [];
-    if (textDecorationUnderline.checked)     decorations.push('underline');
+    if (textDecorationUnderline.checked) decorations.push('underline');
     if (textDecorationStrikethrough.checked) decorations.push('line-through');
-
     if (activeElement) {
         activeElement.style.textDecoration = decorations.join(' ');
     }
 }
 
 function isTextElement(el) {
-    return el.classList.contains("report-label") ||
-           el.classList.contains("report-field") ||
-           el.classList.contains("form-label")   ||
-           el.classList.contains("form-field");
+    return el.classList.contains("report-label") || el.classList.contains("report-field") || el.classList.contains("form-label") || el.classList.contains("form-field");
 }
 
 function addPx(value) {
@@ -429,29 +376,22 @@ function looksLikeImageUrl(url) {
 }
 
 function findTableOrQuery(tableName) {
-    return (
-        database.tables.find(t => t.name === tableName) ||
-        queries.results.find(q => `*${q.name}` === tableName)
-    );
+    return (database.tables.find(t => t.name === tableName) || queries.results.find(q => `*${q.name}` === tableName));
 }
-
 /**
  * Додає виділення при кліку і показує маркери
  **/
 function initializeCanvasElement(element) {
     element.addEventListener("click", (e) => {
         e.stopPropagation();
-
         document.querySelectorAll("." + constructorMode + "-element.selected").forEach(el => {
             el.classList.remove("selected");
             el.querySelectorAll(".resize-handle").forEach(h => h.remove());
         });
-
         element.classList.add("selected");
         addResizeHandles(element);
     });
 }
-
 // =============================================
 // === ЛОГІКА ТАБЛИЦІ В КОНСТРУКТОРІ ===
 // =============================================
@@ -466,33 +406,32 @@ function addScreenTable() {
     el.dataset.tableName = "";
     el.dataset.selectedFields = "[]";
     Object.assign(el.style, {
-        position: "absolute", left: "80px", top: "100px", width: "340px", height: "200px",
-        border: "1px solid  #0000ff", backgroundColor: "#fffaf0",
-        cursor: "grab", boxSizing: "border-box", padding: "4px"
+        position: "absolute",
+        left: "80px",
+        top: "100px",
+        width: "340px",
+        height: "200px",
+        border: "1px solid  #0000ff",
+        backgroundColor: "#fffaf0",
+        cursor: "grab",
+        boxSizing: "border-box",
+        padding: "4px"
     });
     el.innerHTML = `<div style="color:#888; text-align:center; margin-top:35%; font-size:13px; pointer-events:none;">📊 ${t("designerClickToConfigure") || "Натисніть, щоб налаштувати таблицю"}</div>`;
-    
     canvas.appendChild(el);
     addResizeHandles(el);
     makeDraggableAndResizable(el);
     isDesignerDirty = true;
-
     // Оновлений обробник кліку з перевіркою відстані від меж
     el.addEventListener("click", (e) => {
         if (e.target.classList.contains("resize-handle")) return;
         e.stopPropagation();
-        
         // Перевірка: чи клік на відстані не менше 10px від меж
         const rect = el.getBoundingClientRect();
         const clickX = e.clientX - rect.left;
         const clickY = e.clientY - rect.top;
         const BORDER_TOLERANCE = 10;
-        
-        const nearBorder = clickX < BORDER_TOLERANCE || 
-                          clickX > rect.width - BORDER_TOLERANCE ||
-                          clickY < BORDER_TOLERANCE || 
-                          clickY > rect.height - BORDER_TOLERANCE;
-        
+        const nearBorder = clickX < BORDER_TOLERANCE || clickX > rect.width - BORDER_TOLERANCE || clickY < BORDER_TOLERANCE || clickY > rect.height - BORDER_TOLERANCE;
         // Якщо клік не біля межі - відкриваємо налаштування
         if (!nearBorder) {
             activeTableElement = el;
@@ -505,7 +444,6 @@ function addScreenTable() {
 function addScreenButton() {
     const canvas = screenCanvas;
     const cm = constructorMode;
-    
     const button = document.createElement("div");
     button.className = `${cm}-element ${cm}-button form-button`;
     button.dataset.type = "button";
@@ -513,7 +451,6 @@ function addScreenButton() {
     button.dataset.textColor = "#ffffff";
     button.dataset.bgColor = "#007bff";
     button.dataset.borderColor = "#0056b3";
-    
     Object.assign(button.style, {
         position: "absolute",
         left: "80px",
@@ -537,48 +474,36 @@ function addScreenButton() {
         overflow: "hidden",
         textOverflow: "ellipsis"
     });
-    
     button.textContent = "Кнопка";
-    
     // Додаємо обробник кліку для відкриття налаштувань
     button.addEventListener("click", (e) => {
         // Перевіряємо, чи клік не на маркері зміни розміру
         if (e.target.classList.contains("resize-handle")) return;
-        
         const rect = button.getBoundingClientRect();
         const clickX = e.clientX - rect.left;
         const clickY = e.clientY - rect.top;
         const BORDER_TOLERANCE = 10;
-        
-        const nearBorder = clickX < BORDER_TOLERANCE || 
-                          clickX > rect.width - BORDER_TOLERANCE ||
-                          clickY < BORDER_TOLERANCE || 
-                          clickY > rect.height - BORDER_TOLERANCE;
-        
+        const nearBorder = clickX < BORDER_TOLERANCE || clickX > rect.width - BORDER_TOLERANCE || clickY < BORDER_TOLERANCE || clickY > rect.height - BORDER_TOLERANCE;
         if (!nearBorder) {
             activeElement = button;
             openButtonSettingsModal();
         }
     });
-    
     canvas.appendChild(button);
     addResizeHandles(button);
     makeDraggableAndResizable(button);
     isDesignerDirty = true;
 }
-
 // Функція відкриття модального вікна налаштувань кнопки
 function openButtonSettingsModal() {
     if (!activeElement || !activeElement.classList.contains("form-button")) {
         Message(t("designerSelectButton") || "Виберіть кнопку для налаштування");
         return;
     }
-
     document.getElementById("buttonTextInput").value = activeElement.dataset.buttonText || "Кнопка";
     document.getElementById("buttonTextColorInput").value = activeElement.dataset.textColor || "#ffffff";
     document.getElementById("buttonBgColorInput").value = activeElement.dataset.bgColor || "#007bff";
     document.getElementById("buttonBorderColorInput").value = activeElement.dataset.borderColor || "#0056b3";
-
     // --- Наповнення списків форм і запитів ---
     const formSel = document.getElementById("btnActionFormSelect");
     formSel.innerHTML = '<option value="">— Оберіть форму —</option>';
@@ -588,7 +513,6 @@ function openButtonSettingsModal() {
         opt.textContent = f.name;
         formSel.appendChild(opt);
     });
-
     const querySel = document.getElementById("btnActionQuerySelect");
     querySel.innerHTML = '<option value="">— Оберіть запит —</option>';
     (queries.definitions || []).forEach(q => {
@@ -597,7 +521,6 @@ function openButtonSettingsModal() {
         opt.textContent = q.name;
         querySel.appendChild(opt);
     });
-
     // --- Відновлення збереженої дії ---
     const savedAction = activeElement.dataset.buttonAction || "none";
     const savedTarget = activeElement.dataset.buttonActionTarget || "";
@@ -606,57 +529,46 @@ function openButtonSettingsModal() {
     });
     formSel.value = (savedAction === "openForm") ? savedTarget : "";
     querySel.value = (savedAction === "runQuery") ? savedTarget : "";
-
     // --- Показ/сховок спадних списків ---
     _updateBtnActionSelects(savedAction);
-
     // --- Обробники радіокнопок ---
     document.querySelectorAll('input[name="btnAction"]').forEach(r => {
         r.onchange = () => _updateBtnActionSelects(r.value);
     });
-
     document.getElementById("buttonSettingsModal").style.display = "flex";
 }
 
 function _updateBtnActionSelects(action) {
-    document.getElementById("btnActionFormSelect").style.display  = (action === "openForm")  ? "block" : "none";
-    document.getElementById("btnActionQuerySelect").style.display = (action === "runQuery")  ? "block" : "none";
+    document.getElementById("btnActionFormSelect").style.display = (action === "openForm") ? "block" : "none";
+    document.getElementById("btnActionQuerySelect").style.display = (action === "runQuery") ? "block" : "none";
 }
-
 // Функція збереження налаштувань кнопки
 function saveButtonSettings() {
     if (!activeElement || !activeElement.classList.contains("form-button")) return;
-
     const text = document.getElementById("buttonTextInput").value;
     const textColor = document.getElementById("buttonTextColorInput").value;
     const bgColor = document.getElementById("buttonBgColorInput").value;
     const borderColor = document.getElementById("buttonBorderColorInput").value;
-
     // Зчитуємо дію
     const actionRadio = document.querySelector('input[name="btnAction"]:checked');
     const action = actionRadio ? actionRadio.value : "none";
     let actionTarget = "";
-    if (action === "openForm")  actionTarget = document.getElementById("btnActionFormSelect").value;
-    if (action === "runQuery")  actionTarget = document.getElementById("btnActionQuerySelect").value;
-
+    if (action === "openForm") actionTarget = document.getElementById("btnActionFormSelect").value;
+    if (action === "runQuery") actionTarget = document.getElementById("btnActionQuerySelect").value;
     activeElement.dataset.buttonText = text;
     activeElement.dataset.textColor = textColor;
     activeElement.dataset.bgColor = bgColor;
     activeElement.dataset.borderColor = borderColor;
     activeElement.dataset.buttonAction = action;
     activeElement.dataset.buttonActionTarget = actionTarget;
-
     // ⚠️ Цей рядок видаляє ВСІ дочірні вузли, включаючи маркери (.resize-handle)
     activeElement.textContent = text;
-
     activeElement.style.color = textColor;
     activeElement.style.backgroundColor = bgColor;
     activeElement.style.border = `2px solid ${borderColor}`;
-
     // ✅ Відновлюємо маркери та переналаштовуємо обробники drag/resize
     addResizeHandles(activeElement);
     makeDraggableAndResizable(activeElement);
-
     isDesignerDirty = true;
     closeButtonSettingsModal();
 }
@@ -664,8 +576,6 @@ function saveButtonSettings() {
 function closeButtonSettingsModal() {
     document.getElementById("buttonSettingsModal").style.display = "none";
 }
-
-
 
 function openTableFieldModal() {
     if (!activeTableElement) return;
@@ -681,20 +591,20 @@ function closeTableFieldModal() {
 function populateTableFieldModal() {
     const sel = document.getElementById("tableFieldTableSelect");
     sel.innerHTML = `<option value="">${t("designerSelectTable")}</option>`;
-    
     database.tables.forEach(tbl => {
         const opt = document.createElement("option");
-        opt.value = tbl.name; opt.textContent = tbl.name;
+        opt.value = tbl.name;
+        opt.textContent = tbl.name;
         sel.appendChild(opt);
     });
     if (constructorMode === "report") {
         queries.results.forEach(q => {
             const opt = document.createElement("option");
-            opt.value = `*${q.name}`; opt.textContent = `*${q.name}`;
+            opt.value = `*${q.name}`;
+            opt.textContent = `*${q.name}`;
             sel.appendChild(opt);
         });
     }
-
     const currentTable = activeTableElement.dataset.tableName || "";
     if (currentTable) sel.value = currentTable;
     renderTableFieldCheckboxes(sel.value);
@@ -705,13 +615,10 @@ function renderTableFieldCheckboxes(tableName) {
     const container = document.getElementById("tableFieldCheckboxes");
     container.innerHTML = "";
     if (!tableName) return;
-
     const cleanName = tableName.startsWith('*') ? tableName.substring(1) : tableName;
     const table = database.tables.find(t => t.name === cleanName) || queries.results.find(q => q.name === cleanName);
     if (!table) return;
-
     const savedFields = JSON.parse(activeTableElement.dataset.selectedFields || "[]");
-    
     table.schema.forEach(col => {
         const label = document.createElement("label");
         label.style.display = "flex";
@@ -721,7 +628,6 @@ function renderTableFieldCheckboxes(tableName) {
         label.style.padding = "4px 0";
         label.style.fontSize = "13px";
         label.style.whiteSpace = "nowrap";
-        
         const chk = document.createElement("input");
         chk.type = "checkbox";
         chk.value = col.title;
@@ -730,13 +636,11 @@ function renderTableFieldCheckboxes(tableName) {
         chk.style.cursor = "pointer";
         chk.style.width = "16px";
         chk.style.height = "16px";
-        
         const span = document.createElement("span");
         span.textContent = col.title;
         span.style.cursor = "pointer";
         span.style.overflow = "hidden";
         span.style.textOverflow = "ellipsis";
-        
         label.appendChild(chk);
         label.appendChild(span);
         container.appendChild(label);
@@ -745,19 +649,21 @@ function renderTableFieldCheckboxes(tableName) {
 
 function saveTableSelection() {
     const tableName = document.getElementById("tableFieldTableSelect").value;
-    if (!tableName) { Message("Оберіть таблицю або запит"); return; }
-    
+    if (!tableName) {
+        Message("Оберіть таблицю або запит");
+        return;
+    }
     const checked = [...document.getElementById("tableFieldCheckboxes").querySelectorAll("input[type=checkbox]:checked")].map(c => c.value);
-    if (checked.length === 0) { Message("Оберіть хоча б одне поле"); return; }
-
+    if (checked.length === 0) {
+        Message("Оберіть хоча б одне поле");
+        return;
+    }
     activeTableElement.dataset.tableName = tableName;
     activeTableElement.dataset.selectedFields = JSON.stringify(checked);
     isDesignerDirty = true;
-    
     renderTablePreviewInDesigner(activeTableElement, tableName, checked);
     closeTableFieldModal();
 }
-
 // Легкий прев'ю на canvas (не викликає editData, щоб не гальмувати UI)
 function renderTablePreviewInDesigner(container, tableName, fields) {
     // Зберігаємо поточні маркери та позицію
@@ -766,58 +672,50 @@ function renderTablePreviewInDesigner(container, tableName, fields) {
     const savedTop = container.style.top;
     const savedWidth = container.style.width;
     const savedHeight = container.style.height;
-    
     container.innerHTML = "";
-    
     // Відновлюємо позицію та розміри
     container.style.left = savedLeft;
     container.style.top = savedTop;
     container.style.width = savedWidth;
     container.style.height = savedHeight;
-    
     const result = findTableOrQueryResult(tableName);
     if (!result || !result.table) {
         container.innerHTML = `<div style="color:#888; text-align:center; margin-top:35%; font-size:13px; pointer-events:none;">${t("designerTableNotFound") || "Таблицю не знайдено"}</div>`;
         return;
     }
-
     const table = result.table;
     const isReadOnly = result.isQuery === true;
-
     const tbl = document.createElement("table");
-    tbl.style.width = "100%"; 
-    tbl.style.borderCollapse = "collapse"; 
+    tbl.style.width = "100%";
+    tbl.style.borderCollapse = "collapse";
     tbl.style.fontSize = "11px";
     tbl.style.pointerEvents = "none"; // Блокуємо взаємодію на canvas
-
     const thead = document.createElement("thead");
     const hr = document.createElement("tr");
     fields.forEach(f => {
-        const th = document.createElement("th"); 
+        const th = document.createElement("th");
         th.textContent = f;
-        th.style.border = "1px solid #ccc"; 
-        th.style.padding = "3px"; 
+        th.style.border = "1px solid #ccc";
+        th.style.padding = "3px";
         th.style.background = "#eee";
         th.style.fontSize = "11px";
         th.style.whiteSpace = "nowrap";
         hr.appendChild(th);
     });
-    thead.appendChild(hr); 
+    thead.appendChild(hr);
     tbl.appendChild(thead);
-
     const tbody = document.createElement("tbody");
     const previewData = table.data?.slice(0, 3) || [];
     previewData.forEach(row => {
         const tr = document.createElement("tr");
         fields.forEach(f => {
             const td = document.createElement("td");
-            td.style.border = "1px solid #ccc"; 
+            td.style.border = "1px solid #ccc";
             td.style.padding = "3px";
             td.style.fontSize = "10px";
             td.style.whiteSpace = "nowrap";
             const colIdx = table.schema.findIndex(c => c.title === f);
             let cellValue = colIdx !== -1 ? (row?.[colIdx] ?? "") : "";
-            
             // Спрощене відображення для зображень/файлів у прев'ю
             const typeStr = String(table.schema[colIdx]?.type || "").toLowerCase();
             if (typeStr === "image" || typeStr === "зображення") {
@@ -841,7 +739,6 @@ function renderTablePreviewInDesigner(container, tableName, fields) {
     });
     tbl.appendChild(tbody);
     container.appendChild(tbl);
-    
     // Якщо даних немає
     if (previewData.length === 0) {
         const emptyDiv = document.createElement("div");
@@ -852,53 +749,46 @@ function renderTablePreviewInDesigner(container, tableName, fields) {
         emptyDiv.textContent = t("reportNoData") || "Немає даних";
         container.appendChild(emptyDiv);
     }
-    
     // Відновлюємо маркери, якщо вони були
     if (hadHandles) {
         addResizeHandles(container);
     }
 }
-
 /**
  * Відтворення об'єктів збереженого звіту/форми
  **/
 function renderCanvas(stored) {
-    const cm       = constructorMode;
+    const cm = constructorMode;
     const cNameInput = document.getElementById(cm + "NameInput");
-    const cCanvas    = document.getElementById(cm + "Canvas");
+    const cCanvas = document.getElementById(cm + "Canvas");
     cNameInput.value = stored.name;
     cCanvas.innerHTML = "";
     isDesignerDirty = false;
-
     stored.elements.forEach(el => {
         // --- Графічні фігури ---
         if (el.type === "shape") {
             const div = document.createElement("div");
             div.classList.add(cm + "-element", cm + "-shape", "shape-" + el.shapeType);
-            div.dataset.shapeType       = el.shapeType;
-            div.dataset.strokeColor     = el.strokeColor     || "#333333";
-            div.dataset.fillColor       = el.fillColor       || "#ffffff";
+            div.dataset.shapeType = el.shapeType;
+            div.dataset.strokeColor = el.strokeColor || "#333333";
+            div.dataset.fillColor = el.fillColor || "#ffffff";
             div.dataset.fillTransparent = el.fillTransparent ? "1" : "0";
-            div.style.position  = "absolute";
-            div.style.cursor    = "grab";
+            div.style.position = "absolute";
+            div.style.cursor = "grab";
             div.style.boxSizing = "border-box";
             _applyShapeStyles(div, el.shapeType, el.strokeColor || "#333333", el.fillColor || "#ffffff", el.fillTransparent);
-            div.style.left   = el.left   + "px";
-            div.style.top    = el.top    + "px";
-            div.style.width  = el.width  + "px";
+            div.style.left = el.left + "px";
+            div.style.top = el.top + "px";
+            div.style.width = el.width + "px";
             div.style.height = el.height + "px";
             // Фігури вставляємо на початок canvas (під текст)
-            const firstNonShape = [...cCanvas.children].find(
-                c => !c.classList.contains(cm + "-shape") && !c.classList.contains("guide-container")
-            );
+            const firstNonShape = [...cCanvas.children].find(c => !c.classList.contains(cm + "-shape") && !c.classList.contains("guide-container"));
             if (firstNonShape) cCanvas.insertBefore(div, firstNonShape);
             else cCanvas.appendChild(div);
             addResizeHandles(div);
             makeDraggableAndResizable(div);
             return;
         }
-
-
         // обробка кнопок у renderCanvas
         if (el.type === "button") {
             const div = document.createElement("div");
@@ -909,8 +799,7 @@ function renderCanvas(stored) {
             div.dataset.bgColor = el.bgColor || "#007bff";
             div.dataset.borderColor = el.borderColor || "#0056b3";
             div.dataset.buttonAction = el.buttonAction || "none";
-			div.dataset.buttonActionTarget = el.buttonActionTarget || "";
-            
+            div.dataset.buttonActionTarget = el.buttonActionTarget || "";
             Object.assign(div.style, {
                 position: "absolute",
                 left: el.left + "px",
@@ -934,134 +823,119 @@ function renderCanvas(stored) {
                 overflow: "hidden",
                 textOverflow: "ellipsis"
             });
-            
             div.textContent = el.text || "Кнопка";
-            
             div.addEventListener("click", (e) => {
                 if (e.target.classList.contains("resize-handle")) return;
                 const rect = div.getBoundingClientRect();
                 const clickX = e.clientX - rect.left;
                 const clickY = e.clientY - rect.top;
                 const BORDER_TOLERANCE = 10;
-                const nearBorder = clickX < BORDER_TOLERANCE || 
-                                  clickX > rect.width - BORDER_TOLERANCE ||
-                                  clickY < BORDER_TOLERANCE || 
-                                  clickY > rect.height - BORDER_TOLERANCE;
+                const nearBorder = clickX < BORDER_TOLERANCE || clickX > rect.width - BORDER_TOLERANCE || clickY < BORDER_TOLERANCE || clickY > rect.height - BORDER_TOLERANCE;
                 if (!nearBorder) {
                     activeElement = div;
                     openButtonSettingsModal();
                 }
             });
-            
             cCanvas.appendChild(div);
             addResizeHandles(div);
             makeDraggableAndResizable(div);
             return;
         }
-
         if (el.type === "table") {
             const div = document.createElement("div");
             div.className = `${cm}-element ${cm}-table`;
             Object.assign(div.style, {
-                position: "absolute", left: el.left+"px", top: el.top+"px", width: el.width+"px", height: el.height+"px",
-                border: "1px solid #0000ff", backgroundColor: "#fffaf0",
-                cursor: "grab", boxSizing: "border-box", padding: "4px"
+                position: "absolute",
+                left: el.left + "px",
+                top: el.top + "px",
+                width: el.width + "px",
+                height: el.height + "px",
+                border: "1px solid #0000ff",
+                backgroundColor: "#fffaf0",
+                cursor: "grab",
+                boxSizing: "border-box",
+                padding: "4px"
             });
             div.dataset.type = "table";
             div.dataset.tableName = el.tableName || "";
             div.dataset.selectedFields = JSON.stringify(el.selectedFields || []);
-        
             // Оновлений обробник кліку з перевіркою відстані від меж
             div.addEventListener("click", (e) => {
                 if (e.target.classList.contains("resize-handle")) return;
                 e.stopPropagation();
-                
                 // Перевірка: чи клік на відстані не менше 10px від меж
                 const rect = div.getBoundingClientRect();
                 const clickX = e.clientX - rect.left;
                 const clickY = e.clientY - rect.top;
                 const BORDER_TOLERANCE = 10;
-                
-                const nearBorder = clickX < BORDER_TOLERANCE || 
-                                  clickX > rect.width - BORDER_TOLERANCE ||
-                                  clickY < BORDER_TOLERANCE || 
-                                  clickY > rect.height - BORDER_TOLERANCE;
-                
+                const nearBorder = clickX < BORDER_TOLERANCE || clickX > rect.width - BORDER_TOLERANCE || clickY < BORDER_TOLERANCE || clickY > rect.height - BORDER_TOLERANCE;
                 // Якщо клік не біля межі - відкриваємо налаштування
                 if (!nearBorder) {
                     activeTableElement = div;
                     openTableFieldModal();
                 }
             });
-        
             if (el.tableName && el.selectedFields) renderTablePreviewInDesigner(div, el.tableName, el.selectedFields);
             else div.innerHTML = `<div style="color:#888; text-align:center; margin-top:35%; font-size:13px; pointer-events:none;">📊 Натисніть, щоб налаштувати таблицю</div>`;
-        
             cCanvas.appendChild(div);
             addResizeHandles(div);
             makeDraggableAndResizable(div);
             return;
-        }     
-
+        }
         // --- Текстові елементи ---
         const div = document.createElement("div");
         div.classList.add(cm + "-element");
-        div.style.position      = "absolute";
-        div.style.left          = el.left   + "px";
-        div.style.top           = el.top    + "px";
-        div.style.width         = el.width  + "px";
-        div.style.height        = el.height + "px";
-        div.style.cursor        = "grab";
-        div.style.boxSizing     = "border-box";
-        div.style.fontFamily    = el.fontFamily;
-        div.style.fontSize      = el.fontSize;
-        div.style.fontWeight    = el.fontWeight;
-        div.style.fontStyle     = el.fontStyle;
+        div.style.position = "absolute";
+        div.style.left = el.left + "px";
+        div.style.top = el.top + "px";
+        div.style.width = el.width + "px";
+        div.style.height = el.height + "px";
+        div.style.cursor = "grab";
+        div.style.boxSizing = "border-box";
+        div.style.fontFamily = el.fontFamily;
+        div.style.fontSize = el.fontSize;
+        div.style.fontWeight = el.fontWeight;
+        div.style.fontStyle = el.fontStyle;
         div.style.textDecoration = el.textDecoration;
-        div.style.color         = el.color;
-
+        div.style.color = el.color;
         if (el.type === "field") {
             div.classList.add(cm + "-field");
             div.dataset.fieldName = el.fieldName;
             div.dataset.tableName = el.tableName;
-            div.style.border          = "1px dashed green";
+            div.style.border = "1px dashed green";
             div.style.backgroundColor = "rgba(144, 238, 144, 0.3)";
-
             const fieldText = document.createElement("div");
             fieldText.classList.add("field-text");
             fieldText.innerText = `${el.tableName}.${el.fieldName}`;
             div.appendChild(fieldText);
         } else if (el.type === "label") {
             div.classList.add(cm + "-label");
-            div.contentEditable   = "false";
-            div.innerText         = el.text;
-            div.style.border          = "1px dashed gray";
+            div.contentEditable = "false";
+            div.innerText = el.text;
+            div.style.border = "1px dashed gray";
             div.style.backgroundColor = "rgba(240,240,240,0.8)";
         }
-
         cCanvas.appendChild(div);
         initializeCanvasElement(div);
         makeDraggableAndResizable(div);
     });
 }
-
 // Додаємо напис
 function addScreenLabel() {
     const labelElement = document.createElement("div");
     labelElement.className = constructorMode + "-element " + constructorMode + "-label";
     Object.assign(labelElement.style, {
-        position:        "absolute",
-        right:           "10px",
-        top:             "10px",
-        width:           "150px",
-        height:          "40px",
-        border:          "1px solid blue",
+        position: "absolute",
+        right: "10px",
+        top: "10px",
+        width: "150px",
+        height: "40px",
+        border: "1px solid blue",
         backgroundColor: "rgba(173, 216, 230, 0.3)",
-        padding:         "5px",
-        cursor:          "grab",
-        boxSizing:       "border-box"
+        padding: "5px",
+        cursor: "grab",
+        boxSizing: "border-box"
     });
-
     labelElement.contentEditable = "false";
     labelElement.innerText = t("designerNewLabel");
     screenCanvas.appendChild(labelElement);
@@ -1069,31 +943,27 @@ function addScreenLabel() {
     makeDraggableAndResizable(labelElement);
     isDesignerDirty = true;
 }
-
 // Додаємо поле
 function addScreenField() {
     const fieldElement = document.createElement("div");
     fieldElement.className = constructorMode + "-element " + constructorMode + "-field";
     Object.assign(fieldElement.style, {
-        position:        "absolute",
-        right:           "10px",
-        top:             "60px",
-        width:           "200px",
-        height:          "40px",
-        border:          "1px dashed green",
+        position: "absolute",
+        right: "10px",
+        top: "60px",
+        width: "200px",
+        height: "40px",
+        border: "1px dashed green",
         backgroundColor: "rgba(144,238,144,0.3)",
-        padding:         "5px",
-        cursor:          "grab",
-        boxSizing:       "border-box"
+        padding: "5px",
+        cursor: "grab",
+        boxSizing: "border-box"
     });
-
     const fieldText = document.createElement("div");
     fieldText.className = "field-text";
     fieldText.innerText = t("designerFieldDefault");
     fieldElement.appendChild(fieldText);
-
     addResizeHandles(fieldElement);
-
     fieldElement.addEventListener("click", () => {
         selectedFormField = fieldElement;
     });
@@ -1106,12 +976,10 @@ function editLabel(el) {
     currentEditElement = el;
     const modal = document.getElementById("editLabelModal");
     const input = document.getElementById("editInput");
-
     input.value = el.innerText;
     modal.style.display = "flex";
     input.focus();
 }
-
 // Кнопка Ok
 function textOk() {
     if (currentEditElement) {
@@ -1123,7 +991,6 @@ function textOk() {
     document.getElementById("editLabelModal").style.display = "none";
     currentEditElement = null;
 }
-
 // Кнопка Скасувати
 function textCancel() {
     document.getElementById("editLabelModal").style.display = "none";
@@ -1138,10 +1005,15 @@ function getGuideContainer(canvas) {
         container = document.createElement('div');
         container.className = 'guide-container';
         Object.assign(container.style, {
-            position: 'absolute', top: '0', left: '0',
-            width: '100%', height: '100%',
-            pointerEvents: 'none', zIndex: '9999',
-            boxSizing: 'border-box', overflow: 'hidden'
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            zIndex: '9999',
+            boxSizing: 'border-box',
+            overflow: 'hidden'
         });
         canvas.appendChild(container);
     }
@@ -1180,24 +1052,20 @@ function drawGuide(canvas, x1, y1, x2, y2) {
 function updateSnapGuides(canvas, movingEl) {
     clearGuides(canvas);
     const threshold = 10;
-    const siblings = [...canvas.children].filter(el => 
-        el !== movingEl && 
-        (el.classList.contains('form-element') || el.classList.contains('report-element'))
-    );
-
+    const siblings = [...canvas.children].filter(el => el !== movingEl && (el.classList.contains('form-element') || el.classList.contains('report-element')));
     const m = {
-        l: movingEl.offsetLeft, t: movingEl.offsetTop,
+        l: movingEl.offsetLeft,
+        t: movingEl.offsetTop,
         r: movingEl.offsetLeft + movingEl.offsetWidth,
         b: movingEl.offsetTop + movingEl.offsetHeight
     };
-
     siblings.forEach(sib => {
         const s = {
-            l: sib.offsetLeft, t: sib.offsetTop,
+            l: sib.offsetLeft,
+            t: sib.offsetTop,
             r: sib.offsetLeft + sib.offsetWidth,
             b: sib.offsetTop + sib.offsetHeight
         };
-
         const checkAndDraw = (v1, v2, isHoriz) => {
             if (Math.abs(v1 - v2) < threshold) {
                 let x1, y1, x2, y2;
@@ -1213,7 +1081,6 @@ function updateSnapGuides(canvas, movingEl) {
                 drawGuide(canvas, x1, y1, x2, y2);
             }
         };
-
         // 8 комбінацій вирівнювання
         checkAndDraw(m.t, s.t, true);
         checkAndDraw(m.b, s.b, true);
@@ -1240,11 +1107,9 @@ function makeDraggableAndResizable(el) {
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         const rect = el.getBoundingClientRect();
-
         if (el.classList.contains("report-label") || el.classList.contains("form-label")) {
             const dXY = 10;
-            const inRect = (clientX > rect.left + dXY && clientX < rect.right - dXY &&
-                            clientY > rect.top + dXY && clientY < rect.bottom - dXY);
+            const inRect = (clientX > rect.left + dXY && clientX < rect.right - dXY && clientY > rect.top + dXY && clientY < rect.bottom - dXY);
             if (inRect) {
                 editLabel(el);
                 stopDrag();
@@ -1252,14 +1117,14 @@ function makeDraggableAndResizable(el) {
                 return;
             }
         }
-
         dragging = true;
         offsetX = clientX - rect.left;
         offsetY = clientY - rect.top;
-
         document.addEventListener("mousemove", onDrag);
         document.addEventListener("mouseup", stopDrag);
-        document.addEventListener("touchmove", onDrag, { passive: false });
+        document.addEventListener("touchmove", onDrag, {
+            passive: false
+        });
         document.addEventListener("touchend", stopDrag);
     }
 
@@ -1286,7 +1151,6 @@ function makeDraggableAndResizable(el) {
         document.removeEventListener("touchmove", onDrag);
         document.removeEventListener("touchend", stopDrag);
     }
-
     // === RESIZE ===
     const handles = el.querySelectorAll(".resize-handle");
     handles.forEach(handle => {
@@ -1310,7 +1174,6 @@ function makeDraggableAndResizable(el) {
                 const clientY = ev.touches ? ev.touches[0].clientY : ev.clientY;
                 const dx = clientX - startX;
                 const dy = clientY - startY;
-
                 if (pos.includes("right")) el.style.width = Math.max(40, startW + dx) + "px";
                 if (pos.includes("bottom")) el.style.height = Math.max(20, startH + dy) + "px";
                 if (pos.includes("left")) {
@@ -1330,7 +1193,6 @@ function makeDraggableAndResizable(el) {
                 document.removeEventListener("touchmove", onResize);
                 document.removeEventListener("touchend", stopResize);
             }
-
             document.addEventListener("mousemove", onResize);
             document.addEventListener("mouseup", stopResize);
             document.addEventListener("touchmove", onResize);
@@ -1341,25 +1203,25 @@ function makeDraggableAndResizable(el) {
 //
 function findTableOrQueryResult(tableName) {
     if (!tableName) return null;
-    
     let table = database.tables.find(t => t.name === tableName);
-    if (table) return { table, isQuery: false };
-    
+    if (table) return {
+        table,
+        isQuery: false
+    };
     const cleanName = tableName.startsWith('*') ? tableName.substring(1) : tableName;
     let queryResult = queries.results.find(q => q.name === cleanName);
-    
-    if (queryResult) return { table: queryResult, isQuery: true };
-    
+    if (queryResult) return {
+        table: queryResult,
+        isQuery: true
+    };
     return null;
 }
 // =============================================
 // === ГРАФІЧНІ ОБ'ЄКТИ (ФІГУРИ) ===
 // =============================================
-
 let _shapeStrokeColor = "#333333";
-let _shapeFillColor   = "#ffffff";
+let _shapeFillColor = "#ffffff";
 let _shapeFillTransparent = false;
-
 /**
  * Створює графічний об'єкт на canvas.
  * shapeType: "rect" | "round-rect" | "hline" | "vline"
@@ -1367,31 +1229,24 @@ let _shapeFillTransparent = false;
 function _createShape(shapeType) {
     const canvas = screenCanvas;
     const cm = constructorMode;
-
     const el = document.createElement("div");
     el.classList.add(cm + "-element", cm + "-shape", "shape-" + shapeType);
-    el.dataset.shapeType    = shapeType;
-    el.dataset.strokeColor  = _shapeStrokeColor;
-    el.dataset.fillColor    = _shapeFillColor;
+    el.dataset.shapeType = shapeType;
+    el.dataset.strokeColor = _shapeStrokeColor;
+    el.dataset.fillColor = _shapeFillColor;
     el.dataset.fillTransparent = _shapeFillTransparent ? "1" : "0";
-
-    el.style.position  = "absolute";
-    el.style.cursor    = "grab";
+    el.style.position = "absolute";
+    el.style.cursor = "grab";
     el.style.boxSizing = "border-box";
     // Графічні об'єкти завжди під текстом — через порядок DOM:
     // вставляємо перед першим не-shape елементом
-    const firstNonShape = [...canvas.children].find(
-        c => !c.classList.contains(cm + "-shape") && !c.classList.contains("guide-container")
-    );
-
+    const firstNonShape = [...canvas.children].find(c => !c.classList.contains(cm + "-shape") && !c.classList.contains("guide-container"));
     _applyShapeStyles(el, shapeType, _shapeStrokeColor, _shapeFillColor, _shapeFillTransparent);
-
     if (firstNonShape) {
         canvas.insertBefore(el, firstNonShape);
     } else {
         canvas.appendChild(el);
     }
-
     addResizeHandles(el);
     makeDraggableAndResizable(el);
     isDesignerDirty = true;
@@ -1400,95 +1255,100 @@ function _createShape(shapeType) {
 
 function _applyShapeStyles(el, shapeType, strokeColor, fillColor, fillTransparent) {
     const fill = fillTransparent ? "transparent" : fillColor;
-
     if (shapeType === "hline") {
-        el.style.width           = "200px";
-        el.style.height          = "8px";
-        el.style.borderTop       = `2px solid ${strokeColor}`;
-        el.style.borderLeft      = "none";
-        el.style.borderRight     = "none";
-        el.style.borderBottom    = "none";
+        el.style.width = "200px";
+        el.style.height = "8px";
+        el.style.borderTop = `2px solid ${strokeColor}`;
+        el.style.borderLeft = "none";
+        el.style.borderRight = "none";
+        el.style.borderBottom = "none";
         el.style.backgroundColor = "transparent";
-        el.style.borderRadius    = "0";
+        el.style.borderRadius = "0";
         el.style.left = "20px";
-        el.style.top  = "20px";
+        el.style.top = "20px";
     } else if (shapeType === "vline") {
-        el.style.width           = "8px";
-        el.style.height          = "150px";
-        el.style.borderLeft      = `2px solid ${strokeColor}`;
-        el.style.borderTop       = "none";
-        el.style.borderRight     = "none";
-        el.style.borderBottom    = "none";
+        el.style.width = "8px";
+        el.style.height = "150px";
+        el.style.borderLeft = `2px solid ${strokeColor}`;
+        el.style.borderTop = "none";
+        el.style.borderRight = "none";
+        el.style.borderBottom = "none";
         el.style.backgroundColor = "transparent";
-        el.style.borderRadius    = "0";
+        el.style.borderRadius = "0";
         el.style.left = "20px";
-        el.style.top  = "20px";
+        el.style.top = "20px";
     } else if (shapeType === "rect") {
-        el.style.width           = "160px";
-        el.style.height          = "80px";
-        el.style.border          = `2px solid ${strokeColor}`;
+        el.style.width = "160px";
+        el.style.height = "80px";
+        el.style.border = `2px solid ${strokeColor}`;
         el.style.backgroundColor = fill;
-        el.style.borderRadius    = "0";
+        el.style.borderRadius = "0";
         el.style.left = "20px";
-        el.style.top  = "20px";
+        el.style.top = "20px";
     } else if (shapeType === "round-rect") {
-        el.style.width           = "160px";
-        el.style.height          = "80px";
-        el.style.border          = `2px solid ${strokeColor}`;
+        el.style.width = "160px";
+        el.style.height = "80px";
+        el.style.border = `2px solid ${strokeColor}`;
         el.style.backgroundColor = fill;
-        el.style.borderRadius    = "14px";
+        el.style.borderRadius = "14px";
         el.style.left = "20px";
-        el.style.top  = "20px";
+        el.style.top = "20px";
     }
 }
 
-function addShapeRect()      { _createShape("rect"); }
-function addShapeRoundRect() { _createShape("round-rect"); }
-function addShapeHLine()     { _createShape("hline"); }
-function addShapeVLine()     { _createShape("vline"); }
+function addShapeRect() {
+    _createShape("rect");
+}
+
+function addShapeRoundRect() {
+    _createShape("round-rect");
+}
+
+function addShapeHLine() {
+    _createShape("hline");
+}
+
+function addShapeVLine() {
+    _createShape("vline");
+}
 
 function openShapeColorPicker() {
     // Якщо активна фігура — показуємо її поточні кольори
     if (activeElement && activeElement.dataset.shapeType) {
-        document.getElementById("shapeStrokeColorInput").value =
-            activeElement.dataset.strokeColor || _shapeStrokeColor;
-        document.getElementById("shapeFillColorInput").value =
-            activeElement.dataset.fillColor || _shapeFillColor;
-        document.getElementById("shapeFillTransparentChk").checked =
-            activeElement.dataset.fillTransparent === "1";
+        document.getElementById("shapeStrokeColorInput").value = activeElement.dataset.strokeColor || _shapeStrokeColor;
+        document.getElementById("shapeFillColorInput").value = activeElement.dataset.fillColor || _shapeFillColor;
+        document.getElementById("shapeFillTransparentChk").checked = activeElement.dataset.fillTransparent === "1";
     } else {
-        document.getElementById("shapeStrokeColorInput").value  = _shapeStrokeColor;
-        document.getElementById("shapeFillColorInput").value    = _shapeFillColor;
+        document.getElementById("shapeStrokeColorInput").value = _shapeStrokeColor;
+        document.getElementById("shapeFillColorInput").value = _shapeFillColor;
         document.getElementById("shapeFillTransparentChk").checked = _shapeFillTransparent;
     }
     document.getElementById("shapeColorModal").style.display = "flex";
 }
 
 function applyShapeColor() {
-    const stroke      = document.getElementById("shapeStrokeColorInput").value;
-    const fill        = document.getElementById("shapeFillColorInput").value;
+    const stroke = document.getElementById("shapeStrokeColorInput").value;
+    const fill = document.getElementById("shapeFillColorInput").value;
     const transparent = document.getElementById("shapeFillTransparentChk").checked;
-
     // Зберігаємо як поточні дефолтні
-    _shapeStrokeColor     = stroke;
-    _shapeFillColor       = fill;
+    _shapeStrokeColor = stroke;
+    _shapeFillColor = fill;
     _shapeFillTransparent = transparent;
-
     // Якщо виділена фігура — оновлюємо її одразу
     if (activeElement && activeElement.dataset.shapeType) {
         const st = activeElement.dataset.shapeType;
-        activeElement.dataset.strokeColor      = stroke;
-        activeElement.dataset.fillColor        = fill;
-        activeElement.dataset.fillTransparent  = transparent ? "1" : "0";
+        activeElement.dataset.strokeColor = stroke;
+        activeElement.dataset.fillColor = fill;
+        activeElement.dataset.fillTransparent = transparent ? "1" : "0";
         // Зберігаємо поточні розміри/позицію перед переприсвоєнням стилів
-        const savedLeft   = activeElement.style.left;
-        const savedTop    = activeElement.style.top;
-        const savedWidth  = activeElement.style.width;
+        const savedLeft = activeElement.style.left;
+        const savedTop = activeElement.style.top;
+        const savedWidth = activeElement.style.width;
         const savedHeight = activeElement.style.height;
         _applyShapeStyles(activeElement, st, stroke, fill, transparent);
-        activeElement.style.left   = savedLeft;
-        activeElement.style.top    = savedTop;
-        activeElement.style.width  = savedWidth;
+        activeElement.style.left = savedLeft;
+        activeElement.style.top = savedTop;
+        activeElement.style.width = savedWidth;
         activeElement.style.height = savedHeight;
         isDesignerDirty = true;
     }
@@ -1499,9 +1359,7 @@ function addScreenGrid() {
     if (screenGridVisible) {
         screenCanvas.style.backgroundImage = "none";
     } else {
-        screenCanvas.style.backgroundImage =
-            "repeating-linear-gradient(0deg, #ccc 0, #ccc 1px, transparent 1px, transparent 19px), " +
-            "repeating-linear-gradient(90deg, #ccc 0, #ccc 1px, transparent 1px, transparent 19px)";
+        screenCanvas.style.backgroundImage = "repeating-linear-gradient(0deg, #ccc 0, #ccc 1px, transparent 1px, transparent 19px), " + "repeating-linear-gradient(90deg, #ccc 0, #ccc 1px, transparent 1px, transparent 19px)";
         screenCanvas.style.backgroundSize = "20px 20px";
     }
     screenGridVisible = !screenGridVisible;
@@ -1509,9 +1367,9 @@ function addScreenGrid() {
 
 function addResizeHandles(element) {
     const cursors = {
-        "top-left":     "nwse-resize",
-        "top-right":    "nesw-resize",
-        "bottom-left":  "nesw-resize",
+        "top-left": "nwse-resize",
+        "top-right": "nesw-resize",
+        "bottom-left": "nesw-resize",
         "bottom-right": "nwse-resize"
     };
     ["top-left", "top-right", "bottom-left", "bottom-right"].forEach(pos => {
@@ -1521,10 +1379,15 @@ function addResizeHandles(element) {
         element.appendChild(handle);
     });
 }
-
 document.addEventListener("click", (e) => {
     let el = e.target.closest(".report-element");
-    if (el) { activeElement = el; return; }
+    if (el) {
+        activeElement = el;
+        return;
+    }
     el = e.target.closest(".form-element");
-    if (el) { activeElement = el; return; }
+    if (el) {
+        activeElement = el;
+        return;
+    }
 });

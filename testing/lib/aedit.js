@@ -283,9 +283,16 @@ function advDataInput(container, cellData, col, rowData, index, isReadOnly) {
         container.appendChild(select);
         createdEl = select;
 
-        select.addEventListener("change", () => {
-            rowData[index] = select.value === "empty" ? null : select.value; // у таблиці завжди PK
-        });
+		select.addEventListener("change", () => {
+			if (select.value === "empty") {
+				rowData[index] = null;
+			} else {
+				const colType = String(col?.type || "").toLowerCase();
+				rowData[index] = (colType === "integer" || colType === "real")
+				? Number(select.value)
+				: select.value;
+			}
+		});
     }
     // ===== BOOLEAN =====
     else if (typeStr === "boolean") {
@@ -966,8 +973,18 @@ function deleteRowCancelled() {
 * - Формує SQL-запит DELETE і виконує його;
 * - Видаляє рядок із таблиці і зберігає БД.
 **/
-function deleteSelectedRow() {
-    if (!selectedCell || currentEditTable.name.startsWith('*')) {
+/**
+* Функція deleteSelectedRow()
+* ---------------------------
+* Призначення: Видаляє вибраний рядок із таблиці редагування, якщо вона не є запитом і має первинний ключ.
+**/
+/**
+* Функція deleteSelectedRow()
+* ---------------------------
+* Призначення: Видаляє вибраний рядок із таблиці редагування, якщо вона не є запитом і має первинний ключ.
+**/
+function deleteSelectedRow(afterDeleteCallback) {
+    if (!selectedCell || !currentEditTable || currentEditTable.name?.startsWith('*')) {
         Message(t("aeditDeleteSelectFirst"));
         return;
     }
@@ -985,16 +1002,71 @@ function deleteSelectedRow() {
         return;
     }
 
-    // Значення першого PK для повідомлення
-    const pkValue = cells[pkCols[0].index].innerText.trim();
+    // Отримуємо значення PK для повідомлення
+    let pkDisplayValues = [];
+    pkCols.forEach(pk => {
+        // Знаходимо відповідний індекс у відфільтрованому відображенні
+        let displayIndex = -1;
+        for (let i = 0; i < currentEditTable.schema.length; i++) {
+            if (currentEditTable.schema[i].title === pk.title) {
+                displayIndex = i;
+                break;
+            }
+        }
+        if (displayIndex !== -1 && cells[displayIndex]) {
+            pkDisplayValues.push(cells[displayIndex].innerText.trim());
+        }
+    });
+    
+    const pkDisplayValue = pkDisplayValues.join(", ");
 
     // Викликаємо модальне підтвердження
-    confirmDeleteRow(pkValue, (confirmed) => {
+    confirmDeleteRow(pkDisplayValue, (confirmed) => {
         if (!confirmed) return;
 
-        // Якщо підтверджено — формуємо SQL і видаляємо
+        // Отримуємо оригінальну таблицю з database
+        const originalTable = database.tables.find(t => t.name === currentEditTable.name);
+        if (!originalTable) {
+            Message(t("aeditTableNotFound"));
+            return;
+        }
+
+        // Знаходимо індекс рядка в оригінальних даних
+        let rowIndexToDelete = -1;
+        for (let i = 0; i < originalTable.data.length; i++) {
+            let matches = true;
+            for (let pk of pkCols) {
+                // Знаходимо значення PK з поточного рядка
+                let displayIndex = -1;
+                for (let j = 0; j < currentEditTable.schema.length; j++) {
+                    if (currentEditTable.schema[j].title === pk.title) {
+                        displayIndex = j;
+                        break;
+                    }
+                }
+                if (displayIndex !== -1) {
+                    const currentValue = cells[displayIndex].innerText.trim();
+                    const originalValue = String(originalTable.data[i][pk.index] ?? "");
+                    if (currentValue !== originalValue) {
+                        matches = false;
+                        break;
+                    }
+                }
+            }
+            if (matches) {
+                rowIndexToDelete = i;
+                break;
+            }
+        }
+
+        if (rowIndexToDelete === -1) {
+            Message(t("aeditRowNotFound"));
+            return;
+        }
+
+        // Формуємо SQL WHERE умову
         const whereClauses = pkCols.map(pk => {
-            const value = cells[pk.index].innerText.trim();
+            const value = String(originalTable.data[rowIndexToDelete][pk.index] ?? "");
             return `"${pk.title}" = '${value.replace(/'/g, "''")}'`;
         });
 
@@ -1002,12 +1074,56 @@ function deleteSelectedRow() {
 
         try {
             db.run(sql);
-            row.remove();
-            const dataIdx = currentEditTable.data.findIndex(rowArr =>
-                pkCols.every(pk => String(rowArr[pk.index]) === cells[pk.index].innerText.trim())
-            );
-            if (dataIdx !== -1) currentEditTable.data.splice(dataIdx, 1);
+            
+            // Видаляємо з оригінальної таблиці
+            originalTable.data.splice(rowIndexToDelete, 1);
+            
+            // Оновлюємо поточну таблицю для відображення
+            const selectedFields = window._currentTableSelectedFields?.[currentEditTable.name] || [];
+            
+            if (selectedFields.length > 0) {
+                const fieldIndices = selectedFields.map(field => 
+                    originalTable.schema.findIndex(col => col.title === field)
+                ).filter(idx => idx !== -1);
+                
+                currentEditTable.data = originalTable.data.map(row => 
+                    fieldIndices.map(idx => row[idx])
+                );
+            } else {
+                currentEditTable.data = [...originalTable.data];
+            }
+            
+            // Оновлюємо схему, якщо потрібно
+            if (selectedFields.length > 0) {
+                currentEditTable.schema = originalTable.schema.filter(col => 
+                    selectedFields.includes(col.title)
+                );
+            } else {
+                currentEditTable.schema = [...originalTable.schema];
+            }
+            
             saveDatabase();
+			if (typeof afterDeleteCallback === 'function') afterDeleteCallback();
+            Message(t("aeditDeleted"));
+            
+            // Оновлюємо відображення форми, зберігаючи поточну таблицю
+            if (currentPreviewForm) {
+                // Зберігаємо поточну таблицю перед оновленням
+                const savedTable = currentEditTable;
+                previewForm(currentPreviewForm, false);
+                // Відновлюємо посилання після оновлення
+                setTimeout(() => {
+                    currentEditTable = savedTable;
+                    // Оновлюємо selectedCell, якщо потрібно
+                    const newRows = document.querySelectorAll("#formPreviewCanvas .form-table table tbody tr");
+                    if (newRows.length > 0 && newRows[0].cells.length > 0) {
+                        selectedCell = newRows[0].cells[0];
+                        if (selectedCell.parentElement) {
+                            selectedCell.parentElement.classList.add("selected-row");
+                        }
+                    }
+                }, 50);
+            }
         } catch (e) {
             Message(t("aeditDeleteError", e.message));
         }
