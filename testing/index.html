@@ -5,7 +5,44 @@
     <meta charset="UTF-8">
     <title>dat.A: the power of data</title>
     <link rel="icon" type="image/png" href="icon.png">
-    <link rel="stylesheet" href="styles.css"> </head>  
+    <link rel="stylesheet" href="styles.css"> <style>
+    /* ============================================================
+       МОДАЛЬНІ ВІКНА — базові класи
+       (замінюють повторювані inline-стилі)
+    ============================================================ */
+
+    /* Оверлей: затемнений фон, центрування вмісту */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Внутрішній контейнер модального вікна */
+    .modal-box {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        display: flex;
+        gap: 20px;
+        overflow: hidden;
+    }
+
+    /* Розміри контейнерів */
+    .modal-box-sm   { max-width: 600px;  width: 90%; }
+    .modal-box-md   { max-width: 900px;  width: 90%; }
+    .modal-box-lg   { max-width: 1000px; width: 90%; max-height: 80vh; overflow: hidden; }
+    .modal-box-xl   { max-width: 1200px; width: 90%; }
+    .modal-box-full { height: 90%; }
+
+    /* Список-модалі (savedQueries/Tables/Forms/Reports, storage, dataWork) */
+    .modal-box-list { max-height: 80%; flex-direction: row; }
+</style>
+</head>  
 
     <script src="lib/sql-wasm.js"></script>
     <script src="lib/jszip.min.js"></script>
@@ -117,9 +154,8 @@
 		</div>
 	</div>
 	<!-- Вікно створення структури таблиці-->
-	<div id="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
-     background-color: rgba(0,0,0,0.5); z-index:1005; justify-content:center; align-items:center;">
-		<div style="background:#fff; padding:20px; width:90%; max-width:1000px; border-radius:10px; display:flex; gap:20px; max-height:80vh; overflow:hidden;">
+	<div id="modal" class="modal-overlay" style="display:none; z-index:1005;">
+		<div class="modal-box modal-box-lg">
 			<!-- Лівий контейнер: назва та таблиця -->
 			<div style="flex:1; display:flex; flex-direction:column; gap:10px; overflow-y:auto;">
 				<h2 id="makeTable" style="margin:0;" lang-i18n="createTableTitle">Створення таблиці</h2>
@@ -145,23 +181,22 @@
 			<div style="display:flex; flex-direction:column; gap:12px; min-width:80px; align-items:center;">
 				<button class="square-btn" onclick="addSchemaRow()" >
 					<div style="font-size:24px;">➕</div>
-					<div lang-i18n="addField">Додати поле</div>
+					<div style="font-size:10px;" lang-i18n="addField">Додати поле</div>
 				</button>
 				<button class="square-btn" onclick="saveSchema()" >
 					<div style="font-size:20px;">💾</div>
-					<div lang-i18n="save">Зберегти</div>
+					<div style="font-size:10px;" lang-i18n="save">Зберегти</div>
 				</button>
 				<button class="square-btn" onclick="closeModal()" >
 					<div style="font-size:20px;">❌</div>
-					<div lang-i18n="close">Закрити</div>
+					<div style="font-size:10px;" lang-i18n="close">Закрити</div>
 				</button>
 			</div>
 		</div>
 	</div>
 	<!-- Вікно створення бази даних -->
-	<div id="dbModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
-         background-color: rgba(0,0,0,0.5); z-index:10005; justify-content:center; align-items:center;">
-		<div style="background:#fff; padding:20px; border-radius:10px; max-width: 700px; display: flex; flex-direction: row; gap: 30px;">
+	<div id="dbModal" class="modal-overlay" style="display:none; z-index:10005;">
+		<div class="modal-box modal-box-md">
 			<!-- Ліва частина: заголовок і поле -->
 			<div style="flex: 1; display: flex; flex-direction: column;">
 				<h2 style="margin-top: 0;" lang-i18n="createNewDbFile">Створення нового файлу бази даних</h2>
@@ -176,9 +211,8 @@
 		</div>
 	</div>
 	<!-- Вікно редагування даних  таблиці-->
-	<div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-       background-color: rgba(0,0,0,0.5); z-index:1006; justify-content:center; align-items:center;">
-		<div style="background:#fff; padding:20px; width:90%; max-width:1000px; border-radius:10px; display:flex; gap:20px; max-height:80vh;">
+	<div id="editModal" class="modal-overlay" style="display:none; z-index:1006;">
+		<div class="modal-box modal-box-lg">
 			<!-- Перший контейнер: заголовок і таблиця -->
 			<div style="flex:1; display:flex; flex-direction:column; gap:10px; overflow-y:auto;">
 				<h2 id="editTitle" style="margin:0;" lang-i18n="editTableTitle">Редагування таблиці</h2>
@@ -218,9 +252,8 @@
 		</div>
 	</div>
 	<!-- Вікно повідомлення -->
-	<div id="messageModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-         background-color: rgba(0,0,0,0.5); z-index:10120; justify-content:center; align-items:center;">
-		<div style="background:#fff; padding:20px; border-radius:10px; box-shadow: 0 0 10px #000; max-width: 600px; display: flex; flex-direction: row; gap: 30px;">
+	<div id="messageModal" class="modal-overlay" style="display:none; z-index:10120;">
+		<div class="modal-box modal-box-sm">
 			<!-- Ліва частина: текст повідомлення -->
 			<div style="flex: 1;">
 				<h3 style="margin-top: 0;" lang-i18n="messageTitle">Повідомлення</h3>
@@ -234,9 +267,8 @@
 			</div>
 		</div>
 	</div>
-	<div id="storageModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-    background-color: rgba(0,0,0,0.5); z-index:1002; justify-content:center; align-items:center;">
-		<div style="background:#fff; padding:20px; width:50%; height:60%; border-radius:10px; display:flex; gap:20px;">
+	<div id="storageModal" class="modal-overlay" style="display:none; z-index:1002;">
+		<div class="modal-box modal-box-list">
 			<!-- Ліва частина: список -->
 			<div style="flex-grow:1; overflow-y:auto;">
 				<h3 lang-i18n="databaseStorage">Сховище баз даних</h3>
@@ -295,9 +327,8 @@
 		</div>
 	</div>
 <!-- Вікно створення запиту-->
-<div id="queryModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-   background-color: rgba(0,0,0,0.5); z-index:1005; justify-content:center; align-items:center;">
-	<div style="background:#fff; padding:20px; width:90%; max-width:1000px; border-radius:10px; display:flex; gap:20px; max-height:80vh; overflow:hidden;">
+<div id="queryModal" class="modal-overlay" style="display:none; z-index:1005;">
+	<div class="modal-box modal-box-lg">
 		<!-- Лівий контейнер: вміст -->
 		<div style="flex:1; display:flex; flex-direction:column; gap:10px; overflow-y:auto;">
 			<h2 style="margin:0;" lang-i18n="queryBuilderTitle">Конструктор запитів</h2>
@@ -369,9 +400,8 @@
 </div>
 
     
-	<div id="savedQueriesModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-         background-color: rgba(0,0,0,0.5); z-index:10005; justify-content:center; align-items:center;">
-		<div style="background:#fff; padding:20px; border-radius:10px; max-height:80%; display: flex; flex-direction: row; gap: 30px;">
+	<div id="savedQueriesModal" class="modal-overlay" style="display:none; z-index:10005;">
+		<div class="modal-box modal-box-list">
 			<!-- Ліва частина: заголовок і список -->
 			<div style="display: flex; flex-direction: column; max-height: 60vh; overflow-y: auto;">
 				<h3 style="margin-top: 0;" lang-i18n="savedQueriesTitle">Збережені запити</h3>
@@ -392,9 +422,8 @@
 			</div>
 		</div>
 	</div>
-	<div id="savedTablesModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-         background-color: rgba(0,0,0,0.5); z-index:10005; justify-content:center; align-items:center;">
-		<div style="background:#fff; padding:20px; border-radius:10px; max-height:50%; min-height:395px; display: flex; flex-direction: row; gap: 30px;">
+	<div id="savedTablesModal" class="modal-overlay" style="display:none; z-index:10005;">
+		<div class="modal-box modal-box-list" style="min-height:395px;">
 			<!-- Ліва частина — текст + список -->
 			<div style="display: flex; flex-direction: column; max-height: 60vh; overflow-y: auto;">
 				<h3 style="margin-top: 0;" lang-i18n="savedTablesTitle">Збережені таблиці</h3>
@@ -435,9 +464,8 @@
 		</div>
 	</div>
 	
-<div id="reportCreatorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
-     background-color: rgba(0,0,0,0.5); z-index:1005; justify-content:center; align-items:center;">
-	<div style="background:#fff; padding:20px; width:90%; max-width:1200px; height:90%; border-radius:10px; display:flex; gap:20px; overflow:hidden;">
+<div id="reportCreatorModal" class="modal-overlay" style="display:none; z-index:1005;">
+	<div class="modal-box modal-box-xl modal-box-full">
 		
 		<!-- Лівий контейнер: вміст звіту -->
 		<div style="flex:1; display:flex; flex-direction:column; gap:10px; overflow:hidden;">
@@ -581,11 +609,11 @@
         <div style="display: flex; flex-direction: column; gap: 10px; justify-content: flex-start; align-items: center; padding: 10px;">
           <button class="square-btn" onclick="printReportPreview()" >
             <span style="font-size: 24px;">🖨️</span>
-            <span lang-i18n="print">Друк</span>
+            <span style="font-size: 10px;" lang-i18n="print">Друк</span>
           </button>
           <button class="square-btn" onclick="closeReportPreview()" >
             <span style="font-size: 24px;">❌</span>
-            <span lang-i18n="close">Закрити</span>
+            <span style="font-size: 10px;" lang-i18n="close">Закрити</span>
           </button>
         </div>
     
@@ -614,9 +642,8 @@
 		</div>
 	</div>
 	<!--- -->
-	<div id="formCreatorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
-     background-color: rgba(0,0,0,0.5); z-index:999; justify-content:center; align-items:center;">
-		<div id="formCreatorModalContent" style="background:#fff; padding:20px; width:90%; max-width:1200px; height:90%; border-radius:10px; display:flex; gap:20px; overflow:hidden;">
+	<div id="formCreatorModal" class="modal-overlay" style="display:none; z-index:999;">
+		<div id="formCreatorModalContent" class="modal-box modal-box-xl modal-box-full">
 			<!-- Лівий контейнер -->
 			<div style="flex:1; display:flex; flex-direction:column; gap:5px; overflow:hidden;">
 				<!-- Рядок заголовка з кнопками графічних об'єктів -->
@@ -690,7 +717,7 @@
 	</div>
 	
     <!-- Вікно перегляду форми -->
-    <div id="formPreviewModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.4); z-index:1000; justify-content:center; align-items:center;">
+    <div id="formPreviewModal" class="modal modal-overlay" style="display:none; z-index:1000;">
         <div style="display:flex; background:#f0f0f0; border-radius:12px; padding:20px; width:80%; max-width:1000px; height:80%; box-shadow:0 0 10px rgba(0,0,0,0.3);">
             <!-- Ліва частина: заголовок + canvas -->
             <div style="flex:1; display:flex; flex-direction:column; margin-right:20px;">
@@ -768,9 +795,8 @@
 		<div class="modal-content" style="background:#fff; text-align:center; font-size:24px;" lang-i18n="goodbyeMessage"> До зустрічі! </div>
 	</div>
 	<!-- 🔽 Вікно перегляду створених звітів -->
-	<div id="reportListModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-         background-color: rgba(0,0,0,0.5); z-index:10005; justify-content:center; align-items:center;">
-		<div style="background:#fff; padding:20px; border-radius:10px; max-height:80%; display: flex; flex-direction: row; gap: 30px;">
+	<div id="reportListModal" class="modal-overlay" style="display:none; z-index:10005;">
+		<div class="modal-box modal-box-list">
 			<!-- Ліва частина: заголовок і список -->
 			<div style="display: flex; flex-direction: column; max-height: 60vh; overflow-y: auto;">
 				<h3 style="margin-top: 0;" lang-i18n="savedReportsTitle">Збережені звіти</h3>
@@ -788,9 +814,8 @@
 		</div>
 	</div>
 	<!-- 🔽 Вікно перегляду створених форм -->
-	<div id="savedFormsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-         background-color: rgba(0,0,0,0.5); z-index:10005; justify-content:center; align-items:center;">
-		<div style="background:#fff; padding:20px; border-radius:10px; max-height:80%; display: flex; flex-direction: row; gap: 30px;">
+	<div id="savedFormsModal" class="modal-overlay" style="display:none; z-index:10005;">
+		<div class="modal-box modal-box-list">
 			<!-- Ліва частина: заголовок і список -->
 			<div style="display: flex; flex-direction: column; max-height: 60vh; overflow-y: auto;">
 				<h3 style="margin-top: 0;" lang-i18n="savedFormsTitle">Збережені форми</h3>
@@ -808,9 +833,8 @@
 		</div>
 	</div>
 	<!-- 🔽 Вікно створення SQL-запиту -->
-	<div id="ownSqlModal" class="modal" style="display: none; position:fixed; top:0; left:0; width:100%; height:100%;
-         background-color: rgba(0,0,0,0.5); z-index:10005; justify-content:center; align-items:center;">
-		<div style="background:#fff; padding:20px; border-radius:10px; max-height:90%; max-width:90%; width:800px; display: flex; flex-direction: row; gap: 30px;">
+	<div id="ownSqlModal" class="modal" class="modal modal-overlay" style="display:none; z-index:10005;">
+		<div class="modal-box modal-box-md">
 			<!-- Ліва частина: textarea + результати -->
 			<div style="flex: 1; display: flex; flex-direction: column;">
 				<h3 style="margin-top: 0;" lang-i18n="sqlEditorTitle">Редактор SQL-запиту</h3>
@@ -829,9 +853,8 @@
 		</div>
 	</div>
 	<!-- 🔽 Вікно Про програму -->
-	<div id="aboutModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-         background-color: rgba(0,0,0,0.5); z-index:10015; justify-content:center; align-items:center;">
-		<div style="background:#fff; padding:20px; border-radius:10px; box-shadow: 0 0 10px #000; max-width: 700px; display: flex; flex-direction: row; gap: 30px;">
+	<div id="aboutModal" class="modal-overlay" style="display:none; z-index:10015;">
+		<div class="modal-box modal-box-md">
 			<!-- Ліва частина: логотип + текст -->
 			<div style="flex: 1;">
 				<div style="text-align: center; margin-bottom: 15px;"> <img src="logo.png" alt="Логотип" width="128" height="auto"> </div>
@@ -1141,9 +1164,8 @@
 		</div>
 	</div>
 	<!-- Вікно показу даних -->
-	<div id="dataModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-      background-color: rgba(0,0,0,0.5); z-index:1002; justify-content:center; align-items:center;">
-		<div style="background:#fff; padding:20px; width:400px; border-radius:10px; max-height:80%; overflow-y:auto;">
+	<div id="dataModal" class="modal-overlay" style="display:none; z-index:1002;">
+		<div class="modal-box modal-box-sm" style="overflow-y:auto;">
 			<h3 lang-i18n="selectTable">Оберіть таблицю</h3>
 			<ul id="tableListInModal"></ul>
 			<button onclick="confirmOpenSelectedTable()" lang-i18n="open">Відкрити</button>
@@ -1152,9 +1174,8 @@
 	</div>
     
     <!-- Модальне вікно "Робота з даними" -->
-<div id="dataWorkModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-     background-color: rgba(0,0,0,0.5); z-index:1005; justify-content:center; align-items:center;">
-    <div style="background:#fff; padding:20px; width:60%; height:60%; border-radius:10px; display:flex; gap:20px;">
+<div id="dataWorkModal" class="modal-overlay" style="display:none; z-index:1005;">
+    <div class="modal-box modal-box-list">
         <!-- Ліва частина: список -->
         <div style="flex-grow:1; overflow-y:auto;">
             <h3 lang-i18n="tablesAndQueryResults">Таблиці та результати запитів</h3>
@@ -1176,9 +1197,8 @@
     </div>
 </div>
 <!-- Перегляд та робота з даними -->
-<div id="dataViewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-    background-color: rgba(0,0,0,0.5); z-index:1006; justify-content:center; align-items:center;">
-    <div style="background:#fff; padding:20px; width:90%; max-width:1100px; border-radius:10px; display:flex; gap:20px; max-height:88vh; overflow:hidden;">
+<div id="dataViewModal" class="modal-overlay" style="display:none; z-index:1006;">
+    <div class="modal-box modal-box-lg">
 
         <!-- Основна колонка: заголовок + верхня панель + таблиця -->
         <div style="flex:1; display:flex; flex-direction:column; gap:10px; overflow:hidden; min-width:0;">
@@ -1332,9 +1352,8 @@
         </div>
     </div>
 </div>
-<div id="importTableModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-    background-color: rgba(0,0,0,0.5); z-index:10050; justify-content:center; align-items:center;">
-  <div style="background:#fff; padding:20px; width:90%; max-width:900px; border-radius:10px; display:flex; flex-direction:column; gap:15px;">
+<div id="importTableModal" class="modal-overlay" style="display:none; z-index:10050;">
+  <div class="modal-box modal-box-md" style="flex-direction:column;">
     <h2 lang-i18n="importTableTitle">Імпорт таблиці</h2>
     <div id="importMsg" lang-i18n="importInstructions">Скопіюйте дані з табличного процесора і натисніть <span style="font-size:24px;"><b>Ctrl+V</b></span> тут.</div>
     <textarea id="clipboardInput" style="position:absolute; top:-10px; left:-10px; width:1px; height:1px; opacity:0;" 
@@ -1349,9 +1368,8 @@
 </div>
 
 <!-- Діалог підтвердження -->
-<div id="confirmImportModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-    background-color: rgba(0,0,0,0.5); z-index:10060; justify-content:center; align-items:center;">
-  <div style="background:#fff; padding:20px; width:600px; border-radius:10px; display:flex; flex-direction:column; gap:15px;">
+<div id="confirmImportModal" class="modal-overlay" style="display:none; z-index:10060;">
+  <div class="modal-box modal-box-sm" style="flex-direction:column;">
     <h2 lang-i18n="confirmImportTitle">Підтвердження імпорту</h2>
     <label lang-i18n="tableNameLabel">Назва таблиці:</label>
     <input id="importTableName" type="text" value="ІмпортованаТаблиця" style="padding:5px;"/>
@@ -1548,9 +1566,8 @@
   </div>
 </div>
 <!-- Модальне вікно налаштувань -->
-<div id="settingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-    background-color: rgba(0,0,0,0.5); z-index:10030; justify-content:center; align-items:center;">
-    <div style="background:#fff; padding:20px; border-radius:10px; max-width:450px; width:90%; display:flex; flex-direction:row; gap:20px;">
+<div id="settingsModal" class="modal-overlay" style="display:none; z-index:10030;">
+    <div class="modal-box modal-box-sm">
         <!-- Ліва частина: заголовок та поля -->
         <div style="flex:1; display:flex; flex-direction:column; gap:20px;">
             <h2 style="margin:0 0 5px 0;" lang-i18n="settings">Налаштування</h2>
@@ -1615,10 +1632,8 @@
 <!-- Мова ініціалізується в settings.js через DOMContentLoaded → loadLanguage() -->
 
 <!-- Модальне вікно підтвердження збереження -->
-<div id="confirmSaveModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-     background-color: rgba(0,0,0,0.5); z-index:10200; justify-content:center; align-items:center;">
-    <div style="background:#fff; padding:20px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.3);
-                max-width:400px; width:90%; display:flex; flex-direction:row; gap:20px; align-items:center;">
+<div id="confirmSaveModal" class="modal-overlay" style="display:none; z-index:10200;">
+    <div class="modal-box modal-box-sm" style="flex-direction:row; align-items:center;">
         <!-- Текст -->
         <div style="flex:1; font-size:16px;" id="confirmSaveText" lang-i18n="confirmSaveChanges">Зберегти зміни?</div>
         <!-- Кнопки вертикально праворуч -->
@@ -1636,10 +1651,8 @@
 </div>
 
 <!-- Модальне вікно вибору кольору фігури -->
-<div id="shapeColorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-     background-color: rgba(0,0,0,0.5); z-index:10210; justify-content:center; align-items:center;">
-    <div style="background:#fff; padding:20px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.3);
-                max-width:340px; width:90%; display:flex; flex-direction:row; gap:20px; align-items:center;">
+<div id="shapeColorModal" class="modal-overlay" style="display:none; z-index:10210;">
+    <div class="modal-box modal-box-sm" style="flex-direction:row; align-items:center;">
         <div style="flex:1; display:flex; flex-direction:column; gap:12px;">
             <div style="font-weight:600; font-size:15px;">Колір фігури</div>
             <label style="display:flex; align-items:center; gap:10px; font-size:14px;">
@@ -1696,7 +1709,6 @@
             font-size:14px;
             border:1px solid #ccc;
             border-radius:6px;
-            background:#fff;
             cursor:pointer;
         ">
             <option value="">— Оберіть таблицю або запит —</option>
@@ -1731,23 +1743,21 @@
         ">
             <button class="square-btn" onclick="saveTableSelection()" >
                 <span style="font-size:28px;">✅</span>
-                <span>OK</span>
+                <span style="font-size:10px;">OK</span>
             </button>
 
             <button class="square-btn" onclick="closeTableFieldModal()" >
                 <span style="font-size:28px;">❌</span>
-                <span>Скасувати</span>
+                <span style="font-size:10px;">Скасувати</span>
             </button>
         </div>
     </div>
 </div>
 
 <!-- Модальне вікно налаштувань кнопки -->
-<div id="buttonSettingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-     background-color: rgba(0,0,0,0.5); z-index:10220; justify-content:center; align-items:center;">
+<div id="buttonSettingsModal" class="modal-overlay" style="display:none; z-index:10220;">
     
-    <div style="background:#fff; padding:20px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.3);
-                max-width:750px; width:500px;">        
+    <div class="modal-box modal-box-md" style="max-width: 420px;">        
         <!-- ГОЛОВНИЙ КОНТЕЙНЕР: Два блоки (Лівий та Правий) -->
         <div style="display:flex; flex-direction:row; gap:20px;">
             <!-- ЛІВИЙ КОНТЕЙНЕР -->

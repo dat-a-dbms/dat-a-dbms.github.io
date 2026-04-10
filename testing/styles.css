@@ -1593,3 +1593,19 @@ body.dark-theme #exprBuilderModal {
     border: 1px solid #c0d0ff;
 }
 body.dark-theme .computed-expr-display span { color: #fb923c; }
+
+#messageModal {
+    position: fixed;      /* ← ЦЕ КРИТИЧНО */
+    top: 20px;
+    right: 20px;          /* або де хочеш */
+    z-index: 9999;        /* ← щоб бути поверх всього */
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    display: flex;
+    pointer-events: none;
+}
+
+#messageModal.show {
+    opacity: 1;
+    pointer-events: auto;
+}
