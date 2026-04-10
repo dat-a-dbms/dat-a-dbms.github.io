@@ -7,12 +7,9 @@
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="stylesheet" href="styles.css"> </head>  
 
-    <script src="lib/sql-wasm.js">
-    </script>
-    <script src="lib/jszip.min.js">
-    </script>
-    <script type="module" src="lib/datepicker.js">
-    </script>
+    <script src="lib/sql-wasm.js"></script>
+    <script src="lib/jszip.min.js"></script>
+    <script type="module" src="lib/datepicker.js"></script>
 
     <script src="lib/aedit.js"></script>
     <script src="lib/table.js"></script>
@@ -30,17 +27,6 @@
     <script src="lib/settings.js"></script>  
 	<script src="lib/core.js"></script>
       
-    <style>
-    button {
-        font-family: 'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif;
-    }
-    [contenteditable][placeholder]:empty::before {
-        content: attr(placeholder);
-        color: #aaa;
-        pointer-events: none;
-    }
-    </style>
-
 <body> 
 
 	<div class="menu-bar">
@@ -157,15 +143,15 @@
 			</div>
 			<!-- Правий контейнер: кнопки вертикально -->
 			<div style="display:flex; flex-direction:column; gap:12px; min-width:80px; align-items:center;">
-				<button onclick="addSchemaRow()" style="width:64px; height:64px; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+				<button class="square-btn" onclick="addSchemaRow()" >
 					<div style="font-size:24px;">➕</div>
 					<div lang-i18n="addField">Додати поле</div>
 				</button>
-				<button onclick="saveSchema()" style="width:64px; height:64px; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+				<button class="square-btn" onclick="saveSchema()" >
 					<div style="font-size:20px;">💾</div>
 					<div lang-i18n="save">Зберегти</div>
 				</button>
-				<button onclick="closeModal()" style="width:64px; height:64px; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+				<button class="square-btn" onclick="closeModal()" >
 					<div style="font-size:20px;">❌</div>
 					<div lang-i18n="close">Закрити</div>
 				</button>
@@ -183,9 +169,9 @@
 				<input type="text" id="dbName" value="my_database" style="width:100%; padding:8px; font-size:16px; margin-bottom:15px;"> </div>
 			<!-- Права частина: кнопки -->
 			<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; gap: 12px;">
-				<button onclick="saveNewDb()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 💾 <span style="font-size: 12px;" lang-i18n="save">Зберегти</span> </button>
-				<button onclick="saveDbAndCreateTable()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ➕ <span style="font-size: 12px;" lang-i18n="addTable">Cтворити таблицю</span> </button>
-				<button onclick="closeDbModal()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 12px;" lang-i18n="exit">Вийти</span> </button>
+				<button class="square-btn" onclick="saveNewDb()" > 💾 <span style="font-size: 12px;" lang-i18n="save">Зберегти</span> </button>
+				<button class="square-btn" onclick="saveDbAndCreateTable()" > ➕ <span style="font-size: 12px;" lang-i18n="addTable">Cтворити таблицю</span> </button>
+				<button class="square-btn" onclick="closeDbModal()" > ❌ <span style="font-size: 12px;" lang-i18n="exit">Вийти</span> </button>
 			</div>
 		</div>
 	</div>
@@ -244,7 +230,7 @@
 			</div>
 			<!-- Права частина: кнопка закриття -->
 			<div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start;">
-				<button onclick="closeMessage()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 12px;" lang-i18n="close">Закрити</span> </button>
+				<button class="square-btn" onclick="closeMessage()" > ❌ <span style="font-size: 12px;" lang-i18n="close">Закрити</span> </button>
 			</div>
 		</div>
 	</div>
@@ -260,15 +246,15 @@
 			</div>
 			<!-- Права частина: кнопки -->
 			<div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
-				<button onclick="loadSelectedDb()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+				<button class="square-btn" onclick="loadSelectedDb()" >
 					<div>📂</div>
 					<div style="font-size:10px;" lang-i18n="open">Відкрити</div>
 				</button>
-				<button onclick="confirmDeleteDb()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+				<button class="square-btn" onclick="confirmDeleteDb()" >
 					<div>🗑️</div>
 					<div style="font-size:10px;" lang-i18n="delete">Видалити</div>
 				</button>
-				<button onclick="closeStorageDialog()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+				<button class="square-btn" onclick="closeStorageDialog()" >
 					<div>❌</div>
 					<div style="font-size:10px;" lang-i18n="cancel">Скасувати</div>
 				</button>
@@ -283,9 +269,9 @@
 			</div>
 			<!-- Праворуч: вертикальні кнопки -->
 			<div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-				<button onclick="doDeleteDb()" style="width: 64px; height: 64px; font-size: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;"> 🗑️ 
+				<button class="square-btn" onclick="doDeleteDb()" > 🗑️ 
                 <span style="font-size: 10px;" lang-i18n="delete">Видалити</span> </button>
-				<button onclick="closeDeleteModal()" style="width: 64px; height: 64px; font-size: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;"> ❌ 
+				<button class="square-btn" onclick="closeDeleteModal()" > ❌ 
                 <span style="font-size: 10px;" lang-i18n="cancel">Скасувати</span> </button>
 			</div>
 		</div>
@@ -299,11 +285,11 @@
 			</div>
 			<!-- Праворуч: вертикальні кнопки -->
 			<div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-				<button onclick="doOverwriteDb()" style="width: 64px; height: 64px; font-size: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;">✅
+				<button class="square-btn" onclick="doOverwriteDb()" >✅
                 <span style="font-size: 10px;" lang-i18n="overwrite">Перезапис</span> </button>
-                <button onclick="doNewNameDb()" style="width: 64px; height: 64px; font-size: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;">✏️️ 
+                <button class="square-btn" onclick="doNewNameDb()" >✏️️ 
                 <span style="font-size: 10px;" lang-i18n="newName">Нова назва</span> </button>
-				<button onclick="doCloseOverwriteConfirm()" style="width: 64px; height: 64px; font-size: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;">❌ 
+				<button class="square-btn" onclick="doCloseOverwriteConfirm()" >❌ 
                 <span style="font-size: 10px;" lang-i18n="cancel">Скасувати</span> </button>
 			</div>
 		</div>
@@ -358,23 +344,23 @@
 		
 		<!-- Правий контейнер: всі кнопки вертикально, квадратні -->
 		<div style="display:flex; flex-direction:column; gap:12px; min-width:80px; align-items:center;">
-			<button onclick="addQueryRow()" style="width:64px; height:64px; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+			<button class="square-btn" onclick="addQueryRow()" >
 				<div style="font-size:24px; line-height:1;">+</div>
 				<div lang-i18n="addRow">Додати рядок</div>
 			</button>
-			<button onclick="addJoinRow()" style="width:64px; height:64px; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+			<button class="square-btn" onclick="addJoinRow()" >
 				<div style="font-size:24px; line-height:1;">🔗</div>
 				<div style="font-size:10px;" lang-i18n="addJoin">addJoin</div>
 			</button>
-			<button onclick="openRelationFromQuery()" style="width:64px; height:64px; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+			<button class="square-btn" onclick="openRelationFromQuery()" >
 				<div style="font-size:20px; line-height:1;">🧩</div>
 				<div style="font-size:10px;" lang-i18n="relationBuilder">relBuilder</div>
 			</button>
-			<button onclick="generateSqlQuery()" style="width:64px; height:64px; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+			<button class="square-btn" onclick="generateSqlQuery()" >
 				<div style="font-size:24px; line-height:1;">🚩️</div>
 				<div style="font-size:10px;" lang-i18n="saveAndExecute">Зберегти та виконати</div>
 			</button>
-			<button onclick="closeQueryModal()" style="width:64px; height:64px; font-size:12px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+			<button class="square-btn" onclick="closeQueryModal()" >
 				<div style="font-size:20px; line-height:1;">❌</div>
 				<div style="font-size:10px;" lang-i18n="close">Закрити</div>
 			</button>
@@ -395,13 +381,13 @@
 			</div>
 			<!-- Права частина: вертикальні кнопки -->
 			<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; gap: 12px;">
-				<button onclick="executeSelectedQuery()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ▶️ 
+				<button class="square-btn" onclick="executeSelectedQuery()" > ▶️ 
                 <span style="font-size: 10px;" lang-i18n="execute">Виконати</span> </button>
-				<button onclick="editSelectedQuery()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ✏️ 
+				<button class="square-btn" onclick="editSelectedQuery()" > ✏️ 
                 <span style="font-size: 10px;" lang-i18n="edit">Змінити</span> </button>
-				<button onclick="deleteSelectedQuery()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 🗑️ 
+				<button class="square-btn" onclick="deleteSelectedQuery()" > 🗑️ 
                 <span style="font-size: 10px;" lang-i18n="delete">Видалити</span> </button>
-				<button onclick="closeSavedQueriesDialog()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ 
+				<button class="square-btn" onclick="closeSavedQueriesDialog()" > ❌ 
                 <span style="font-size: 10px;" lang-i18n="close">Закрити</span> </button>
 			</div>
 		</div>
@@ -418,17 +404,17 @@
 			</div>
 			<!-- Права частина — вертикальні кнопки -->
 			<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; gap: 4px;">
-				<button onclick="openSelectedTable()" style="width:64px; height:56px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 📂 
+				<button class="wide-btn" onclick="openSelectedTable()" > 📂 
                 <span style="font-size: 10px;" lang-i18n="open">Відкрити</span> </button>
-				<button onclick="editSelectedTableSchema()" style="width:64px; height:56px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 🛠️ 
+				<button class="wide-btn" onclick="editSelectedTableSchema()" > 🛠️ 
                 <span style="font-size: 10px;" lang-i18n="edit">Змінити</span> </button>
-                <button onclick="copySelectedTable()" style="width:64px; height:56px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                <button class="wide-btn" onclick="copySelectedTable()" >
   📄            <span style="font-size: 10px;" lang-i18n="copy">Копіювати</span> </button>
-				<button onclick="confirmDeleteTable()" style="width:64px; height:56px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 🗑️ 
+				<button class="wide-btn" onclick="confirmDeleteTable()" > 🗑️ 
                 <span style="font-size: 10px;" lang-i18n="delete">Видалити</span> </button>
-                <button onclick="exportTableToCSV()" style="width:64px; height:56px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 📤
+                <button class="wide-btn" onclick="exportTableToCSV()" > 📤
                 <span style="font-size: 10px;" lang-i18n="exportCSV">Експорт в CSV</span> </button>
-				<button onclick="closeSavedTablesDialog()" style="width:64px; height:56px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ 
+				<button class="wide-btn" onclick="closeSavedTablesDialog()" > ❌ 
                 <span style="font-size: 10px;" lang-i18n="close">Закрити</span> </button>
 			</div>
 		</div>
@@ -441,9 +427,9 @@
 			</div>
 			<!-- Праворуч: вертикальні кнопки -->
 			<div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-				<button onclick="doDeleteTable()" style="width: 64px; height: 64px; font-size: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;"> 🗑️ 
+				<button class="square-btn" onclick="doDeleteTable()" > 🗑️ 
                 <span style="font-size: 10px;" lang-i18n="delete">Видалити</span> </button>
-				<button onclick="closeDeleteTableConfirmModal()" style="width: 64px; height: 64px; font-size: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;"> ❌ 
+				<button class="square-btn" onclick="closeDeleteTableConfirmModal()" > ❌ 
                 <span style="font-size: 10px;" lang-i18n="cancel">Скасувати</span> </button>
 			</div>
 		</div>
@@ -460,13 +446,13 @@
 			<div style="display:flex; align-items:center; justify-content:space-between;">
 				<h2 id="reportTitle" style="margin:0;" lang-i18n="createReportTitle">Створення звіту</h2>
 				<div style="display:flex; gap:4px; align-items:center; flex-shrink:0;">
-					<button onclick="addShapeRect()" title="Прямокутник" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">□</button>
-					<button onclick="addShapeRoundRect()" title="Закруглений прямокутник" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">▢</button>
-					<button onclick="addShapeHLine()" title="Горизонтальна лінія" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">──</button>
-					<button onclick="addShapeVLine()" title="Вертикальна лінія" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">│</button>
-					<button onclick="openShapeColorPicker()" title="Колір фігури" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">🎨</button>
-					<button onclick="addScreenGrid()" title="Сітка" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">📐</button>
-					<button onclick="openTextOptions()" title="Налаштувати текст" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">📝</button>
+					<button class="icon-btn" onclick="addShapeRect()" title="Прямокутник" >□</button>
+					<button class="icon-btn" onclick="addShapeRoundRect()" title="Закруглений прямокутник" >▢</button>
+					<button class="icon-btn" onclick="addShapeHLine()" title="Горизонтальна лінія" >──</button>
+					<button class="icon-btn" onclick="addShapeVLine()" title="Вертикальна лінія" >│</button>
+					<button class="icon-btn" onclick="openShapeColorPicker()" title="Колір фігури" >🎨</button>
+					<button class="icon-btn" onclick="addScreenGrid()" title="Сітка" >📐</button>
+					<button class="icon-btn" onclick="openTextOptions()" title="Налаштувати текст" >📝</button>
 					
 				</div>
 			</div>
@@ -483,31 +469,31 @@
 
 		<!-- Правий контейнер: кнопки вертикально (без змін) -->
 		<div style="display:flex; flex-direction:column; gap:10px; min-width:80px; align-items:center;">
-			<button onclick="addScreenLabel()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+			<button class="slim-btn" onclick="addScreenLabel()" >
 				<div style="font-size:20px;">🔤</div>
 				<div lang-i18n="addLabel">Напис</div>
 			</button>
-			<button onclick="addScreenField()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+			<button class="slim-btn" onclick="addScreenField()" >
 				<img src="./img/field.png" alt="Поле даних">
 				<div lang-i18n="addSource">Поле</div>
 			</button>
-			<button onclick="addScreenTable()" title="Додати таблицю" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+			<button class="slim-btn" onclick="addScreenTable()" title="Додати таблицю" >
 					<img src="./img/spreadsheet.png" alt="Таблиця" style="width:28px; height:28px;">
 					<span>Таблиця</span>
 			</button>			
-			<button onclick="deleteActiveElement()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center; color:#900;">
+			<button class="slim-btn" onclick="deleteActiveElement()" style="color:#900">
 				<div style="font-size:20px;">🗑️</div>
 				<div lang-i18n="delete">Видалити</div>
 			</button>
-			<button onclick="previewReport()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+			<button class="slim-btn" onclick="previewReport()" >
 				<div style="font-size:20px;">👁️</div>
 				<div lang-i18n="preview">Перегляд</div>
 			</button>
-			<button onclick="saveReport()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+			<button class="slim-btn" onclick="saveReport()" >
 				<div style="font-size:20px;">💾</div>
 				<div lang-i18n="save">Зберегти</div>
 			</button>
-			<button onclick="closeReportCreatorModal()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+			<button class="slim-btn" onclick="closeReportCreatorModal()" >
 				<div style="font-size:20px;">❌</div>
 				<div lang-i18n="close">Закрити</div>
 			</button>
@@ -527,7 +513,7 @@
 			</div>
 			<!-- Права частина: кнопки -->
 			<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px; margin-left:20px;">
-				<button onclick="cancelFieldSelection()" style="width:64px; height:64px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px;"> ❌ 
+				<button class="square-btn" onclick="cancelFieldSelection()" > ❌ 
                 <span style="font-size:12px;" lang-i18n="close">Закрити</span> </button>
 			</div>
 		</div>
@@ -545,7 +531,7 @@
 			<!-- Заголовок + кнопка закрити у правому верхньому куті -->
 			<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
 				<h3 style="margin: 0;" lang-i18n="textSettings">Налаштування тексту</h3>
-				<button onclick="closeTextOptionsModal()" style="width:48px; height:48px; font-size:20px; background:#1a7ef7; border:none; border-radius:8px; cursor:pointer; color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0;">✕</button>
+				<button class="square-btn" onclick="closeTextOptionsModal()" style="color:#fff">✕</button>
 			</div>
 			<!-- Два стовпці: ліворуч — поля, праворуч — чекбокси -->
 			<div style="display: flex; flex-direction: row; gap: 20px;">
@@ -593,11 +579,11 @@
     
         <!-- Панель кнопок -->
         <div style="display: flex; flex-direction: column; gap: 10px; justify-content: flex-start; align-items: center; padding: 10px;">
-          <button onclick="printReportPreview()" style="width: 64px; height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px;">
+          <button class="square-btn" onclick="printReportPreview()" >
             <span style="font-size: 24px;">🖨️</span>
             <span lang-i18n="print">Друк</span>
           </button>
-          <button onclick="closeReportPreview()" style="width: 64px; height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px;">
+          <button class="square-btn" onclick="closeReportPreview()" >
             <span style="font-size: 24px;">❌</span>
             <span lang-i18n="close">Закрити</span>
           </button>
@@ -613,11 +599,11 @@
 			<div style="display:flex; flex-direction:row; align-items:center; justify-content:space-between; margin-bottom:8px;">
 				<h2 style="margin:0;" lang-i18n="relationBuilderTitle">Конструктор зв'язків</h2>
 				<div style="display:flex; flex-direction:row; gap:8px;">
-					<button onclick="saveRelations()" style="width:64px; height:50px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;border:1px solid #ccc; border-radius:8px; cursor:pointer;">
+					<button class="mid-btn" onclick="saveRelations()" >
 						<div>💾</div>
 						<div style="font-size:11px;" lang-i18n="save">Зберегти</div>
 					</button>
-					<button class="close-btn" onclick="closeRelationModal()" style="width:64px; height:50px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:8px; cursor:pointer;">
+					<button class="close-btn mid-btn" onclick="closeRelationModal()" >
 						<div>❌</div>
 						<div style="font-size:11px;" lang-i18n="cancel">Скасувати</div>
 					</button>
@@ -637,13 +623,13 @@
 				<div style="display:flex; align-items:center; justify-content:space-between;">
 					<h2 style="margin:0; white-space:nowrap;" lang-i18n="formBuilderTitle">Конструктор форми</h2>
 					<div style="display:flex; gap:4px; align-items:center;">
-						<button onclick="addShapeRect()" title="Прямокутник" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">□</button>
-						<button onclick="addShapeRoundRect()" title="Закруглений прямокутник" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">▢</button>
-						<button onclick="addShapeHLine()" title="Горизонтальна лінія" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">──</button>
-						<button onclick="addShapeVLine()" title="Вертикальна лінія" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">│</button>
-						<button onclick="openShapeColorPicker()" title="Колір фігури" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">🎨</button>
-						<button onclick="addScreenGrid()" title="Сітка" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">📐</button>
-						<button onclick="openTextOptions()" title="Налаштувати текст" style="width:36px; height:36px; font-size:18px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:4px; cursor:pointer;">📝</button>
+						<button class="icon-btn" onclick="addShapeRect()" title="Прямокутник" >□</button>
+						<button class="icon-btn" onclick="addShapeRoundRect()" title="Закруглений прямокутник" >▢</button>
+						<button class="icon-btn" onclick="addShapeHLine()" title="Горизонтальна лінія" >──</button>
+						<button class="icon-btn" onclick="addShapeVLine()" title="Вертикальна лінія" >│</button>
+						<button class="icon-btn" onclick="openShapeColorPicker()" title="Колір фігури" >🎨</button>
+						<button class="icon-btn" onclick="addScreenGrid()" title="Сітка" >📐</button>
+						<button class="icon-btn" onclick="openTextOptions()" title="Налаштувати текст" >📝</button>
 
 					</div>
 				</div>
@@ -661,40 +647,40 @@
 			<!-- -->
 			<!-- Правий контейнер: кнопки вертикально -->
 			<div style="display:flex; flex-direction:column; gap:10px; min-width:80px; align-items:center;">
-				<button onclick="addScreenLabel()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+				<button class="slim-btn" onclick="addScreenLabel()" >
 					<div style="font-size:20px;">🔤</div>
 					<div lang-i18n="addLabel">Напис</div>
 				</button>
-				<button onclick="addScreenField()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+				<button class="slim-btn" onclick="addScreenField()" >
 					<img src="./img/field.png" alt="Поле даних">
 					<div lang-i18n="addSource">Поле</div>
 				</button>
 
-				<button onclick="addScreenButton()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+				<button class="slim-btn" onclick="addScreenButton()" >
 					<img src="./img/button.png" alt="Кнопка">
 					<div lang-i18n="addButton">Кнопка</div>
 				</button>
 				
-				<button onclick="addScreenTable()" title="Додати таблицю" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+				<button class="slim-btn" onclick="addScreenTable()" title="Додати таблицю" >
 					<img src="./img/spreadsheet.png" alt="Таблиця" style="width:28px; height:28px;">
 					<span>Таблиця</span>
 				</button>
 
 
 				
-				<button onclick="deleteActiveElement()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center; color:#900;">
+				<button class="slim-btn" onclick="deleteActiveElement()" style="color:#900">
 					<div style="font-size:20px;">🗑️</div>
 					<div lang-i18n="delete">Видалити</div>
 				</button>
-				<button onclick="previewForm(null,true)" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+				<button class="slim-btn" onclick="previewForm(null,true)" >
 					<div style="font-size:20px;">👁️</div>
 					<div lang-i18n="preview">Перегляд</div>
 				</button>
-				<button onclick="saveForm()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+				<button class="slim-btn" onclick="saveForm()" >
 					<div style="font-size:20px;">💾</div>
 					<div lang-i18n="save">Зберегти</div>
 				</button>
-				<button onclick="closeFormModal()" style="width:64px; height:40px; font-size:12px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+				<button class="slim-btn" onclick="closeFormModal()" >
 					<div style="font-size:20px;">❌</div>
 					<div lang-i18n="close">Закрити</div>
 				</button>
@@ -714,10 +700,10 @@
                     
                     <!-- Група кнопок навігації горизонтально -->
                     <div style="display:flex; gap:10px;">
-                        <button onclick="goToFirstRecord()" title="Перший запис" style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer; border:1px solid #ccc; border-radius:6px; background:white;">⏮</button>
-                        <button onclick="goToPreviousRecord()" title="Попередній запис" style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer; border:1px solid #ccc; border-radius:6px; background:white;">◀</button>
-                        <button onclick="goToNextRecord()" title="Наступний запис" style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer; border:1px solid #ccc; border-radius:6px; background:white;">▶</button>
-                        <button onclick="goToLastRecord()" title="Останній запис" style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer; border:1px solid #ccc; border-radius:6px; background:white;">⏭</button>
+                        <button class="icon-btn" onclick="goToFirstRecord()" title="Перший запис" style="border-radius:6px">⏮</button>
+                        <button class="icon-btn" onclick="goToPreviousRecord()" title="Попередній запис" style="border-radius:6px">◀</button>
+                        <button class="icon-btn" onclick="goToNextRecord()" title="Наступний запис" style="border-radius:6px">▶</button>
+                        <button class="icon-btn" onclick="goToLastRecord()" title="Останній запис" style="border-radius:6px">⏭</button>
                     </div>
                 </div>
                 <!-- Канвас форми -->
@@ -726,10 +712,10 @@
             
             <!-- Права частина: кнопки дій вертикально -->
             <div style="display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:5px;">
-                <button onclick="createNewRecord()" id="frmNewRecord" title="Створити новий запис" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; cursor:pointer;"> ➕ <span style="font-size:12px;" lang-i18n="newRecord">Новий</span> </button>
-                <button onclick="saveFormChanges()" id="frmSaveChanges" title="Зберегти зміни" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; cursor:pointer;"> 💾 <span style="font-size:12px;" lang-i18n="save">Зберегти</span> </button>
-                <button onclick="deleteFormRecord()" id="frmDeleteRecord" title="Видалити запис" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; cursor:pointer;"> 🗑 <span style="font-size:12px;" lang-i18n="delete">Видалити</span> </button>
-                <button onclick="closeFormPreview()" title="Закрити" style="width:64px; height:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; cursor:pointer;"> ❌ <span style="font-size:12px;" lang-i18n="close">Закрити</span> </button>
+                <button class="mid-btn" onclick="createNewRecord()" id="frmNewRecord" title="Створити новий запис" > ➕ <span style="font-size:12px;" lang-i18n="newRecord">Новий</span> </button>
+                <button class="mid-btn" onclick="saveFormChanges()" id="frmSaveChanges" title="Зберегти зміни" > 💾 <span style="font-size:12px;" lang-i18n="save">Зберегти</span> </button>
+                <button class="mid-btn" onclick="deleteFormRecord()" id="frmDeleteRecord" title="Видалити запис" > 🗑 <span style="font-size:12px;" lang-i18n="delete">Видалити</span> </button>
+                <button class="mid-btn" onclick="closeFormPreview()" title="Закрити" > ❌ <span style="font-size:12px;" lang-i18n="close">Закрити</span> </button>
             </div>
         </div>
     </div>
@@ -750,31 +736,13 @@
           align-items: flex-end;
           gap: 10px;
         ">
-          <button onclick="proceedCsvImport()" style="
-            width: 64px;
-            height: 64px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            text-align: center;
-            cursor: pointer;
-          ">
+          <button class="square-btn" onclick="proceedCsvImport()" style="
+">
             ✅<br><span style="font-size: 12px;" lang-i18n="ok">ОК</span>
           </button>
     
-          <button onclick="closeCsvImportDialog()" style="
-            width: 64px;
-            height: 64px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            text-align: center;
-            cursor: pointer;
-          ">
+          <button class="square-btn" onclick="closeCsvImportDialog()" style="
+">
             ❌<br><span style="font-size: 12px;" lang-i18n="back">Назад</span>
           </button>
         </div>
@@ -787,8 +755,8 @@
 			<h3 lang-i18n="databaseInfoTitle">Відомості про базу даних</h3>
 			<div id="dbInfoContent" style="white-space: pre-wrap; margin-top: 10px;"> </div>
 			<div style="display: flex; justify-content: flex-end; margin-top: 20px;">
-                <button onclick="closeDbInfoModal()" 
-                    style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                <button class="square-btn" onclick="closeDbInfoModal()" 
+                    >
 				❌
                     <span style="font-size: 12px;" lang-i18n="close">Закрити</span>
                 </button>
@@ -812,10 +780,10 @@
 			</div>
 			<!-- Права частина: вертикальні кнопки -->
 			<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; gap: 12px;">
-				<button onclick="previewSelectedReport()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 📄 <span style="font-size: 10px;" lang-i18n="preview">Перегляд</span> </button>
-				<button onclick="editSelectedReport()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ✏️ <span style="font-size: 10px;" lang-i18n="edit">Змінити</span> </button>
-				<button onclick="deleteSelectedReport()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 🗑️ <span style="font-size: 10px;" lang-i18n="delete">Видалити</span> </button>
-				<button onclick="closeReportList()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 10px;" lang-i18n="close">Закрити</span> </button>
+				<button class="square-btn" onclick="previewSelectedReport()" > 📄 <span style="font-size: 10px;" lang-i18n="preview">Перегляд</span> </button>
+				<button class="square-btn" onclick="editSelectedReport()" > ✏️ <span style="font-size: 10px;" lang-i18n="edit">Змінити</span> </button>
+				<button class="square-btn" onclick="deleteSelectedReport()" > 🗑️ <span style="font-size: 10px;" lang-i18n="delete">Видалити</span> </button>
+				<button class="square-btn" onclick="closeReportList()" > ❌ <span style="font-size: 10px;" lang-i18n="close">Закрити</span> </button>
 			</div>
 		</div>
 	</div>
@@ -832,10 +800,10 @@
 			</div>
 			<!-- Права частина: вертикальні кнопки -->
 			<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; gap: 12px;">
-				<button onclick="previewSelecteForm()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 👁️ <span style="font-size: 10px;" lang-i18n="preview">Перегляд</span> </button>
-				<button onclick="editSelectedForm()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ✏️ <span style="font-size: 10px;" lang-i18n="edit">Змінити</span> </button>
-				<button onclick="deleteSelectedForm()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> 🗑️ <span style="font-size: 10px;" lang-i18n="delete">Видалити</span> </button>
-				<button onclick="closeSavedFormsDialog()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 10px;" lang-i18n="close">Закрити</span> </button>
+				<button class="square-btn" onclick="previewSelecteForm()" > 👁️ <span style="font-size: 10px;" lang-i18n="preview">Перегляд</span> </button>
+				<button class="square-btn" onclick="editSelectedForm()" > ✏️ <span style="font-size: 10px;" lang-i18n="edit">Змінити</span> </button>
+				<button class="square-btn" onclick="deleteSelectedForm()" > 🗑️ <span style="font-size: 10px;" lang-i18n="delete">Видалити</span> </button>
+				<button class="square-btn" onclick="closeSavedFormsDialog()" > ❌ <span style="font-size: 10px;" lang-i18n="close">Закрити</span> </button>
 			</div>
 		</div>
 	</div>
@@ -854,9 +822,9 @@
 			</div>
 			<!-- Права частина: кнопки -->
 			<div style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; gap: 12px;">
-				<button onclick="executeOwnSQL()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ▶️ <span style="font-size: 10px;" lang-i18n="execute">Виконати</span> </button>
-				<button onclick="saveOwnSQL()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">💾<span style="font-size: 10px;" lang-i18n="save">Зберегти</span></button>
-			    <button onclick="closeOwnSqlModal()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 10px;" lang-i18n="close">Закрити</span> </button>
+				<button class="square-btn" onclick="executeOwnSQL()" > ▶️ <span style="font-size: 10px;" lang-i18n="execute">Виконати</span> </button>
+				<button class="square-btn" onclick="saveOwnSQL()" >💾<span style="font-size: 10px;" lang-i18n="save">Зберегти</span></button>
+			    <button class="square-btn" onclick="closeOwnSqlModal()" > ❌ <span style="font-size: 10px;" lang-i18n="close">Закрити</span> </button>
 			</div>
 		</div>
 	</div>
@@ -874,7 +842,7 @@
 			</div>
 			<!-- Права частина: кнопка закриття -->
 			<div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start;">
-				<button onclick="closeAboutModal()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;"> ❌ <span style="font-size: 12px;" lang-i18n="close">Закрити</span> </button>
+				<button class="square-btn" onclick="closeAboutModal()" > ❌ <span style="font-size: 12px;" lang-i18n="close">Закрити</span> </button>
 			</div>
 		</div>
 	</div>
@@ -1196,13 +1164,11 @@
         </div>
         <!-- Права частина: кнопки -->
         <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
-            <button onclick="openSelectedDataWork()" style="width:64px; height:64px; font-size:24px;
-                    display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <button class="square-btn" onclick="openSelectedDataWork()" >
                 <div>📂</div>
                 <div style="font-size:10px;" lang-i18n="open">Відкрити</div>
             </button>
-            <button onclick="closeDataWorkDialog()" style="width:64px; height:64px; font-size:24px;
-                    display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <button class="square-btn" onclick="closeDataWorkDialog()" >
                 <div>❌</div>
                 <div style="font-size:10px;" lang-i18n="cancel">Скасувати</div>
             </button>
@@ -1270,23 +1236,23 @@
 
         <!-- Права колонка: кнопки (як в оригіналі) -->
         <div style="display:flex; flex-direction:column; gap:10px; align-items:center; width:64px; flex-shrink:0;">
-            <button onclick="sortDataTable()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <button class="square-btn" onclick="sortDataTable()" >
                 <div>↕️</div>
                 <div style="font-size:10px;" lang-i18n="sort">Сортувати</div>
             </button>
-            <button onclick="addDataFilterRow()" style="width:64px; height:64px; font-size:20px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <button class="square-btn" onclick="addDataFilterRow()" >
                 <div>➕</div>
                 <div style="font-size:10px;" lang-i18n="addFilter">Додати фільтр</div>
             </button>
-            <button onclick="applyDataFilter()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <button class="square-btn" onclick="applyDataFilter()" >
                 <div>🔬</div>
                 <div style="font-size:10px;" lang-i18n="filter">Фільтр</div>
             </button>
-            <button onclick="resetDataFilters()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <button class="square-btn" onclick="resetDataFilters()" >
                 <div>🔄</div>
                 <div style="font-size:10px;" lang-i18n="reset">Скинути</div>
             </button>
-            <button onclick="closeDataViewModal()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <button class="square-btn" onclick="closeDataViewModal()" >
                 <div>❌</div>
                 <div style="font-size:10px;" lang-i18n="close">Закрити</div>
             </button>
@@ -1324,10 +1290,10 @@
             <span id="deleteMessage" style="font-size:18px;"></span>
         </div>
         <div  style="display:flex; flex-direction:column; gap:10px;">
-            <button id="confirmDelete" onclick="deleteRowConfirmed()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <button class="square-btn" id="confirmDelete" onclick="deleteRowConfirmed()" >
                 🗑<div style="font-size:10px;" lang-i18n="delete">Видалити</div>
             </button>
-            <button id="cancelDelete" onclick="deleteRowCancelled()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <button class="square-btn" id="cancelDelete" onclick="deleteRowCancelled()" >
                 ❌<div style="font-size:10px;" lang-i18n="cancel">Скасувати</div>
             </button>
         </div>
@@ -1357,10 +1323,10 @@
             </span>
         </div>
         <div style="display:flex; flex-direction:column; gap:10px;">
-            <button id="pkYes" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <button class="square-btn" id="pkYes" >
                 👍<div style="font-size:10px;" lang-i18n="yes">Так</div>
             </button>
-            <button id="pkNo" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <button class="square-btn" id="pkNo" >
                 👎<div style="font-size:10px;" lang-i18n="no">Ні</div>
             </button>
         </div>
@@ -1422,27 +1388,12 @@
         <div style="display:flex; gap:10px; align-items:center;">
 
             <input id="editInput" type="text" style="flex:1; padding:6px;font-size:18px;">
-            <button onclick="textOk()" style="
-                width:64px; height:36px;
-                display:flex;
-                flex-direction:column;
-                align-items:center;
-                justify-content:center;
-                font-size:14px;
-                border-radius:8px;
-                cursor:pointer;
-            ">
+            <button class="mid-btn" onclick="textOk()" style="
+">
             <div style="font-size:20px;">✅</div>                
             </button>
-            <button onclick="textCancel()" style="
-                width:64px; height:36px;
-                display:flex;
-                flex-direction:column;
-                align-items:center;
-                justify-content:center;
-                border-radius:8px;
-                cursor:pointer;
-            ">
+            <button class="mid-btn" onclick="textCancel()" style="
+">
             <div style="font-size:20px;">❌</div>                
             </button>
             
@@ -1473,15 +1424,15 @@
           </div>
      <!-- Кнопки справа -->
           <div style=" display:flex; flex-direction:column; align-items:center; gap:10px;">
-            <button onclick="saveImageUrl()" style=" width:64px; height:64px; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; cursor:pointer; ">
+            <button class="square-btn" onclick="saveImageUrl()" >
 				<div> 💾 </div>
 			    <div style="font-size:11px;" lang-i18n="save">Зберегти</div>
             </button>
-            <button onclick="deleteImageUrl()" style=" width:64px; height:64px; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; cursor:pointer; ">
+            <button class="square-btn" onclick="deleteImageUrl()" >
 				<div> 🗑 </div>
 			<div style="font-size:11px;" lang-i18n="delete">Видалити</div>
             </button>
-            <button onclick="closeImageModal()" style=" width:64px; height:64px; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; cursor:pointer; ">
+            <button class="square-btn" onclick="closeImageModal()" >
 				<div> ❌ </div>
 			<div style="font-size:11px;" lang-i18n="cancel">Скасувати</div>
             </button>
@@ -1515,15 +1466,15 @@
 
       <!-- Кнопки справа -->
       <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
-        <button onclick="saveFileUrl()" style="width:64px; height:64px; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; cursor:pointer;">
+        <button class="square-btn" onclick="saveFileUrl()" >
           <div>💾</div>
           <div style="font-size:11px;" lang-i18n="save">Зберегти</div>
         </button>
-        <button onclick="deleteFileUrl()" style="width:64px; height:64px; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; cursor:pointer;">
+        <button class="square-btn" onclick="deleteFileUrl()" >
           <div>🗑</div>
           <div style="font-size:11px;" lang-i18n="delete">Видалити</div>
         </button>
-        <button onclick="closeUrlModal()" style="width:64px; height:64px; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:24px; cursor:pointer;">
+        <button class="square-btn" onclick="closeUrlModal()" >
           <div>❌</div>
           <div style="font-size:11px;" lang-i18n="cancel">Скасувати</div>
         </button>
@@ -1560,29 +1511,24 @@
 
       <!-- Buttons -->
       <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
-        <button onclick="saveFileFromInput()"
-                style="width:64px; height:64px; padding:0; display:flex; flex-direction:column;
-                       align-items:center; justify-content:center; font-size:24px; cursor:pointer;">
+        <button class="square-btn" onclick="saveFileFromInput()"
+                >
           <div>💾</div><div style="font-size:11px;" lang-i18n="save">Зберегти</div>
         </button>
-        <button id="fileViewBtn" onclick="viewCurrentFile()"
-                style="width:64px; height:64px; padding:0; display:none; flex-direction:column;
-                       align-items:center; justify-content:center; font-size:24px; cursor:pointer;">
+        <button class="square-btn" id="fileViewBtn" onclick="viewCurrentFile()"
+                style="display:none">
           <div>👁️</div><div style="font-size:11px;" lang-i18n="open">Відкрити</div>
         </button>
-        <button id="fileDownloadBtn" onclick="downloadCurrentFile()"
-                style="width:64px; height:64px; padding:0; display:flex; flex-direction:column;
-                       align-items:center; justify-content:center; font-size:24px; cursor:pointer;">
+        <button class="square-btn" id="fileDownloadBtn" onclick="downloadCurrentFile()"
+                >
           <div>⬇️</div><div style="font-size:9px;" lang-i18n="download">Скачати</div>
         </button>
-        <button onclick="deleteCurrentFile()"
-                style="width:64px; height:64px; padding:0; display:flex; flex-direction:column;
-                       align-items:center; justify-content:center; font-size:24px; cursor:pointer;">
+        <button class="square-btn" onclick="deleteCurrentFile()"
+                >
           <div>🗑</div><div style="font-size:11px;" lang-i18n="delete">Видалити</div>
         </button>
-        <button onclick="closeFileModal()"
-                style="width:64px; height:64px; padding:0; display:flex; flex-direction:column;
-                       align-items:center; justify-content:center; font-size:24px; cursor:pointer;">
+        <button class="square-btn" onclick="closeFileModal()"
+                >
           <div>❌</div><div style="font-size:11px;" lang-i18n="cancel">Скасувати</div>
         </button>
       </div>
@@ -1650,11 +1596,11 @@
 
         <!-- Права частина: кнопки вертикально -->
         <div style="display:flex; flex-direction:column; align-items:center; gap:10px; justify-content:flex-start; padding-top:4px;">
-            <button id="saveSettingsBtn" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:8px; cursor:pointer;">
+            <button class="square-btn" id="saveSettingsBtn" >
                 <div>💾</div>
                 <div style="font-size:11px;" lang-i18n="save">Зберегти</div>
             </button>
-            <button onclick="closeSettingsModal()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:8px; cursor:pointer;">
+            <button class="square-btn" onclick="closeSettingsModal()" >
                 <div>❌</div>
                 <div style="font-size:11px;" lang-i18n="cancel">Скасувати</div>
             </button>
@@ -1677,11 +1623,11 @@
         <div style="flex:1; font-size:16px;" id="confirmSaveText" lang-i18n="confirmSaveChanges">Зберегти зміни?</div>
         <!-- Кнопки вертикально праворуч -->
         <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
-            <button id="confirmSaveSaveBtn" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:8px; cursor:pointer;">
+            <button class="square-btn" id="confirmSaveSaveBtn" >
                 <div>💾</div>
                 <div style="font-size:11px;" lang-i18n="save">Зберегти</div>
             </button>
-            <button id="confirmSaveCloseBtn" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:8px; cursor:pointer;">
+            <button class="square-btn" id="confirmSaveCloseBtn" >
                 <div>❌</div>
                 <div style="font-size:11px;" lang-i18n="close">Закрити</div>
             </button>
@@ -1710,11 +1656,11 @@
             </label>
         </div>
         <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
-            <button onclick="applyShapeColor()" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:8px; cursor:pointer;">
+            <button class="square-btn" onclick="applyShapeColor()" >
                 <div>✅</div>
                 <div style="font-size:11px;">ОК</div>
             </button>
-            <button onclick="document.getElementById('shapeColorModal').style.display='none'" style="width:64px; height:64px; font-size:24px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:8px; cursor:pointer;">
+            <button class="square-btn" onclick="document.getElementById('shapeColorModal').style.display='none'" >
                 <div>❌</div>
                 <div style="font-size:11px;" lang-i18n="cancel">Скасувати</div>
             </button>
@@ -1783,12 +1729,12 @@
             gap:12px;
             align-items:center;
         ">
-            <button onclick="saveTableSelection()" style="width:64px; height:64px; font-size:10px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <button class="square-btn" onclick="saveTableSelection()" >
                 <span style="font-size:28px;">✅</span>
                 <span>OK</span>
             </button>
 
-            <button onclick="closeTableFieldModal()" style="width:64px; height:64px; font-size:10px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <button class="square-btn" onclick="closeTableFieldModal()" >
                 <span style="font-size:28px;">❌</span>
                 <span>Скасувати</span>
             </button>
@@ -1871,11 +1817,11 @@
             </div>
             <!-- ПРАВИЙ КОНТЕЙНЕР (Вертикальний контейнер з кнопками) -->
             <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
-                <button onclick="saveButtonSettings()" style="width:64px; height:64px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:8px; cursor:pointer;">
+                <button class="square-btn" onclick="saveButtonSettings()" >
                     <span style="font-size:24px;">💾</span>
                     <span style="font-size:11px; margin-top:4px;" lang-i18n="save">Зберегти</span>
                 </button>
-                <button onclick="closeButtonSettingsModal()" style="width:64px; height:64px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:8px; cursor:pointer;">
+                <button class="square-btn" onclick="closeButtonSettingsModal()" >
                     <span style="font-size:24px;">❌</span>
                     <span style="font-size:11px; margin-top:4px;" lang-i18n="cancel">Скасувати</span>
                 </button>

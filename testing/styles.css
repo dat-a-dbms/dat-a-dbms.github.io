@@ -409,31 +409,129 @@ input[type="date"] {
     -moz-appearance: none;
 }
 
-.square-btn {
-    width: 64px;
-    height: 64px;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-family: sans-serif;
-    text-align: center;
-    padding: 4px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-}
-.square-btn:hover { background-color: #e0e0e0; }
-.square-btn .icon {
-    font-size: 24px;
-    line-height: 1;
-}
-.square-btn .label {
-    font-size: 10px;
-    margin-top: 2px;
-}
-
+/* Класи кнопок */
+    button {
+        font-family: 'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif;
+    }
+    [contenteditable][placeholder]:empty::before {
+        content: attr(placeholder);
+        color: #aaa;
+        pointer-events: none;
+    }
+    .square-btn {
+        width: 64px;
+        height: 64px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-family: sans-serif;
+        font-size: 24px;
+        text-align: center;
+        padding: 4px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+    .square-btn:hover { background-color: #e0e0e0; }
+    .square-btn .icon {
+        font-size: 24px;
+        line-height: 1;
+    }
+    .square-btn .label {
+        font-size: 10px;
+        margin-top: 2px;
+    }
+    .wide-btn {
+        width: 64px;
+        height: 56px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-family: sans-serif;
+        font-size: 24px;
+        text-align: center;
+        padding: 4px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+    .wide-btn:hover { background-color: #e0e0e0; }
+    .wide-btn .icon {
+        font-size: 24px;
+        line-height: 1;
+    }
+    .wide-btn .label {
+        font-size: 10px;
+        margin-top: 2px;
+    }
+    .icon-btn {
+        width: 36px;
+        height: 36px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+    }
+    .icon-btn:hover { background-color: #e0e0e0; }
+    .slim-btn {
+        width: 64px;
+        height: 40px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-family: sans-serif;
+        font-size: 10px;
+        text-align: center;
+        padding: 4px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+    .slim-btn:hover { background-color: #e0e0e0; }
+    .slim-btn .icon {
+        font-size: 20px;
+        line-height: 1;
+    }
+    .slim-btn .label {
+        font-size: 10px;
+        margin-top: 2px;
+    }
+    .mid-btn {
+        width: 64px;
+        height: 48px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-family: sans-serif;
+        font-size: 24px;
+        text-align: center;
+        padding: 4px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+    .mid-btn:hover { background-color: #e0e0e0; }
+    .mid-btn .icon {
+        font-size: 24px;
+        line-height: 1;
+    }
+    .mid-btn .label {
+        font-size: 10px;
+        margin-top: 2px;
+    }
 
 /* ── 13. Стан виділення ── */
 
