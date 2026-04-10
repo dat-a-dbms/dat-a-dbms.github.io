@@ -742,6 +742,7 @@
                 <button class="mid-btn" onclick="createNewRecord()" id="frmNewRecord" title="Створити новий запис" > ➕ <span style="font-size:12px;" lang-i18n="newRecord">Новий</span> </button>
                 <button class="mid-btn" onclick="saveFormChanges()" id="frmSaveChanges" title="Зберегти зміни" > 💾 <span style="font-size:12px;" lang-i18n="save">Зберегти</span> </button>
                 <button class="mid-btn" onclick="deleteFormRecord()" id="frmDeleteRecord" title="Видалити запис" > 🗑 <span style="font-size:12px;" lang-i18n="delete">Видалити</span> </button>
+                <button class="mid-btn" onclick="onTableMenuButtonClick()" id="frmTableMenuBtn" title="Меню таблиці" style="display:none; border-color:#DDDD00;"> 📊 <span style="font-size:12px;">Таблиця</span> </button>
                 <button class="mid-btn" onclick="closeFormPreview()" title="Закрити" > ❌ <span style="font-size:12px;" lang-i18n="close">Закрити</span> </button>
             </div>
         </div>
@@ -1840,7 +1841,34 @@
         </div>
     </div>
 </div>
-
+<!-- Модальне вікно для роботи з таблицею у формі (контекстне меню) -->
+<div id="formTableContextMenuModal" class="modal-overlay" style="display:none; z-index:30000;">
+    <div style="display:flex; border-radius:12px; padding:20px 25px; box-shadow:0 4px 20px rgba(0,0,0,0.9); background: #999997; flex-direction:column; gap:12px; min-width:180px; text-align:center;">
+        
+        <div style="font-size:14px; font-weight:bold; margin-bottom:5px; border-bottom:1px solid #eee; padding-bottom:8px;" id="formTableContextTitle">
+            📊 Робота з таблицею
+        </div>
+        <button class="custom-btn" onclick="addFormTableRow()"> 
+          <div class="btn-left yellow">➕</div>
+          <div class="btn-right">Додати рядок</div>
+        </button>
+        
+        <button class="custom-btn" onclick="deleteFormTableRow()">
+          <div class="btn-left red">➖</div>
+          <div class="btn-right">Видалити рядок</div>
+        </button>
+        
+        <button class="custom-btn" onclick="saveFormTableData()">
+          <div class="btn-left green">💾</div>
+          <div class="btn-right">Зберегти зміни</div>
+        </button>
+        
+        <button class="custom-btn" onclick="closeFormTableContextMenu()">
+          <div class="btn-left gray">❌</div>
+          <div class="btn-right">Закрити це меню</div>
+        </button>
+    </div>
+</div>
 </body>
 
 </html>
