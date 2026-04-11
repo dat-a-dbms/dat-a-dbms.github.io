@@ -1642,3 +1642,12 @@ body.dark-theme .computed-expr-display span { color: #fb923c; }
     justify-content: center;
     font-size: 12px;
 }
+/* Додати в <head> або в styles.css */
+.form-table table {
+    border-collapse: separate !important;
+    border-spacing: 0;
+}
+.form-table th,
+.form-table td {
+    border: 1px solid #777 !important;
+}

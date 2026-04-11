@@ -254,10 +254,12 @@ function previewForm(form = null, resetIndex = false) {
     // Зберігаємо поточну форму для навігації
     if (form) {
         currentPreviewForm = form;
+      
     }
     const previewModal = document.getElementById("formPreviewModal");
     const previewCanvas = document.getElementById("formPreviewCanvas");
     previewCanvas.innerHTML = "";
+    console.log("[previewForm] called, currentFormRecordIndex=", currentFormRecordIndex, "resetIndex=", resetIndex);
     let formName;
     let elements = [];
     // Формуємо elements
@@ -507,6 +509,10 @@ function previewForm(form = null, resetIndex = false) {
         // Рендеринг таблиці
         if (el.type === "table") {
             console.log("table render - calling editData for:", el.tableName);
+            // Зберігаємо посилання на форму локально в closure — 
+            // глобальна currentPreviewForm може бути null на момент mousedown
+            console.log("[TABLE RENDER] form=", form?.name ?? "NULL", "currentPreviewForm=", currentPreviewForm?.name ?? "NULL");
+            const _previewFormRef = form || currentPreviewForm;
             // Створюємо контейнер для таблиці
             const frame = document.createElement("div");
             frame.className = "form-table";
@@ -557,7 +563,7 @@ function previewForm(form = null, resetIndex = false) {
             const thead = document.createElement("thead");
             const theadId = `editHead_${Date.now()}`;
             thead.id = theadId;
-            thead.style.backgroundColor = "#eee";
+            thead.style.backgroundColor = "#999";
             thead.style.position = "sticky";
             thead.style.top = "0";
             thead.style.zIndex = "10";
@@ -602,27 +608,71 @@ function previewForm(form = null, resetIndex = false) {
                 // Зберігаємо посилання на цю таблицю
                 if (!window._formTables) window._formTables = {};
                 window._formTables[el.tableName] = tempTable;
-                // Рендеримо заголовок
-                thead.innerHTML = "";
-                const headerRow = document.createElement("tr");
-                filteredSchema.forEach((col, i) => {
-                    const th = document.createElement("th");
-                    th.textContent = col.subst ? col.title + "🛟" : col.title;
-                    th.style.backgroundColor = "#eee";
-                    th.style.padding = "8px";
-                    th.style.border = "1px solid #777";
-                    th.style.fontSize = "10px";
-                    th.style.whiteSpace = "nowrap";
-                    if (!isReadOnly && col.primaryKey) th.classList.add("pk");
-                    th.style.position = "relative";
-                    headerRow.appendChild(th);
-                });
-                thead.appendChild(headerRow);
+// Рендеримо заголовок
+thead.innerHTML = "";
+const headerRow = document.createElement("tr");
+filteredSchema.forEach((col, i) => {
+    const th = document.createElement("th");
+    th.textContent = col.subst ? col.title + "🛟" : col.title;
+    th.style.backgroundColor = "#ссс";
+    th.style.padding = "8px";
+    th.style.border = "1px solid #777";
+    th.style.fontSize = "10px";
+    th.style.whiteSpace = "nowrap";
+    if (!isReadOnly && col.primaryKey) th.classList.add("pk");
+    th.style.position = "relative";
+    headerRow.appendChild(th);
+});
+thead.appendChild(headerRow);
                 // Рендеримо тіло
                 tbody.innerHTML = "";
                 filteredData.forEach((rowData, rowIndex) => {
                     const tr = document.createElement("tr");
                     const fullRowData = tableObj.data[rowIndex];
+
+                    // Навігація по записах — слухаємо mousedown на tr,
+                    // щоб спрацювати до того як input/select перехопить фокус
+                tr.addEventListener("mousedown", (e) => {
+                    // Динамічно отримуємо актуальну форму
+                    const activeForm = currentPreviewForm || 
+                        (typeof formName !== 'undefined' && database.forms ? database.forms.find(f => f.name === formName) : null);
+
+                    console.log("[TR MOUSEDOWN] rowIndex=", rowIndex, "current=", currentFormRecordIndex);
+
+                    // Встановлюємо контекст таблиці
+                    if (window._formTables && window._formTables[el.tableName]) {
+                        currentEditTable = window._formTables[el.tableName];
+                        currentFormActiveTable = window._formTables[el.tableName];
+                    } else {
+                        currentEditTable = tempTable;
+                        currentFormActiveTable = tempTable;
+                        if (!window._formTables) window._formTables = {};
+                        window._formTables[el.tableName] = tempTable;
+                    }
+                    currentFormTableContext = {
+                        tempTable: tempTable,
+                        tableObj: tableObj,
+                        frame: frame,
+                        tableName: el.tableName
+                    };
+                    showTableMenuButton();
+
+                    // Оновлюємо виділення рядка
+                    if (selectedCell?.parentElement) selectedCell.parentElement.classList.remove("selected-row");
+                    selectedCell = tr.cells[0] || tr;
+                    tr.classList.add("selected-row");
+
+                    // 🔑 Синхронізуємо запис ТІЛЬКИ якщо рядок дійсно змінився
+                    if (rowIndex !== currentFormRecordIndex) {
+                        currentFormRecordIndex = rowIndex;
+                        currentPreviewForm = activeForm;
+                        
+                        // Оновлюємо поля форми БЕЗ повного перерендерингу (зберігає фокус та можливість редагування)
+                        syncFieldsFromCurrentRecord();
+                        syncTableSelectionToRecord();
+                    }
+                });
+
                     filteredSchema.forEach((col, colIndex) => {
                         const td = document.createElement("td");
                         const originalColIndex = tableObj.schema.findIndex(c => c.title === col.title);
@@ -639,30 +689,7 @@ function previewForm(form = null, resetIndex = false) {
                                 filteredData[rowIndex][colIndex] = inputEl.value || "";
                             });
                         }
-                        td.addEventListener("click", () => {
-                            if (selectedCell?.parentElement) selectedCell.parentElement.classList.remove("selected-row");
-                            selectedCell = td;
-                            if (selectedCell.parentElement) selectedCell.parentElement.classList.add("selected-row");
-                            if (window._formTables && window._formTables[el.tableName]) {
-                                currentEditTable = window._formTables[el.tableName];
-                                currentFormActiveTable = window._formTables[el.tableName];
-                            } else {
-                                currentEditTable = tempTable;
-                                currentFormActiveTable = tempTable;
-                                if (!window._formTables) window._formTables = {};
-                                window._formTables[el.tableName] = tempTable;
-                            }
-                            // Зберігаємо контекст для кнопки
-                            currentFormTableContext = {
-                                tempTable: tempTable,
-                                tableObj: tableObj,
-                                frame: frame,
-                                tableName: el.tableName
-                            };
-                            // Показуємо кнопку на правій панелі
-                            showTableMenuButton();
-                        });
-                        // Додаємо обробник правої кнопки миші для клітинки
+                        // Контекстне меню — залишаємо на td
                         td.addEventListener("contextmenu", (e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -700,6 +727,13 @@ function previewForm(form = null, resetIndex = false) {
                     showFormTableContextMenu(e.clientX, e.clientY, tempTable, tableObj, frame);
                 });
                 // Додаємо підказку про праву кнопку миші (тільки для не read-only таблиць)
+            }
+            // Інжектуємо стиль для поточного рядка, якщо ще не додано
+            if (!document.getElementById("formTableCurrentRowStyle")) {
+                const styleEl = document.createElement("style");
+                styleEl.id = "formTableCurrentRowStyle";
+                styleEl.textContent = ".form-table-current-row td { background-color: #b3d4ff !important; }";
+                document.head.appendChild(styleEl);
             }
             console.log("table render - completed");
             return;
@@ -887,7 +921,27 @@ function previewForm(form = null, resetIndex = false) {
             previewCanvas.appendChild(shapeDiv);
         }
     });
+    // Синхронізуємо розміри formPreview з formCreatorModalContent
+    const creatorContent = document.getElementById("formCreatorModalContent");
+    const formPreview = document.getElementById("formPreview");
+    const formCanvas = document.getElementById("formCanvas");
+    if (creatorContent && formPreview) {
+        const cr = creatorContent.getBoundingClientRect();
+        formPreview.style.width  = (cr.width-50)  + "px";
+        formPreview.style.height = (cr.height-50) + "px";
+        formPreview.style.maxWidth  = "";
+        formPreview.style.maxHeight = "";
+    }
+    if (formCanvas && previewCanvas) {
+        const fr = formCanvas.getBoundingClientRect();
+        previewCanvas.style.width  = fr.width  + "px";
+        previewCanvas.style.height = fr.height + "px";
+        previewCanvas.style.flex   = "none";
+    }
     previewModal.style.display = "flex";
+    // Синхронізуємо виділення рядка таблиці з поточним записом
+    // Таймаут потрібен, щоб DOM вже був готовий
+    setTimeout(syncTableSelectionToRecord, 0);
 }
 
 function saveFormChanges() {
@@ -1099,6 +1153,8 @@ function saveFormChanges() {
     isCreatingNewRecord = false;
     Message(t("formRecordUpdated"));
     saveDatabase();
+    // Оновлюємо таблицю на формі та виділяємо поточний рядок
+    _refreshFormTablesAfterFieldSave();
 }
 
 function goToFirstRecord() {
@@ -1274,6 +1330,78 @@ function closeFormPreview() {
     document.getElementById("formPreviewModal").style.display = "none";
 }
 /**
+ * Оновлює відображення всіх таблиць на формі після збереження змін у полях,
+ * потім виділяє рядок поточного запису.
+ */
+function _refreshFormTablesAfterFieldSave() {
+    if (!window._formTables) {
+        syncTableSelectionToRecord();
+        return;
+    }
+    Object.entries(window._formTables).forEach(([tName, tempTable]) => {
+        const tableObj = tempTable.originalTable || database.tables.find(t => t.name === tName);
+        if (!tableObj || !tempTable._tbody) return;
+        refreshFormTableDisplay(tempTable, tableObj, null);
+    });
+    syncTableSelectionToRecord();
+}
+
+/**
+ * Синхронізує виділений рядок таблиці(ць) на формі з поточним записом (currentFormRecordIndex).
+ * Викликається після навігації або збереження.
+ */
+function syncTableSelectionToRecord() {
+    const tableContainers = document.querySelectorAll("#formPreviewCanvas .form-table");
+    tableContainers.forEach(container => {
+        const tbody = container.querySelector("tbody");
+        if (!tbody) return;
+        // Знімаємо попереднє виділення
+        tbody.querySelectorAll("tr.form-table-current-row").forEach(r => r.classList.remove("form-table-current-row"));
+        const rows = tbody.querySelectorAll("tr");
+        const targetRow = rows[currentFormRecordIndex];
+        if (!targetRow) return;
+        targetRow.classList.add("form-table-current-row");
+        // Прокручуємо рядок у видиму область
+        targetRow.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
+}
+
+/**
+ * Оновлює поля форми значеннями з поточного запису таблиці після збереження в таблиці.
+ * Викликається після saveFormTableData.
+ */
+function syncFieldsFromCurrentRecord() {
+    const fields = [...document.querySelectorAll("#formPreviewCanvas .form-field")];
+    if (fields.length === 0) return;
+    // Визначаємо таблицю форми
+    const tableName = fields.find(f => f.dataset.tableName)?.dataset.tableName;
+    if (!tableName) return;
+    const table = database.tables.find(t => t.name === tableName);
+    if (!table) return;
+    const idx = Math.min(currentFormRecordIndex, (table.data?.length ?? 1) - 1);
+    const rowData = table.data?.[idx];
+    if (!rowData) return;
+    fields.forEach(f => {
+        const colIndex = Number(f.dataset.colIndex);
+        if (isNaN(colIndex) || colIndex < 0) return;
+        const newValue = rowData[colIndex] ?? "";
+        const control = f.querySelector("input, select, textarea");
+        const img = f.querySelector("img");
+        if (img) {
+            img.src = newValue || "";
+        } else if (control) {
+            if (control.tagName === "SELECT") {
+                control.value = newValue == null ? "empty" : String(newValue);
+            } else {
+                control.value = newValue ?? "";
+            }
+        } else {
+            f.textContent = newValue ?? "";
+        }
+    });
+}
+
+/**
  * Оновлює тільки тіло таблиці на формі без повного перерендерингу
  */
 function updateFormTableData(tableName, tableData) {
@@ -1365,19 +1493,15 @@ function closeFormTableContextMenu() {
  */
 function addFormTableRow() {
     const { tempTable, tableObj, frame } = currentFormTableContext;
-    
     if (!tempTable || !tableObj) {
         Message("Помилка: таблицю не знайдено");
         closeFormTableContextMenu();
         return;
     }
-    
     currentEditTable = tempTable;
     
-    // Будуємо новий рядок за оригінальною схемою tableObj
+    // Будуємо новий рядок за оригінальною схемою
     const newFullRow = tableObj.schema.map(() => null);
-    
-    // Автоінкремент по оригінальній схемі
     tableObj.schema.forEach((col, index) => {
         if (col.primaryKey && col.type?.toLowerCase() === "integer" && col.autoInc === true) {
             let max = 0;
@@ -1404,8 +1528,29 @@ function addFormTableRow() {
     // Додаємо в оригінальні дані
     tableObj.data.push(newFullRow);
     
-    // Оновлюємо відображення
+    // 🔄 Оновлюємо відображення таблиці
     refreshFormTableDisplay(tempTable, tableObj, frame);
+    
+    // 🔑 АВТОМАТИЧНЕ ВИДІЛЕННЯ НОВОГО РЯДКА ТА СИНХРОНІЗАЦІЯ
+    const newRowIdx = tempTable.data.length - 1;
+    currentFormRecordIndex = newRowIdx;
+    
+    const tbody = tempTable._tbody;
+    if (tbody) {
+        const rows = tbody.querySelectorAll('tr');
+        const newRow = rows[newRowIdx];
+        if (newRow) {
+            // Знімаємо виділення з попереднього рядка
+            if (selectedCell?.parentElement) selectedCell.parentElement.classList.remove('selected-row');
+            // Встановлюємо новий активний рядок (аналогічно mousedown)
+            selectedCell = newRow.cells[0] || newRow;
+            newRow.classList.add('selected-row');
+            
+            // Синхронізуємо поля форми з даними нового запису
+            syncFieldsFromCurrentRecord();
+            syncTableSelectionToRecord();
+        }
+    }
     
     saveDatabase();
     Message("Рядок додано");
@@ -1496,6 +1641,9 @@ function saveFormTableData() {
     
     Message("Зміни збережено");
     closeFormTableContextMenu();
+    // Оновлюємо поля форми значеннями з поточного запису таблиці
+    syncFieldsFromCurrentRecord();
+    syncTableSelectionToRecord();
 }
 
 /**
