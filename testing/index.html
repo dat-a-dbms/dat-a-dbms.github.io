@@ -5,43 +5,8 @@
     <meta charset="UTF-8">
     <title>dat.A: the power of data</title>
     <link rel="icon" type="image/png" href="icon.png">
-    <link rel="stylesheet" href="styles.css"> <style>
-    /* ============================================================
-       МОДАЛЬНІ ВІКНА — базові класи
-       (замінюють повторювані inline-стилі)
-    ============================================================ */
-
-    /* Оверлей: затемнений фон, центрування вмісту */
-    .modal-overlay {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        display: none;
-        justify-content: center;
-        align-items: center;
-    }
-
-    /* Внутрішній контейнер модального вікна */
-    .modal-box {
-        background: #fff;
-        padding: 20px;
-        border-radius: 10px;
-        display: flex;
-        gap: 20px;
-        overflow: hidden;
-    }
-
-    /* Розміри контейнерів */
-    .modal-box-sm   { max-width: 600px;  width: 90%; }
-    .modal-box-md   { max-width: 900px;  width: 90%; }
-    .modal-box-lg   { max-width: 1000px; width: 90%; max-height: 80vh; overflow: hidden; }
-    .modal-box-xl   { max-width: 1200px; width: 90%; }
-    .modal-box-full { height: 90%; }
-
-    /* Список-модалі (savedQueries/Tables/Forms/Reports, storage, dataWork) */
-    .modal-box-list { max-height: 80%; flex-direction: row; }
-</style>
+    <link rel="stylesheet" href="styles.css">
+     
 </head>  
 
     <script src="lib/sql-wasm.js"></script>
@@ -53,10 +18,10 @@
     <script src="lib/ui.js"></script>
     <script src="lib/io.js"></script>
     <script src="lib/table.js"></script>
+    <script src="lib/common.js"></script>
     <script src="lib/queries.js"></script>
     <script src="lib/reports.js"></script>              
     <script src="lib/forms.js"></script>
-    <script src="lib/common.js"></script>
     <script src="lib/designer.js"></script>
     <script src="lib/data.js"></script> 
     <script src="lib/relations.js"></script>
@@ -1634,7 +1599,7 @@
 
 <!-- Модальне вікно підтвердження збереження -->
 <div id="confirmSaveModal" class="modal-overlay" style="display:none; z-index:10200;">
-    <div class="modal-box modal-box-sm" style="flex-direction:row; align-items:center;">
+    <div class="modal-box modal-box-sm" style="flex-direction:row; align-items:center; width:420px;">
         <!-- Текст -->
         <div style="flex:1; font-size:16px;" id="confirmSaveText" lang-i18n="confirmSaveChanges">Зберегти зміни?</div>
         <!-- Кнопки вертикально праворуч -->
@@ -1653,34 +1618,40 @@
 
 <!-- Модальне вікно вибору кольору фігури -->
 <div id="shapeColorModal" class="modal-overlay" style="display:none; z-index:10210;">
-    <div class="modal-box modal-box-sm" style="flex-direction:row; align-items:center;">
-        <div style="flex:1; display:flex; flex-direction:column; gap:12px;">
-            <div style="font-weight:600; font-size:15px;">Колір фігури</div>
-            <label style="display:flex; align-items:center; gap:10px; font-size:14px;">
-                Колір лінії:
-                <input type="color" id="shapeStrokeColorInput" value="#333333" style="width:48px; height:32px; border:1px solid #ccc; border-radius:4px; cursor:pointer;margin-left:13px; padding:2px;">
+    <div class="modal-box modal-box-sm" style="flex-direction:row; align-items:center; width: 400px;">
+        <!-- Використовуємо Grid для ідеального вирівнювання -->
+        <div style="flex:1; display:grid; grid-template-columns: minmax(0, max-content) auto; gap: 10px 12px; align-items:center;">
+            <div style="font-weight:600; font-size:15px; grid-column:1 / -1;" lang-i18n="shapeColorTitle">Колір фігури</div>
+
+            <label for="shapeStrokeColorInput" style="cursor:pointer; font-size:14px;">
+                <span lang-i18n="shapeStrokeColorLabel">Колір лінії:</span>
             </label>
-            <label style="display:flex; align-items:center; gap:10px; font-size:14px;">
-                Заповнення:
-                <input type="color" id="shapeFillColorInput" value="#ffffff" style="width:48px; height:32px; border:1px solid #ccc; border-radius:4px; cursor:pointer; padding:2px;">
+            <input type="color" id="shapeStrokeColorInput" value="#333333" style="width:48px; height:32px; border:1px solid #ccc; border-radius:4px; cursor:pointer; padding:2px;">
+
+            <label for="shapeFillColorInput" style="cursor:pointer; font-size:14px;">
+                <span lang-i18n="shapeFillColorLabel">Заповнення:</span>
             </label>
-            <label style="display:flex; align-items:center; gap:10px; font-size:14px;">
-                <input type="checkbox" id="shapeFillTransparentChk" style="width:16px;height:16px;">
-                Прозоре заповнення
+            <input type="color" id="shapeFillColorInput" value="#ffffff" style="width:48px; height:32px; border:1px solid #ccc; border-radius:4px; cursor:pointer; padding:2px;">
+
+            <label for="shapeFillTransparentChk" style="cursor:pointer; font-size:14px;">
+                <span lang-i18n="shapeFillTransparentLabel">Прозоре заповнення</span>
             </label>
+            <input type="checkbox" id="shapeFillTransparentChk" style="width:16px; height:16px; cursor:pointer; margin:0;">
         </div>
+
         <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
-            <button class="square-btn" onclick="applyShapeColor()" >
+            <button class="square-btn" onclick="applyShapeColor()">
                 <div>✅</div>
-                <div style="font-size:11px;">ОК</div>
+                <div style="font-size:11px;" lang-i18n="shapeColorOk">ОК</div>
             </button>
-            <button class="square-btn" onclick="document.getElementById('shapeColorModal').style.display='none'" >
+            <button class="square-btn" onclick="document.getElementById('shapeColorModal').style.display='none'">
                 <div>❌</div>
                 <div style="font-size:11px;" lang-i18n="cancel">Скасувати</div>
             </button>
         </div>
     </div>
 </div>
+
 <div id="tableFieldModal" style="
     display:none;
     position:fixed;
@@ -1699,7 +1670,7 @@
     
     <!-- 🔹 Верхній ряд -->
     <div style="display:flex; align-items:center; gap:16px; padding:20px 20px 0 20px;">
-        <h3 style="margin:0; font-size:16px; font-weight:500; color:#333; white-space:nowrap;">
+        <h3 style="margin:0; font-size:16px; font-weight:500; color:#333; white-space:nowrap;" lang-i18n="tableFieldModalTitle">
             📊 Оберіть таблицю та поля у ній
         </h3>
 
@@ -1712,7 +1683,7 @@
             border-radius:6px;
             cursor:pointer;
         ">
-            <option value="">— Оберіть таблицю або запит —</option>
+            <option value="" lang-i18n="tableFieldSelectPlaceholder">— Оберіть таблицю або запит —</option>
         </select>
     </div>
 
@@ -1742,14 +1713,14 @@
             gap:12px;
             align-items:center;
         ">
-            <button class="square-btn" onclick="saveTableSelection()" >
+            <button class="square-btn" onclick="saveTableSelection()">
                 <span style="font-size:28px;">✅</span>
-                <span style="font-size:10px;">OK</span>
+                <span style="font-size:10px;" lang-i18n="tableFieldOk">OK</span>
             </button>
 
-            <button class="square-btn" onclick="closeTableFieldModal()" >
+            <button class="square-btn" onclick="closeTableFieldModal()">
                 <span style="font-size:28px;">❌</span>
-                <span style="font-size:10px;">Скасувати</span>
+                <span style="font-size:10px;" lang-i18n="cancel">Скасувати</span>
             </button>
         </div>
     </div>
@@ -1758,7 +1729,7 @@
 <!-- Модальне вікно налаштувань кнопки -->
 <div id="buttonSettingsModal" class="modal-overlay" style="display:none; z-index:10220;">
     
-    <div class="modal-box modal-box-md" style="max-width: 420px;">        
+    <div class="modal-box modal-box-md" style="width: 570px;">        
         <!-- ГОЛОВНИЙ КОНТЕЙНЕР: Два блоки (Лівий та Правий) -->
         <div style="display:flex; flex-direction:row; gap:20px;">
             <!-- ЛІВИЙ КОНТЕЙНЕР -->
@@ -1771,7 +1742,7 @@
                     <div style="flex:1; display:flex; flex-direction:column; gap:10px;">
                         <label style="display:flex; flex-direction:column; gap:5px;">
                             <span lang-i18n="buttonText">Текст кнопки:</span>
-                            <input type="text" id="buttonTextInput" value="Кнопка" style="padding:8px; border:1px solid #ccc; border-radius:4px;">
+                            <input type="text" id="buttonTextInput" lang-i18n="defButton" value="Button" style="padding:8px; border:1px solid #ccc; border-radius:4px;">
                         </label>
 
                         <label style="display:flex; flex-direction:column; gap:5px;">
@@ -1790,49 +1761,49 @@
                         </label>
                     </div>
                     <!-- Правий під-контейнер (Дії) -->
-                    <div style="flex:1; display:flex; flex-direction:column; gap:10px;">
-                        <span style="font-weight:600; font-size:14px;">Дія при натисканні:</span>
+                    <div style="flex:1; display:flex; flex-direction:column; gap:10px; width:300px;">
+                        <span style="font-weight:600; font-size:14px;" lang-i18n="buttonActionLabel">Дія при натисканні:</span>
 
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px;">
                             <input type="radio" name="btnAction" value="none" id="btnActionNone" checked style="cursor:pointer;">
-                            Без дії
+                            <span lang-i18n="buttonActionNone">Без дії</span>
                         </label>
 
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px;">
                             <input type="radio" name="btnAction" value="openForm" id="btnActionOpenForm" style="cursor:pointer;">
-                            Відкрити форму
+                            <span lang-i18n="buttonActionOpenForm">Відкрити форму</span>
                         </label>
                         <select id="btnActionFormSelect" style="display:none; padding:6px 10px; border:1px solid #ccc; border-radius:4px; font-size:13px; margin-left:22px;">
-                            <option value="">— Оберіть форму —</option>
+                            <option value="" lang-i18n="buttonActionFormSelectPlaceholder">— Оберіть форму —</option>
                         </select>
 
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px;">
                             <input type="radio" name="btnAction" value="runQuery" id="btnActionRunQuery" style="cursor:pointer;">
-                            Виконати запит
+                            <span lang-i18n="buttonActionRunQuery">Виконати запит</span>
                         </label>
                         <select id="btnActionQuerySelect" style="display:none; padding:6px 10px; border:1px solid #ccc; border-radius:4px; font-size:13px; margin-left:22px;">
-                            <option value="">— Оберіть запит —</option>
+                            <option value="" lang-i18n="buttonActionQuerySelectPlaceholder">— Оберіть запит —</option>
                         </select>
 
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px;">
                             <input type="radio" name="btnAction" value="closeForm" id="btnActionCloseForm" style="cursor:pointer;">
-                            Закрити форму
+                            <span lang-i18n="buttonActionCloseForm">Закрити форму</span>
                         </label>
 
                         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px;">
                             <input type="radio" name="btnAction" value="closeApp" id="btnActionCloseApp" style="cursor:pointer;">
-                            Закрити програму
+                            <span lang-i18n="buttonActionCloseApp">Закрити програму</span>
                         </label>
                     </div>
                 </div>
             </div>
             <!-- ПРАВИЙ КОНТЕЙНЕР (Вертикальний контейнер з кнопками) -->
             <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
-                <button class="square-btn" onclick="saveButtonSettings()" >
+                <button class="square-btn" onclick="saveButtonSettings()">
                     <span style="font-size:24px;">💾</span>
                     <span style="font-size:11px; margin-top:4px;" lang-i18n="save">Зберегти</span>
                 </button>
-                <button class="square-btn" onclick="closeButtonSettingsModal()" >
+                <button class="square-btn" onclick="closeButtonSettingsModal()">
                     <span style="font-size:24px;">❌</span>
                     <span style="font-size:11px; margin-top:4px;" lang-i18n="cancel">Скасувати</span>
                 </button>

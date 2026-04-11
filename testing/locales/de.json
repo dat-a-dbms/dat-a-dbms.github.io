@@ -1,4 +1,13 @@
 {
+	"designerSelectFormTable":    "— Tabelle auswählen —",
+    "designerClickToConfigure":   "Klicken, um die Tabelle zu konfigurieren",
+    "designerDefaultButton":      "Schaltfläche",
+    "designerSelectTableOrQuery": "Wählen Sie eine Tabelle oder Abfrage",
+    "designerSelectAtLeastOne":   "Wählen Sie mindestens ein Feld aus",
+    "designerSelectForm":         "— Formular auswählen —",
+    "designerSelectQuery":        "— Abfrage auswählen —",
+    "designerTableNotFound":      "Tabelle nicht gefunden",
+    "designerSelectButton":       "Wählen Sie eine Schaltfläche zum Konfigurieren",	
   "formNewRecord":        ", neuer Datensatz",
   "formLastRecord":       ", letzter Datensatz",
   "formAddRowError":      "Fehler: Tabelle nicht gefunden",

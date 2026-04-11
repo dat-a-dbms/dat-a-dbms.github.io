@@ -406,3 +406,140 @@ function extractImage(uint8Array) {
     }
     return null;
 }
+/**
+ * Спільні утиліти для reports.js та forms.js
+ */
+
+// 1. Відкриття конструктора (замінює createReport / createForm)
+/**
+ * Відкриває конструктор у заданому режимі ("report" або "form").
+ * @param {"report"|"form"} mode
+ */
+function createDesigner(mode) {
+    if (!isDBExist()) return;
+    constructorMode = mode;
+    createConstructor();
+}
+
+// 2. Пошук таблиці або результату запиту
+/**
+ * Шукає таблицю або результат запиту за іменем.
+ * Розширена версія підтримує також визначення запитів (isDefinition).
+ *
+ * @param {string} tableName
+ * @returns {{ table: object, isQuery: boolean, isDefinition: boolean } | null}
+ */
+function findTableOrQueryResult(tableName) {
+    if (!tableName) return null;
+
+    // 1. Звичайні таблиці
+    const table = database.tables.find(t => t.name === tableName);
+    if (table) return { table, isQuery: false, isDefinition: false };
+
+    // 2. Результати запитів
+    const cleanName = tableName.startsWith('*') ? tableName.substring(1) : tableName;
+    const queryResult = queries.results.find(
+        q => q.name === cleanName ||
+             q.name === `запит "${cleanName.replace(/\*запит "|"/g, '')}"`
+    );
+    if (queryResult) return { table: queryResult, isQuery: true, isDefinition: false };
+
+    // 3. Визначення запитів
+    const queryDefName = cleanName.replace(/^запит "|"/g, '');
+    const queryDef = queries.definitions.find(q => q.name === queryDefName);
+    if (queryDef) return { table: queryDef, isQuery: true, isDefinition: true };
+
+    return null;
+}
+
+// 3. Серіалізація елементів canvas (збереження)
+/**
+ * Серіалізує графічну фігуру з DOM-елемента.
+ * @param {HTMLElement} el
+ * @returns {object}
+ */
+function serializeShapeElement(el) {
+    return {
+        type: "shape",
+        shapeType: el.dataset.shapeType,
+        strokeColor: el.dataset.strokeColor || "#333333",
+        fillColor: el.dataset.fillColor || "#ffffff",
+        fillTransparent: el.dataset.fillTransparent === "1",
+        left: el.offsetLeft,
+        top: el.offsetTop,
+        width: el.offsetWidth,
+        height: el.offsetHeight,
+    };
+}
+
+/**
+ * Серіалізує елемент таблиці з DOM-елемента.
+ * @param {HTMLElement} el
+ * @returns {object}
+ */
+function serializeTableElement(el) {
+    return {
+        type: "table",
+        left: el.offsetLeft,
+        top: el.offsetTop,
+        width: el.offsetWidth,
+        height: el.offsetHeight,
+        tableName: el.dataset.tableName || null,
+        selectedFields: JSON.parse(el.dataset.selectedFields || "[]"),
+    };
+}
+
+/**
+ * Серіалізує текстовий елемент (label або field) з DOM-елемента.
+ * @param {HTMLElement} el
+ * @param {"report-label"|"form-label"} labelClass — CSS-клас для визначення типу "label"
+ * @returns {object}
+ */
+function serializeTextElement(el, labelClass) {
+    const type = el.classList.contains(labelClass) ? "label" : "field";
+    return {
+        type,
+        left: el.offsetLeft,
+        top: el.offsetTop,
+        width: el.offsetWidth,
+        height: el.offsetHeight,
+        fontFamily: (el.style.fontFamily || "Arial").replace(/['"]/g, ""),
+        fontSize: el.style.fontSize || "16px",
+        fontWeight: el.style.fontWeight || "normal",
+        fontStyle: el.style.fontStyle || "normal",
+        textDecoration: el.style.textDecoration || "",
+        color: el.style.color || "#000000",
+        textAlign: el.style.textAlign || "left",
+        text: el.innerText?.trim() || " ",
+        tableName: el.dataset.tableName || null,
+        fieldName: el.dataset.fieldName || null,
+    };
+}
+
+// 4. Рендеринг елемента списку з підсвіткою
+/**
+ * Створює елемент <li> зі списку збережених об'єктів (форм або звітів)
+ * з підтримкою dark-theme та колбеком при виборі.
+ *
+ * @param {HTMLElement}  listEl   — батьківський <ul>/<ol>
+ * @param {string}       name     — відображуване ім'я
+ * @param {string}       dataKey  — ключ data-атрибута (наприклад "reportName" або "formName")
+ * @param {function}     onSelect — викликається з обраним іменем
+ * @returns {HTMLLIElement}
+ */
+function createSelectableListItem(listEl, name, dataKey, onSelect) {
+    const li = document.createElement("li");
+    li.textContent = name;
+    li.style.padding = "8px";
+    li.style.cursor = "pointer";
+    li.dataset[dataKey] = name;
+
+    li.addEventListener("click", () => {
+        [...listEl.children].forEach(el => el.style.background = "");
+        const isDark = document.body.classList.contains("dark-theme");
+        li.style.background = isDark ? "#242d43" : "#d0e0ff";
+        onSelect(li.dataset[dataKey]);
+    });
+
+    return li;
+}

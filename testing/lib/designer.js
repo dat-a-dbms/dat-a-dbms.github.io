@@ -24,7 +24,7 @@ function createConstructor() {
     if (constructorMode === "form") {
         const fts = document.getElementById("formTableSelect");
         if (fts) {
-            populateTableSelect(fts, "— Оберіть таблицю —", true);
+            populateTableSelect(fts, t("designerSelectFormTable"), true);
             fts.value = "";
         }
     }
@@ -259,25 +259,7 @@ function updateTextAlign() {
         activeElement.style.textAlign = selected.value;
     }
 }
-/*
-function populateFieldSelectionPanel() {
-    const fieldPanelTableSelect = document.getElementById("fieldPanelTableSelect");
-    //використовуємо спільну функцію, включаємо запити для report
-    populateTableSelect(fieldPanelTableSelect, t("designerSelectTable"), constructorMode === "report");
 
-    if (activeElement && activeElement.dataset.tableName) {
-        fieldPanelTableSelect.value = activeElement.dataset.tableName;
-        fieldPanelTableSelect.dispatchEvent(new Event('change'));
-    } else {
-        fieldPanelTableSelect.value = "";
-    }
-    if (activeElement && activeElement.dataset.fieldName) {
-        document.getElementById("fieldPanelFieldSelect").value = activeElement.dataset.fieldName;
-    } else {
-        document.getElementById("fieldPanelFieldSelect").value = "";
-    }
-}
-*/
 function populateFieldSelectionPanel() {
     console.log("constructorMode=", constructorMode);
     const fieldPanelTableSelect = document.getElementById("fieldPanelTableSelect");
@@ -392,9 +374,8 @@ function initializeCanvasElement(element) {
         addResizeHandles(element);
     });
 }
-// =============================================
+
 // === ЛОГІКА ТАБЛИЦІ В КОНСТРУКТОРІ ===
-// =============================================
 let activeTableElement = null;
 
 function addScreenTable() {
@@ -417,7 +398,7 @@ function addScreenTable() {
         boxSizing: "border-box",
         padding: "4px"
     });
-    el.innerHTML = `<div style="color:#888; text-align:center; margin-top:35%; font-size:13px; pointer-events:none;">📊 ${t("designerClickToConfigure") || "Натисніть, щоб налаштувати таблицю"}</div>`;
+    el.innerHTML = `<div style="color:#888; text-align:center; margin-top:35%; font-size:13px; pointer-events:none;">📊 ${t("designerClickToConfigure")}</div>`;
     canvas.appendChild(el);
     addResizeHandles(el);
     makeDraggableAndResizable(el);
@@ -439,7 +420,7 @@ function addScreenTable() {
         }
     });
 }
-//=============================================================
+
 // Створення кнопки
 function addScreenButton() {
     const canvas = screenCanvas;
@@ -447,7 +428,7 @@ function addScreenButton() {
     const button = document.createElement("div");
     button.className = `${cm}-element ${cm}-button form-button`;
     button.dataset.type = "button";
-    button.dataset.buttonText = "Кнопка";
+    button.dataset.buttonText = t("designerDefaultButton");
     button.dataset.textColor = "#ffffff";
     button.dataset.bgColor = "#007bff";
     button.dataset.borderColor = "#0056b3";
@@ -474,7 +455,7 @@ function addScreenButton() {
         overflow: "hidden",
         textOverflow: "ellipsis"
     });
-    button.textContent = "Кнопка";
+    button.textContent = t("designerDefaultButton");
     // Додаємо обробник кліку для відкриття налаштувань
     button.addEventListener("click", (e) => {
         // Перевіряємо, чи клік не на маркері зміни розміру
@@ -497,16 +478,16 @@ function addScreenButton() {
 // Функція відкриття модального вікна налаштувань кнопки
 function openButtonSettingsModal() {
     if (!activeElement || !activeElement.classList.contains("form-button")) {
-        Message(t("designerSelectButton") || "Виберіть кнопку для налаштування");
+        Message(t("designerSelectButton"));
         return;
     }
-    document.getElementById("buttonTextInput").value = activeElement.dataset.buttonText || "Кнопка";
+    document.getElementById("buttonTextInput").value = activeElement.dataset.buttonText || t("designerDefaultButton");
     document.getElementById("buttonTextColorInput").value = activeElement.dataset.textColor || "#ffffff";
     document.getElementById("buttonBgColorInput").value = activeElement.dataset.bgColor || "#007bff";
     document.getElementById("buttonBorderColorInput").value = activeElement.dataset.borderColor || "#0056b3";
     // --- Наповнення списків форм і запитів ---
     const formSel = document.getElementById("btnActionFormSelect");
-    formSel.innerHTML = '<option value="">— Оберіть форму —</option>';
+    formSel.innerHTML = `<option value="">${t("designerSelectForm")}</option>`;
     (database.forms || []).forEach(f => {
         const opt = document.createElement("option");
         opt.value = f.name;
@@ -514,7 +495,7 @@ function openButtonSettingsModal() {
         formSel.appendChild(opt);
     });
     const querySel = document.getElementById("btnActionQuerySelect");
-    querySel.innerHTML = '<option value="">— Оберіть запит —</option>';
+    querySel.innerHTML = `<option value="">${t("designerSelectQuery")}</option>`;
     (queries.definitions || []).forEach(q => {
         const opt = document.createElement("option");
         opt.value = q.name;
@@ -650,12 +631,12 @@ function renderTableFieldCheckboxes(tableName) {
 function saveTableSelection() {
     const tableName = document.getElementById("tableFieldTableSelect").value;
     if (!tableName) {
-        Message("Оберіть таблицю або запит");
+        Message(t("designerSelectTableOrQuery"));
         return;
     }
     const checked = [...document.getElementById("tableFieldCheckboxes").querySelectorAll("input[type=checkbox]:checked")].map(c => c.value);
     if (checked.length === 0) {
-        Message("Оберіть хоча б одне поле");
+        Message(t("designerSelectAtLeastOne"));
         return;
     }
     activeTableElement.dataset.tableName = tableName;
@@ -680,7 +661,7 @@ function renderTablePreviewInDesigner(container, tableName, fields) {
     container.style.height = savedHeight;
     const result = findTableOrQueryResult(tableName);
     if (!result || !result.table) {
-        container.innerHTML = `<div style="color:#888; text-align:center; margin-top:35%; font-size:13px; pointer-events:none;">${t("designerTableNotFound") || "Таблицю не знайдено"}</div>`;
+        container.innerHTML = `<div style="color:#888; text-align:center; margin-top:35%; font-size:13px; pointer-events:none;">${t("designerTableNotFound")}</div>`;
         return;
     }
     const table = result.table;
@@ -794,7 +775,7 @@ function renderCanvas(stored) {
             const div = document.createElement("div");
             div.classList.add(cm + "-element", cm + "-button", "form-button");
             div.dataset.type = "button";
-            div.dataset.buttonText = el.text || "Кнопка";
+            div.dataset.buttonText = el.text || t("designerDefaultButton");
             div.dataset.textColor = el.textColor || "#ffffff";
             div.dataset.bgColor = el.bgColor || "#007bff";
             div.dataset.borderColor = el.borderColor || "#0056b3";
@@ -823,7 +804,7 @@ function renderCanvas(stored) {
                 overflow: "hidden",
                 textOverflow: "ellipsis"
             });
-            div.textContent = el.text || "Кнопка";
+            div.textContent = el.text || t("designerDefaultButton");
             div.addEventListener("click", (e) => {
                 if (e.target.classList.contains("resize-handle")) return;
                 const rect = div.getBoundingClientRect();
@@ -876,7 +857,7 @@ function renderCanvas(stored) {
                 }
             });
             if (el.tableName && el.selectedFields) renderTablePreviewInDesigner(div, el.tableName, el.selectedFields);
-            else div.innerHTML = `<div style="color:#888; text-align:center; margin-top:35%; font-size:13px; pointer-events:none;">📊 Натисніть, щоб налаштувати таблицю</div>`;
+            else div.innerHTML = `<div style="color:#888; text-align:center; margin-top:35%; font-size:13px; pointer-events:none;">📊 ${t("designerClickToConfigure")}</div>`;
             cCanvas.appendChild(div);
             addResizeHandles(div);
             makeDraggableAndResizable(div);
@@ -996,8 +977,7 @@ function textCancel() {
     document.getElementById("editLabelModal").style.display = "none";
     currentEditElement = null;
 }
-//
-// =============================================
+
 //SNAP GUIDES (НАПРАВЛЯЮЧІ ЛІНІЇ) 
 function getGuideContainer(canvas) {
     let container = canvas.querySelector('.guide-container');
@@ -1216,9 +1196,8 @@ function findTableOrQueryResult(tableName) {
     };
     return null;
 }
-// =============================================
+
 // === ГРАФІЧНІ ОБ'ЄКТИ (ФІГУРИ) ===
-// =============================================
 let _shapeStrokeColor = "#333333";
 let _shapeFillColor = "#ffffff";
 let _shapeFillTransparent = false;

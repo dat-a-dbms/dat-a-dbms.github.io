@@ -1,4 +1,13 @@
 {
+	"designerSelectFormTable":    "— Sélectionner un tableau —",
+    "designerClickToConfigure":   "Cliquez pour configurer le tableau",
+    "designerDefaultButton":      "Bouton",
+    "designerSelectTableOrQuery": "Sélectionnez un tableau ou une requête",
+    "designerSelectAtLeastOne":   "Sélectionnez au moins un champ",
+    "designerSelectForm":         "— Sélectionner un formulaire —",
+    "designerSelectQuery":        "— Sélectionner une requête —",
+    "designerTableNotFound":      "Tableau non trouvé",
+    "designerSelectButton":       "Sélectionnez un bouton à configurer",
   "formNewRecord":        ", nouvel enregistrement",
   "formLastRecord":       ", dernier enregistrement",
   "formAddRowError":      "Erreur : tableau non trouvé",

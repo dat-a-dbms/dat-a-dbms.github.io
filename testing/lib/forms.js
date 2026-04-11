@@ -31,9 +31,7 @@ function confirmDeleteFormRecord(callback) {
  * Конструктор форм
  **/
 function createForm() {
-    if (!isDBExist()) return
-    constructorMode = "form";
-    createConstructor();
+    createDesigner("form");
 }
 
 function saveForm() {
@@ -58,48 +56,14 @@ function saveForm() {
         }
         // Графічні об'єкти
         if (el.classList.contains("form-shape")) {
-            return {
-                type: "shape",
-                shapeType: el.dataset.shapeType,
-                strokeColor: el.dataset.strokeColor || "#333333",
-                fillColor: el.dataset.fillColor || "#ffffff",
-                fillTransparent: el.dataset.fillTransparent === "1",
-                left: el.offsetLeft,
-                top: el.offsetTop,
-                width: el.offsetWidth,
-                height: el.offsetHeight,
-            };
+            return serializeShapeElement(el);
         }
         //обробка таблиці
         if (el.classList.contains("form-table")) {
-            return {
-                type: "table",
-                left: el.offsetLeft,
-                top: el.offsetTop,
-                width: el.offsetWidth,
-                height: el.offsetHeight,
-                tableName: el.dataset.tableName || null,
-                selectedFields: JSON.parse(el.dataset.selectedFields || "[]")
-            };
+            return serializeTableElement(el);
         }
         //Текстові поля та написи
-        const type = el.classList.contains("form-label") ? "label" : "field";
-        return {
-            type,
-            left: el.offsetLeft,
-            top: el.offsetTop,
-            width: el.offsetWidth,
-            height: el.offsetHeight,
-            fontFamily: el.style.fontFamily || "Arial",
-            fontSize: el.style.fontSize || "16px",
-            fontWeight: el.style.fontWeight || "normal",
-            fontStyle: el.style.fontStyle || "normal",
-            textDecoration: el.style.textDecoration || "",
-            color: el.style.color || "#000000",
-            text: el.innerText?.trim() || "",
-            tableName: el.dataset.tableName || null,
-            fieldName: el.dataset.fieldName || null
-        };
+        return serializeTextElement(el, "form-label");
     });
     const formObject = {
         name: formName,
@@ -152,16 +116,8 @@ function showSavedFormsDialog() {
     selectedFormName = null;
     if (database && database.forms) {
         database.forms.forEach(form => {
-            const li = document.createElement("li");
-            li.textContent = form.name;
-            li.style.padding = "8px";
-            li.style.cursor = "pointer";
-            li.dataset.formName = form.name;
-            li.addEventListener("click", () => {
-                [...listEl.children].forEach(el => el.style.background = "");
-                const isDark = document.body.classList.contains("dark-theme");
-                li.style.background = isDark ? "#242d43" : "#d0e0ff";
-                selectedFormName = li.dataset.formName;
+            const li = createSelectableListItem(listEl, form.name, "formName", name => {
+                selectedFormName = name;
             });
             listEl.appendChild(li);
         });
@@ -200,33 +156,7 @@ function previewSelecteForm() {
     previewForm(form, true);
 }
 
-function findTableOrQueryResult(tableName) {
-    if (!tableName) return null;
-    // 1. Шукаємо у звичайних таблицях
-    let table = database.tables.find(t => t.name === tableName);
-    if (table) return {
-        table,
-        isQuery: false,
-        isDefinition: false
-    };
-    // 2. Шукаємо у результатах запитів
-    const cleanName = tableName.startsWith('*') ? tableName.substring(1) : tableName;
-    let queryResult = queries.results.find(q => q.name === cleanName || q.name === `запит "${cleanName.replace(/\*запит "|"/g, '')}"`);
-    if (queryResult) return {
-        table: queryResult,
-        isQuery: true,
-        isDefinition: false
-    };
-    // 3. Якщо результатів немає, шукаємо визначення запиту
-    const queryDefName = cleanName.replace(/^запит "|"/g, '');
-    const queryDef = queries.definitions.find(q => q.name === queryDefName);
-    if (queryDef) return {
-        table: queryDef,
-        isQuery: true,
-        isDefinition: true
-    };
-    return null;
-}
+// findTableOrQueryResult — визначена у shared.js
 
 function previewForm(form = null, resetIndex = false) {
     // Зберігаємо поточну форму для навігації
@@ -1351,18 +1281,24 @@ function syncTableSelectionToRecord() {
 function syncFieldsFromCurrentRecord() {
     const fields = [...document.querySelectorAll("#formPreviewCanvas .form-field")];
     if (fields.length === 0) return;
-    // Визначаємо таблицю форми
-    const tableName = fields.find(f => f.dataset.tableName)?.dataset.tableName;
-    if (!tableName) return;
-    const table = database.tables.find(t => t.name === tableName);
-    if (!table) return;
-    const idx = Math.min(currentFormRecordIndex, (table.data?.length ?? 1) - 1);
-    const rowData = table.data?.[idx];
-    if (!rowData) return;
+    // Збираємо унікальні таблиці, що використовуються у полях форми
+    const tableNames = [...new Set(fields.map(f => f.dataset.tableName).filter(Boolean))];
+    if (tableNames.length === 0) return;
+    // Будуємо map: tableName -> { table, rowData }
+    const tableDataMap = {};
+    tableNames.forEach(tableName => {
+        const table = database.tables.find(t => t.name === tableName);
+        if (!table) return;
+        const idx = Math.min(currentFormRecordIndex, (table.data?.length ?? 1) - 1);
+        const rowData = table.data?.[idx];
+        if (rowData) tableDataMap[tableName] = { table, rowData };
+    });
     fields.forEach(f => {
+        const tableName = f.dataset.tableName;
+        if (!tableName || !tableDataMap[tableName]) return;
         const colIndex = Number(f.dataset.colIndex);
         if (isNaN(colIndex) || colIndex < 0) return;
-        const newValue = rowData[colIndex] ?? "";
+        const newValue = tableDataMap[tableName].rowData[colIndex] ?? "";
         const control = f.querySelector("input, select, textarea");
         const img = f.querySelector("img");
         if (img) {
@@ -1621,6 +1557,8 @@ function saveFormTableData() {
     closeFormTableContextMenu();
     // Оновлюємо поля форми значеннями з поточного запису таблиці
     syncFieldsFromCurrentRecord();
+    // Оновлюємо вміст ВСІХ інших таблиць на формі
+    _refreshFormTablesAfterFieldSave();
     syncTableSelectionToRecord();
 }
 

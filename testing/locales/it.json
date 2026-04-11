@@ -1,4 +1,13 @@
 {
+	"designerSelectFormTable":    "— Seleziona tabella —",
+    "designerClickToConfigure":   "Fai clic per configurare la tabella",
+    "designerDefaultButton":      "Pulsante",
+    "designerSelectTableOrQuery": "Seleziona una tabella o una query",
+    "designerSelectAtLeastOne":   "Seleziona almeno un campo",
+    "designerSelectForm":         "— Seleziona modulo —",
+    "designerSelectQuery":        "— Seleziona query —",
+    "designerTableNotFound":      "Tabella non trovata",
+    "designerSelectButton":       "Seleziona un pulsante da configurare",	
   "formNewRecord":        ", nuovo record",
   "formLastRecord":       ", ultimo record",
   "formAddRowError":      "Errore: tabella non trovata",

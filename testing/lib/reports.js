@@ -1,9 +1,7 @@
 // Конструктор звітів
 function createReport() {
-	if(!isDBExist()) return    
-        constructorMode = "report";
-        createConstructor();
-    }
+    createDesigner("report");
+}
     
 // Редагування обраного звіту
 function editSelectedReport() {
@@ -34,17 +32,8 @@ function showReportsList() {
 
         database.reports.forEach((report) => {
             console.log("report=", report)
-            const li = document.createElement("li");
-            li.textContent = report.name;
-            li.style.padding = "8px";
-            li.style.cursor = "pointer";
-            li.dataset.reportName = report.name; // Store the report name in a data attribute
-
-            li.addEventListener("click", () => {
-                [...listEl.children].forEach(el => el.style.background = "");
-                const isDark = document.body.classList.contains("dark-theme");
-                li.style.background = isDark ? "#242d43" : "#d0e0ff";
-                selectedReportName = li.dataset.reportName;
+            const li = createSelectableListItem(listEl, report.name, "reportName", name => {
+                selectedReportName = name;
             });
             listEl.appendChild(li);
         });
@@ -517,49 +506,14 @@ function saveReport() {
     const elements = [...reportCanvas.querySelectorAll('.report-element')].map(el => {
         // 🆕 Збереження графічних фігур
         if (el.classList.contains("report-shape")) {
-            return {
-                type: "shape",
-                shapeType: el.dataset.shapeType,
-                strokeColor: el.dataset.strokeColor || "#333333",
-                fillColor: el.dataset.fillColor || "#ffffff",
-                fillTransparent: el.dataset.fillTransparent === "1",
-                left: el.offsetLeft,
-                top: el.offsetTop,
-                width: el.offsetWidth,
-                height: el.offsetHeight,
-            };
+            return serializeShapeElement(el);
         }
         // 🆕 Збереження таблиць
         if (el.classList.contains("report-table")) {
-            return {
-                type: "table",
-                left: el.offsetLeft,
-                top: el.offsetTop,
-                width: el.offsetWidth,
-                height: el.offsetHeight,
-                tableName: el.dataset.tableName || null,
-                selectedFields: JSON.parse(el.dataset.selectedFields || "[]")
-            };
+            return serializeTableElement(el);
         }
         // Текстові поля та написи
-        const type = el.classList.contains("report-label") ? "label" : "field";
-        return {
-            type,
-            left: el.offsetLeft,
-            top: el.offsetTop,
-            width: el.offsetWidth,
-            height: el.offsetHeight,
-            fontFamily: el.style.fontFamily.replace(/['"]/g, '') || "Arial",
-            fontSize: el.style.fontSize || "16px",
-            fontWeight: el.style.fontWeight || "normal",
-            fontStyle: el.style.fontStyle || "normal",
-            textDecoration: el.style.textDecoration || "",
-            color: el.style.color || "#000000",
-            textAlign: el.style.textAlign || "left",
-            text: el.innerText || " ",
-            tableName: el.dataset.tableName || null,
-            fieldName: el.dataset.fieldName || null            
-        };
+        return serializeTextElement(el, "report-label");
     });
 
     const reportObject = { name: reportName, elements };
@@ -659,20 +613,3 @@ function printReportPreview() {
     
         printWindow.document.close();
     }
-
-// Допоміжна функція для пошуку таблиці або запиту
-function findTableOrQueryResult(tableName) {
-    if (!tableName) return null;
-    
-    // 1. Шукаємо у звичайних таблицях
-    let table = database.tables.find(t => t.name === tableName);
-    if (table) return { table, isQuery: false };
-    
-    // 2. Шукаємо у результатах запитів
-    const cleanName = tableName.startsWith('*') ? tableName.substring(1) : tableName;
-    let queryResult = queries.results.find(q => q.name === cleanName || q.name === `запит "${cleanName.replace(/\*запит "|"/g, '')}"`);
-    
-    if (queryResult) return { table: queryResult, isQuery: true };
-    
-    return null;
-}

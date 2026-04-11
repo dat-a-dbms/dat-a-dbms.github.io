@@ -1,4 +1,13 @@
 {
+  "designerSelectFormTable":    "— Оберіть таблицю —",
+  "designerClickToConfigure":   "Натисніть, щоб налаштувати таблицю",
+  "designerDefaultButton":      "Кнопка",
+  "designerSelectTableOrQuery": "Оберіть таблицю або запит",
+  "designerSelectAtLeastOne":   "Оберіть хоча б одне поле",
+  "designerSelectForm":         "— Оберіть форму —",
+  "designerSelectQuery":        "— Оберіть запит —",
+  "designerTableNotFound":      "Таблицю не знайдено",
+  "designerSelectButton":       "Виберіть кнопку для налаштування",	
   "formNewRecord":        ", новий запис",
   "formLastRecord":       ", останній запис",
   "formAddRowError":      "Помилка: таблицю не знайдено",

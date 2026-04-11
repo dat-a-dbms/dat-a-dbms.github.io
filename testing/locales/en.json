@@ -1,4 +1,13 @@
 {
+	"designerSelectFormTable":    "— Select table —",
+    "designerClickToConfigure":   "Click to configure table",
+    "designerDefaultButton":      "Button",
+    "designerSelectTableOrQuery": "Select a table or query",
+    "designerSelectAtLeastOne":   "Select at least one field",
+    "designerSelectForm":         "— Select form —",
+    "designerSelectQuery":        "— Select query —",
+    "designerTableNotFound":      "Table not found",
+    "designerSelectButton":       "Select a button to configure",
   "formNewRecord":        ", new record",
   "formLastRecord":       ", last record",
   "formAddRowError":      "Error: table not found",

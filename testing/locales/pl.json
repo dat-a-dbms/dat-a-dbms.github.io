@@ -1,4 +1,13 @@
 {
+	"designerSelectFormTable":    "— Wybierz tabelę —",
+    "designerClickToConfigure":   "Kliknij, aby skonfigurować tabelę",
+    "designerDefaultButton":      "Przycisk",
+    "designerSelectTableOrQuery": "Wybierz tabelę lub zapytanie",
+    "designerSelectAtLeastOne":   "Wybierz co najmniej jedno pole",
+    "designerSelectForm":         "— Wybierz formularz —",
+    "designerSelectQuery":        "— Wybierz zapytanie —",
+    "designerTableNotFound":      "Nie znaleziono tabeli",
+    "designerSelectButton":       "Wybierz przycisk, aby skonfigurować",	
   "formNewRecord":        ", nowy wpis",
   "formLastRecord":       ", ostatni wpis",
   "formAddRowError":      "Błąd: nie znaleziono tabeli",

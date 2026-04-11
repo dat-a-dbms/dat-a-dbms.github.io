@@ -1,4 +1,13 @@
 {
+	"designerSelectFormTable":    "— Seleccionar tabla —",
+    "designerClickToConfigure":   "Haga clic para configurar la tabla",
+    "designerDefaultButton":      "Botón",
+    "designerSelectTableOrQuery": "Seleccione una tabla o consulta",
+    "designerSelectAtLeastOne":   "Seleccione al menos un campo",
+    "designerSelectForm":         "— Seleccionar formulario —",
+    "designerSelectQuery":        "— Seleccionar consulta —",
+    "designerTableNotFound":      "Tabla no encontrada",
+    "designerSelectButton":       "Seleccione un botón para configurar",	
   "formNewRecord":        ", nuevo registro",
   "formLastRecord":       ", último registro",
   "formAddRowError":      "Error: tabla no encontrada",
