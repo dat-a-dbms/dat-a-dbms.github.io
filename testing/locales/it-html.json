@@ -1,4 +1,12 @@
 {
+  "tableAddRow" : "Aggiungi riga",
+  "tableDeleteRow" : "Elimina riga",
+  "tableSaveData" : "Salva modifiche",
+  "tableCloseMenu" : "Chiudi questo menu",
+  "defButton": "Pulsante",
+  "defTable": "Tabella",
+  "selTable": "Tabella",
+  "confirmSaveChanges": "Salvare le modifiche?",
   "sortByLabel": "↕️ Ordina per",
   "filters": "🔬 Filtri",
   "dataSearchInput": "Cerca in tutti i campi...",

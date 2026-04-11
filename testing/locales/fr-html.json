@@ -1,4 +1,12 @@
 {
+ "tableAddRow" : "Ajouter une ligne",
+ "tableDeleteRow" : "Supprimer la ligne",
+ "tableSaveData" : "Enregistrer les modifications",
+ "tableCloseMenu" : "Fermer ce menu", 
+ "defButton": "Bouton",
+ "defTable": "Tableau",
+ "selTable": "Tableau",
+ "confirmSaveChanges": "Enregistrer les modifications ?",
  "sortByLabel": "↕️ Trier par",
  "filters": "🔬 Filtres",
  "dataSearchInput": "Rechercher dans tous les champs...",

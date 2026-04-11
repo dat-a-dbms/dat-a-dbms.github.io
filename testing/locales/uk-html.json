@@ -1,4 +1,12 @@
 {
+  "tableAddRow" : "Додати рядок",
+  "tableDeleteRow" : "Видалити рядок",
+  "tableSaveData" : "Зберегти зміни",
+  "tableCloseMenu" : "Закрити це меню",
+  "defButton": "Кнопка",
+  "defTable": "Таблиця",
+  "selTable": "Таблиця:"
+  "confirmSaveChanges": "Зберегти зміни?",
   "sortByLabel": "↕️ Сортувати по",
   "filters": "🔬 Фільтри",
   "dataSearchInput": "По всіх полях...",

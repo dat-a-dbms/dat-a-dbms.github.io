@@ -1,4 +1,12 @@
 {
+  "tableAddRow" : "Añadir fila",
+  "tableDeleteRow" : "Eliminar fila",
+  "tableSaveData" : "Guardar cambios",
+  "tableCloseMenu" : "Cerrar este menú",
+  "defButton": "Botón",
+  "defTable": "Tabla",
+  "selTable": "Tabla",
+  "confirmSaveChanges": "¿Guardar cambios?",
   "sortByLabel": "↕️ Ordenar por",
   "filters": "🔬 Filtros",
   "dataSearchInput": "Buscar en todos los campos...",

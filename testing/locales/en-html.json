@@ -1,4 +1,12 @@
 {
+  "tableAddRow" : "Add row",
+  "tableDeleteRow" : "Delete row",
+  "tableSaveData" : "Save changes",
+  "tableCloseMenu" : "Close this menu",
+  "defButton": "Button",
+  "defTable": "Table",
+  "selTable": "Table",
+  "confirmSaveChanges": "Save changes?",
   "sortByLabel": "↕️ Sort by",
   "filters": "🔬 Filters",
   "dataSearchInput": "Search all fields...",

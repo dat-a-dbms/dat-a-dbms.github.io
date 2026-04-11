@@ -1,4 +1,12 @@
 {
+  "tableAddRow" : "Zeile hinzufügen",
+  "tableDeleteRow" : "Zeile löschen",
+  "tableSaveData" : "Änderungen speichern",
+  "tableCloseMenu" : "Dieses Menü schließen",
+  "defButton": "Schaltfläche",
+  "defTable": "Tabelle",
+  "selTable": "Tabelle",
+  "confirmSaveChanges": "Änderungen speichern?",
   "sortByLabel": "↕️ Sortieren nach",
   "filters": "🔬 Filter",
   "dataSearchInput": "Alle Felder durchsuchen...",

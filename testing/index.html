@@ -507,7 +507,7 @@
 			</button>
 			<button class="slim-btn" onclick="addScreenTable()" title="Додати таблицю" >
 					<img src="./img/spreadsheet.png" alt="Таблиця" style="width:28px; height:28px;">
-					<span>Таблиця</span>
+					<span lang-i18n="defTable">Таблиця</span>
 			</button>			
 			<button class="slim-btn" onclick="deleteActiveElement()" style="color:#900">
 				<div style="font-size:20px;">🗑️</div>
@@ -663,7 +663,7 @@
 				<div style="display:flex; align-items:center; gap:8px;">
 					<label for="formNameInput" lang-i18n="formNameLabel" style="white-space:nowrap;">Назва форми:</label>
 					<input type="text" id="formNameInput" value="Нова форма" style="flex:1; padding:8px; font-size:16px;">
-					<label style="white-space:nowrap; font-size:14px;" lang-i18n="formTableLabel">Таблиця:</label>
+					<label style="white-space:nowrap; font-size:14px;" lang-i18n="selTable">Таблиця:</label>
 					<select id="formTableSelect" style="padding:8px; font-size:14px; min-width:160px; border:1px solid #ccc; border-radius:4px;">
 						<option value="">— Оберіть таблицю —</option>
 					</select>
@@ -685,12 +685,12 @@
 
 				<button class="slim-btn" onclick="addScreenButton()" >
 					<img src="./img/button.png" alt="Кнопка">
-					<div lang-i18n="addButton">Кнопка</div>
+					<div lang-i18n="defButton">Кнопка</div>
 				</button>
 				
 				<button class="slim-btn" onclick="addScreenTable()" title="Додати таблицю" >
 					<img src="./img/spreadsheet.png" alt="Таблиця" style="width:28px; height:28px;">
-					<span>Таблиця</span>
+					<span lang-i18n="defTable">Таблиця</span>
 				</button>
 
 
@@ -1850,22 +1850,22 @@
         </div>
         <button class="custom-btn" onclick="addFormTableRow()"> 
           <div class="btn-left yellow">➕</div>
-          <div class="btn-right">Додати рядок</div>
+          <div class="btn-right" lang-i18n="tableAddRow">Додати рядок</div>
         </button>
         
         <button class="custom-btn" onclick="deleteFormTableRow()">
           <div class="btn-left red">➖</div>
-          <div class="btn-right">Видалити рядок</div>
+          <div class="btn-right" lang-i18n="tableDeleteRow">Видалити рядок</div>
         </button>
         
         <button class="custom-btn" onclick="saveFormTableData()">
           <div class="btn-left green">💾</div>
-          <div class="btn-right">Зберегти зміни</div>
+          <div class="btn-right" lang-i18n="tableSaveData">Зберегти зміни</div>
         </button>
         
         <button class="custom-btn" onclick="closeFormTableContextMenu()">
           <div class="btn-left gray">❌</div>
-          <div class="btn-right">Закрити це меню</div>
+          <div class="btn-right" lang-i18n="tableCloseMenu">Закрити це меню</div>
         </button>
     </div>
 </div>

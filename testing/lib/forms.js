@@ -48,7 +48,7 @@ function saveForm() {
                 top: el.offsetTop,
                 width: el.offsetWidth,
                 height: el.offsetHeight,
-                text: el.dataset.buttonText || "Кнопка",
+                text: el.dataset.buttonText || t("formDefaultButton"),
                 textColor: el.dataset.textColor || "#ffffff",
                 bgColor: el.dataset.bgColor || "#007bff",
                 borderColor: el.dataset.borderColor || "#0056b3",
@@ -133,35 +133,13 @@ function editSelectedForm() {
     // Відновити вибрану таблицю форми
     const fts = document.getElementById("formTableSelect");
     if (fts) {
-        populateTableSelect(fts, "— Оберіть таблицю —", true);
+        populateTableSelect(fts, t("formSelectTable"), true);
         fts.value = form.formTable || "";
     }
     document.getElementById("formCreatorModal").style.display = "flex";
     Message(t("formLoadedForEdit", form.name));
 }
-/**
- * Автоматичне відкриття форми STARTUP після завантаження бази даних
- */
-function autoOpenStartupForm() {
-    // Перевіряємо наявність форми з назвою STARTUP
-    if (!database.forms || database.forms.length === 0) {
-        console.log("Немає форм для автоматичного відкриття");
-        return;
-    }
-    const startupForm = database.forms.find(form => form.name.toUpperCase() === "STARTUP" || form.name.toUpperCase() === "STARTUP_FORM" || form.name === "Стартова");
-    if (!startupForm) {
-        console.log("Форму STARTUP не знайдено");
-        return;
-    }
-    console.log("Знайдено стартову форму:", startupForm.name);
-    // Невелика затримка, щоб DOM повністю завантажився
-    setTimeout(() => {
-        // Закриваємо всі можливі модальні вікна
-        closeAllModals();
-        // Відкриваємо форму в режимі перегляду
-        previewForm(startupForm, true);
-    }, 500);
-}
+
 
 function showSavedFormsDialog() {
     const listEl = document.getElementById("savedFormsList");
@@ -278,7 +256,7 @@ function previewForm(form = null, resetIndex = false) {
                 return {
                     ...base,
                     type: "button",
-                    text: el.text || "Кнопка",
+                    text: el.text || t("formDefaultButton"),
                     textColor: el.textColor || "#ffffff",
                     bgColor: el.bgColor || "#007bff",
                     borderColor: el.borderColor || "#0056b3",
@@ -336,7 +314,7 @@ function previewForm(form = null, resetIndex = false) {
                     top: el.style.top,
                     width: el.style.width,
                     height: el.style.height,
-                    text: el.dataset.buttonText || "Кнопка",
+                    text: el.dataset.buttonText || t("formDefaultButton"),
                     textColor: el.dataset.textColor || "#ffffff",
                     bgColor: el.dataset.bgColor || "#007bff",
                     borderColor: el.dataset.borderColor || "#0056b3",
@@ -422,9 +400,9 @@ function previewForm(form = null, resetIndex = false) {
     const isLastRecord = currentFormRecordIndex === maxRecordIndex;
     let last = "";
     if (isCreatingNewRecord) {
-        last = ", new record";
+        last = t("formNewRecord");
     } else if (isLastRecord) {
-        last = ", last record";
+        last = t("formLastRecord");
     }
     const titleElement = document.getElementById("formPreviewTitle");
     if (titleElement) {
@@ -460,13 +438,13 @@ function previewForm(form = null, resetIndex = false) {
                 overflow: "hidden",
                 textOverflow: "ellipsis"
             });
-            button.textContent = el.text || "Кнопка";
+            button.textContent = el.text || t("formDefaultButton");
             button.onclick = () => {
                 const action = el.buttonAction || "none";
                 const target = el.buttonActionTarget || "";
                 if (action === "openForm") {
                     if (!target) {
-                        Message("Форму не вказано");
+                        Message(t("formNotspecified"));
                         return;
                     }
                     const targetForm = database.forms.find(f => f.name === target);
@@ -478,7 +456,7 @@ function previewForm(form = null, resetIndex = false) {
                     previewForm(targetForm, true);
                 } else if (action === "runQuery") {
                     if (!target) {
-                        Message("Запит не вказано");
+                        Message(t("formRqstNotSpecified"));
                         return;
                     }
                     const queryDef = (queries.definitions || []).find(q => q.name === target);
@@ -784,7 +762,7 @@ thead.appendChild(headerRow);
                         const dataRows = res[0].values;
                         const schema = columns.map(col => ({
                             title: col,
-                            type: "Текст",
+                            type: t("formColumnTypeText"),
                             primaryKey: false
                         }));
                         const internalName = result.table.name.startsWith('запит "') ? result.table.name : `запит "${result.table.name}"`;
@@ -1456,7 +1434,7 @@ function showFormTableContextMenu(x, y, tempTable, tableObj, frame) {
         tempTable: tempTable,
         tableObj: tableObj,
         frame: frame,
-        tableName: tempTable.name || "таблиця"
+        tableName: tempTable.name || "formDefaultTableName"
     };
     
     // Оновлюємо заголовок модального вікна
@@ -1494,7 +1472,7 @@ function closeFormTableContextMenu() {
 function addFormTableRow() {
     const { tempTable, tableObj, frame } = currentFormTableContext;
     if (!tempTable || !tableObj) {
-        Message("Помилка: таблицю не знайдено");
+        Message(t("formAddRowError"));
         closeFormTableContextMenu();
         return;
     }
@@ -1553,7 +1531,7 @@ function addFormTableRow() {
     }
     
     saveDatabase();
-    Message("Рядок додано");
+    Message(t("formRowAdded"));
     closeFormTableContextMenu();
 }
 
@@ -1564,7 +1542,7 @@ function deleteFormTableRow() {
     const { tempTable, tableObj, frame } = currentFormTableContext;
     
     if (!tempTable || !tableObj) {
-        Message("Помилка: таблицю не знайдено");
+        Message(t("formAddRowError"));
         closeFormTableContextMenu();
         return;
     }
@@ -1590,7 +1568,7 @@ function saveFormTableData() {
     const { tempTable, tableObj } = currentFormTableContext;
     
     if (!tempTable || !tableObj) {
-        Message("Помилка: таблицю не знайдено");
+        Message(t("formAddRowError"));
         closeFormTableContextMenu();
         return;
     }
@@ -1598,7 +1576,7 @@ function saveFormTableData() {
     // Зчитуємо дані з DOM назад у tempTable.data і tableObj.data
     const tbody = tempTable._tbody;
     if (!tbody) {
-        Message("Помилка: тіло таблиці не знайдено");
+        Message(t("formSaveBodyError"));
         closeFormTableContextMenu();
         return;
     }
@@ -1639,7 +1617,7 @@ function saveFormTableData() {
     saveTableData();
     currentEditTable = savedTable;
     
-    Message("Зміни збережено");
+    Message(t("formTableSaved"));
     closeFormTableContextMenu();
     // Оновлюємо поля форми значеннями з поточного запису таблиці
     syncFieldsFromCurrentRecord();
@@ -1772,13 +1750,13 @@ function showFormTableContextMenu(x, y, tempTable, tableObj, frame) {
         tempTable: tempTable,
         tableObj: tableObj,
         frame: frame,
-        tableName: tempTable.name || "таблиця"
+        tableName: tempTable.name || "formDefaultTableName"
     };
     
     // Оновлюємо заголовок модального вікна
     const titleEl = document.getElementById("formTableContextTitle");
     if (titleEl) {
-        titleEl.textContent = `📊 Робота з таблицею "${currentFormTableContext.tableName}"`;
+        titleEl.textContent =t("formTableMenuTitle",currentFormTableContext.tableName)// `📊 Робота з таблицею "${currentFormTableContext.tableName}"`;
     }
     
     // Показуємо модальне вікно
@@ -1809,11 +1787,11 @@ function closeFormTableContextMenu() {
 }
 
 /**
- * Обробник кліку по кнопці "Таблиця" на правій панелі
+ * Обробник кліку по кнопці "formDefaultTableName" на правій панелі
  */
 function onTableMenuButtonClick() {
     if (!currentFormActiveTable) {
-        Message("Таблицю не вибрано");
+        Message(t("formNoTableSelected"));
         hideTableMenuButton();
         return;
     }
@@ -1826,7 +1804,7 @@ function onTableMenuButtonClick() {
             const frame = document.querySelector("#formPreviewCanvas .form-table");
             showFormTableContextMenu(0, 0, currentFormActiveTable, currentFormActiveTable.originalTable, frame);
         } else {
-            Message("Контекст таблиці не знайдено");
+            Message(t("formTableContextLost"));
             hideTableMenuButton();
         }
     } else {

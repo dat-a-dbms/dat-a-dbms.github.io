@@ -86,7 +86,30 @@ async function idbDelete(key) {
         tx.onerror = e => reject(e.target.error);
     });
 }
-
+//
+/**
+ * Автоматичне відкриття форми STARTUP після завантаження бази даних
+ */
+function autoOpenStartupForm() {
+    // Перевіряємо наявність форми з назвою STARTUP
+    if (!database.forms || database.forms.length === 0) {
+        console.log("Немає форм для автоматичного відкриття");
+        return;
+    }
+    const startupForm = database.forms.find(form => form.name.toUpperCase() === "STARTUP" || form.name.toUpperCase() === "STARTUP_FORM" || form.name === "Стартова");
+    if (!startupForm) {
+        console.log("Форму STARTUP не знайдено");
+        return;
+    }
+    console.log("Знайдено стартову форму:", startupForm.name);
+    // Невелика затримка, щоб DOM повністю завантажився
+    setTimeout(() => {
+        // Закриваємо всі можливі модальні вікна
+        closeAllModals();
+        // Відкриваємо форму в режимі перегляду
+        previewForm(startupForm, true);
+    }, 500);
+}
 // ===== File BLOB encode/decode =====
 function encodeFileBlob(name, type, arrayBuffer) {
     const header = new TextEncoder().encode(JSON.stringify({ name, type }));

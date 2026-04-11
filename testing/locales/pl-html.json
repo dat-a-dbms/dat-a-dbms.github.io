@@ -1,4 +1,12 @@
 {
+  "tableAddRow" : "Dodaj wiersz",
+  "tableDeleteRow" : "Usuń wiersz",
+  "tableSaveData" : "Zapisz zmiany",
+  "tableCloseMenu" : "Zamknij to menu",
+  "defButton": "Przycisk",
+  "defTable": "Tabela",
+  "selTable": "Tabela",
+  "confirmSaveChanges": "Zapisać zmiany?",
   "sortByLabel": "↕️ Sortuj według",
   "filters": "🔬 Filtry",
   "dataSearchInput": "Szukaj we wszystkich polach...",
