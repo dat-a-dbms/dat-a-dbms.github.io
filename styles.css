@@ -409,31 +409,129 @@ input[type="date"] {
     -moz-appearance: none;
 }
 
-.square-btn {
-    width: 64px;
-    height: 64px;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-family: sans-serif;
-    text-align: center;
-    padding: 4px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-}
-.square-btn:hover { background-color: #e0e0e0; }
-.square-btn .icon {
-    font-size: 24px;
-    line-height: 1;
-}
-.square-btn .label {
-    font-size: 10px;
-    margin-top: 2px;
-}
-
+/* Класи кнопок */
+    button {
+        font-family: 'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif;
+    }
+    [contenteditable][placeholder]:empty::before {
+        content: attr(placeholder);
+        color: #aaa;
+        pointer-events: none;
+    }
+    .square-btn {
+        width: 64px;
+        height: 64px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-family: sans-serif;
+        font-size: 24px;
+        text-align: center;
+        padding: 4px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+    .square-btn:hover { background-color: #e0e0e0; }
+    .square-btn .icon {
+        font-size: 24px;
+        line-height: 1;
+    }
+    .square-btn .label {
+        font-size: 10px;
+        margin-top: 2px;
+    }
+    .wide-btn {
+        width: 64px;
+        height: 56px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-family: sans-serif;
+        font-size: 24px;
+        text-align: center;
+        padding: 4px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+    .wide-btn:hover { background-color: #e0e0e0; }
+    .wide-btn .icon {
+        font-size: 24px;
+        line-height: 1;
+    }
+    .wide-btn .label {
+        font-size: 10px;
+        margin-top: 2px;
+    }
+    .icon-btn {
+        width: 36px;
+        height: 36px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+    }
+    .icon-btn:hover { background-color: #e0e0e0; }
+    .slim-btn {
+        width: 64px;
+        height: 40px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-family: sans-serif;
+        font-size: 10px;
+        text-align: center;
+        padding: 4px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+    .slim-btn:hover { background-color: #e0e0e0; }
+    .slim-btn .icon {
+        font-size: 20px;
+        line-height: 1;
+    }
+    .slim-btn .label {
+        font-size: 10px;
+        margin-top: 2px;
+    }
+    .mid-btn {
+        width: 64px;
+        height: 48px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-family: sans-serif;
+        font-size: 24px;
+        text-align: center;
+        padding: 4px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+    .mid-btn:hover { background-color: #e0e0e0; }
+    .mid-btn .icon {
+        font-size: 24px;
+        line-height: 1;
+    }
+    .mid-btn .label {
+        font-size: 10px;
+        margin-top: 2px;
+    }
 
 /* ── 13. Стан виділення ── */
 
@@ -776,7 +874,7 @@ body.dark-theme #reportPreviewCanvas {
 body.dark-theme .report-element,
 body.dark-theme .form-element {
     border-color: #666 !important;
-    background-color: rgba(60, 60, 60, 0.8) !important;
+/*    background-color: rgba(60, 60, 60, 0.8) !important; */
 }
 body.dark-theme .report-element .field-text,
 body.dark-theme .form-element .field-text { color: var(--dt-text) !important; }
@@ -796,7 +894,7 @@ body.dark-theme .form-label {
 body.dark-theme .report-field,
 body.dark-theme .form-field {
     border-color: #2c6e2c !important;
-    background-color: rgba(40, 80, 40, 0.3) !important;
+    background-color: var(--dt-bg);
 }
 
 /* ── Кнопки ── */
@@ -1495,3 +1593,94 @@ body.dark-theme #exprBuilderModal {
     border: 1px solid #c0d0ff;
 }
 body.dark-theme .computed-expr-display span { color: #fb923c; }
+
+#messageModal {
+    position: fixed;      /* ← ЦЕ КРИТИЧНО */
+    top: 20px;
+    right: 20px;          /* або де хочеш */
+    z-index: 9999;        /* ← щоб бути поверх всього */
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    display: flex;
+    pointer-events: none;
+}
+
+#messageModal.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+.custom-btn {
+    width: 200px;
+    height: 32px;
+    display: flex;
+    padding: 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.btn-left {
+    width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    border-right: 1px solid #ccc;
+}
+
+/* Кольори */
+.yellow { background: #f1c40f; }
+.red    { background: #e74c3c; }
+.green  { background: #2ecc71; }
+.gray   { background: #95a5a6; }
+
+.btn-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+/* Додати в <head> або в styles.css */
+.form-table table {
+    border-collapse: separate !important;
+    border-spacing: 0;
+}
+.form-table th,
+.form-table td {
+    border: 1px solid #777 !important;
+}
+
+/*       МОДАЛЬНІ ВІКНА — базові класи */
+
+    /* Оверлей: затемнений фон, центрування вмісту */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Внутрішній контейнер модального вікна */
+    .modal-box {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        display: flex;
+        gap: 20px;
+        overflow: hidden;
+    }
+
+    /* Розміри контейнерів */
+    .modal-box-sm   { max-width: 600px;  width: 90%; }
+    .modal-box-md   { max-width: 900px;  width: 90%; }
+    .modal-box-lg   { max-width: 1000px; width: 90%; max-height: 80vh; overflow: hidden; }
+    .modal-box-xl   { max-width: 1200px; width: 90%; }
+    .modal-box-full { height: 90%; }
+
+    /* Список-модалі (savedQueries/Tables/Forms/Reports, storage, dataWork) */
+    .modal-box-list { max-height: 80%; flex-direction: row; }
