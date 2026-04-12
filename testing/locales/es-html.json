@@ -1,4 +1,5 @@
 {
+  "importImportant": "Importante: la primera fila de la tabla debe contener los encabezados de columna",
   "buttonSettings": "Ajustes del botón",
   "buttonText": "Texto del botón:",
   "buttonTextColor": "Color del texto:",
@@ -128,7 +129,7 @@
   "savedTablesTitle": "Tablas Guardadas",
   "copy": "Copiar",
   "exportCSV": "Exportar a CSV",
-  "confirmDeleteTable": "¿Realmente desea eliminar esta tabla?",
+  "confirmDeleteTable": "¿Realmente desea eliminar esta tabla",
   "createReportTitle": "Crear Reporte",
   "reportNameLabel": "Nombre del reporte:",
   "addLabel": "Etiqueta",

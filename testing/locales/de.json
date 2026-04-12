@@ -1,4 +1,5 @@
 {
+	"importTableName": "Importierte_Tabelle",
 	"designerSelectFormTable":    "— Tabelle auswählen —",
     "designerClickToConfigure":   "Klicken, um die Tabelle zu konfigurieren",
     "designerDefaultButton":      "Schaltfläche",

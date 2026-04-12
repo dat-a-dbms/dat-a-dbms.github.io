@@ -1,4 +1,5 @@
 {
+	"importTableName": "Zaimportowana_tabela",
 	"designerSelectFormTable":    "— Wybierz tabelę —",
     "designerClickToConfigure":   "Kliknij, aby skonfigurować tabelę",
     "designerDefaultButton":      "Przycisk",

@@ -1,4 +1,5 @@
 {
+	"importTableName": "Tabella_importata",
 	"designerSelectFormTable":    "— Seleziona tabella —",
     "designerClickToConfigure":   "Fai clic per configurare la tabella",
     "designerDefaultButton":      "Pulsante",

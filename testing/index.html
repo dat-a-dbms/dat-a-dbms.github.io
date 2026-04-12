@@ -417,7 +417,8 @@
 		<div class="alert-modal-content" style="display: flex; flex-direction: row; align-items: flex-start; padding: 1.5em; gap: 2em;">
 			<!-- Ліворуч: текст підтвердження -->
 			<div style="flex: 1; font-size: 1.1em;">
-				<p id="deleteTableConfirmText" lang-i18n="confirmDeleteTable">Ви дійсно хочете видалити таблицю?</p>
+				<span lang-i18n="confirmDeleteTable">Ви дійсно хочете видалити таблицю</span>
+				<span id="deleteTableConfirmText" style="font-weight: bold;">Table_name</span>
 			</div>
 			<!-- Праворуч: вертикальні кнопки -->
 			<div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
@@ -1319,33 +1320,64 @@
     </div>
 </div>
 <div id="importTableModal" class="modal-overlay" style="display:none; z-index:10050;">
-  <div class="modal-box modal-box-md" style="flex-direction:column;">
-    <h2 lang-i18n="importTableTitle">Імпорт таблиці</h2>
-    <div id="importMsg" lang-i18n="importInstructions">Скопіюйте дані з табличного процесора і натисніть <span style="font-size:24px;"><b>Ctrl+V</b></span> тут.</div>
-    <textarea id="clipboardInput" style="position:absolute; top:-10px; left:-10px; width:1px; height:1px; opacity:0;" 
-    tabindex="0"></textarea>
-    
-    <div id="previewArea" style="max-height:400px; overflow:auto; border:1px solid #ccc; padding:5px;"></div>
-    <div style="display:flex; gap:10px; justify-content:flex-end;">
-      <button onclick="confirmImportTable()" lang-i18n="import">Імпорт</button>
-      <button onclick="closeImportTableDialog()" lang-i18n="cancel">Скасувати</button>
+  <div class="modal-box modal-box-md">    
+    <!-- Перший флекс-контейнер -->
+    <div style="display: flex; flex-direction: column; gap: 16px; padding: 20px;">
+      <h2 lang-i18n="importTableTitle" style="margin: 0;">Імпорт таблиці</h2>
+      
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span id="importMsg" lang-i18n="importInstructions">
+          Скопіюйте дані з табличного процесора і натисніть
+        </span> 
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <img src="./img/ctrl-v.png" alt="Ctrl+V" >
+        </div>
+      </div> 
+       <div id="importMsg1" lang-i18n="importImportant" style="color: red;" >
+          Важливо: перший рядок таблиці має містити заголовки стовпчиків
+        </div>      
+      <textarea id="clipboardInput" style="position: absolute; top: -10px; left: -10px; width: 1px; height: 1px; opacity: 0;" tabindex="0"></textarea>      
+      <div id="previewArea" style="max-height: 400px; overflow: auto; border: 1px solid #ccc; padding: 5px; border-radius: 4px;"></div>
+    </div>    
+    <!-- Другий флекс-контейнер з вертикальними кнопками -->
+    <div style="display: flex; flex-direction: column; gap: 12px; padding: 20px; border-top: 1px solid #e0e0e0;">
+      <button onclick="confirmImportTable()" class="square-btn">
+        <span style="font-size: 28px;">✅</span>
+        <span lang-i18n="import" style="font-size: 12px;">Імпорт</span>
+      </button>
+      
+      <button onclick="closeImportTableDialog()" class="square-btn">
+        <span style="font-size: 28px;">❌</span>
+        <span lang-i18n="cancel" style="font-size: 12px;">Скасувати</span>
+      </button>
     </div>
+    
   </div>
 </div>
 
 <!-- Діалог підтвердження -->
 <div id="confirmImportModal" class="modal-overlay" style="display:none; z-index:10060;">
-  <div class="modal-box modal-box-sm" style="flex-direction:column;">
-    <h2 lang-i18n="confirmImportTitle">Підтвердження імпорту</h2>
-    <label lang-i18n="tableNameLabel">Назва таблиці:</label>
-    <input id="importTableName" type="text" value="ІмпортованаТаблиця" style="padding:5px;"/>
-    <div id="tableSchemaPreview" style="max-height:200px; overflow:auto; border:1px solid #ccc; padding:5px;"></div>
-    <!-- Вибір первинного ключа — заповнюється динамічно з confirmImportTable() -->
-    <div id="importPkChoice" style="padding:8px; background:#f5f5f5; border:1px solid #ddd; border-radius:6px;"></div>
-    <div style="display:flex; gap:10px; justify-content:flex-end;">
-      <button onclick="saveImportedTable()" lang-i18n="save">Зберегти</button>
-      <button onclick="closeConfirmImport()" lang-i18n="cancel">Скасувати</button>
-    </div>
+  <div class="modal-box modal-box-sm" style="display: flex; flex-direction: row; justify-content: space-between; gap: 20px;">    
+    <!-- Перший флекс-контейнер (лівий) -->
+    <div style="display: flex; flex-direction: column; gap: 16px; padding: 20px; flex: 1;">
+      <h2 lang-i18n="confirmImportTitle" style="margin: 0;">Підтвердження імпорту</h2>      
+      <label lang-i18n="tableNameLabel" style="font-weight: 500;">Назва таблиці:</label>
+      <input id="importTableName" type="text" value="ІмпортованаТаблиця" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;"/>      
+      <div id="tableSchemaPreview" style="max-height: 200px; overflow: auto; border: 1px solid #ccc; padding: 8px; border-radius: 4px;"></div>      
+      <!-- Вибір первинного ключа — заповнюється динамічно з confirmImportTable() -->
+      <div id="importPkChoice" style="padding: 8px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px;"></div>
+    </div>    
+    <!-- Другий флекс-контейнер (правий з кнопками) -->
+    <div style="display: flex; flex-direction: column; gap: 12px; padding: 20px 20px 20px 0;">
+      <button onclick="saveImportedTable()" class="square-btn">
+        <span style="font-size: 28px;">💾</span>
+        <span lang-i18n="save" style="font-size: 12px;">Зберегти</span>
+      </button>      
+      <button onclick="closeConfirmImport()" class="square-btn">
+        <span style="font-size: 28px;">❌</span>
+        <span lang-i18n="cancel" style="font-size: 12px;">Скасувати</span>
+      </button>
+    </div>    
   </div>
 </div>
 <!-- вікно редагування напису -->    
@@ -1599,7 +1631,7 @@
 
 <!-- Модальне вікно підтвердження збереження -->
 <div id="confirmSaveModal" class="modal-overlay" style="display:none; z-index:10200;">
-    <div class="modal-box modal-box-sm" style="flex-direction:row; align-items:center; width:420px;">
+    <div class="modal-box modal-box-sm" style="flex-direction:row; align-items:center;width:420px;">
         <!-- Текст -->
         <div style="flex:1; font-size:16px;" id="confirmSaveText" lang-i18n="confirmSaveChanges">Зберегти зміни?</div>
         <!-- Кнопки вертикально праворуч -->

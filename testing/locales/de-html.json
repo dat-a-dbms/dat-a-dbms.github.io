@@ -1,4 +1,5 @@
 {
+  "importImportant": "Wichtig: Die erste Zeile der Tabelle muss Spaltenüberschriften enthalten",  
   "buttonSettings": "Schaltflächeneinstellungen",
   "buttonText": "Schaltflächentext:",
   "buttonTextColor": "Textfarbe:",
@@ -127,7 +128,7 @@
   "savedTablesTitle": "Gespeicherte Tabellen",
   "copy": "Kopieren",
   "exportCSV": "Nach CSV exportieren",
-  "confirmDeleteTable": "Möchten Sie diese Tabelle wirklich löschen?",
+  "confirmDeleteTable": "Möchten Sie diese Tabelle wirklich löschen",
   "createReportTitle": "Bericht erstellen",
   "reportNameLabel": "Berichtsname:",
   "addLabel": "Beschriftung",
