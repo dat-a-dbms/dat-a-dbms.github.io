@@ -245,6 +245,8 @@ function redrawLines() {
     svgEl.style.height = "100%";
     svgEl.style.zIndex = "0";
     svgEl.style.pointerEvents = "none";
+    const isDark = document.body.classList.contains("dark-theme");
+	svgEl.style.backgroundColor = isDark ? "#090911" : "#87919b";
 
     // <defs> для стрілок
     const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");

@@ -77,7 +77,7 @@
  "tableCopyNotFound":  "Table introuvable.",
  "tableCopied":  "Une copie de la table   \"${name} \" a été créée.",
  "tableCopyError":  "Échec de la création d'une copie de la table.",
- "dbNotExist":  "La base de données n'existe pas !\nCréez ou chargez une base de données.",
+ "dbNotExist":  "La base de données n'existe pas ! Créez ou chargez une base de données.",
  "selectFileForDelete":  "Veuillez sélectionner un fichier à supprimer.",
  "deleteConfirmText":  "Êtes-vous sûr de vouloir supprimer la base de données   \"${name} \" ? ",
  "fileDeleted":  "Fichier   \"${name} \" supprimé. ",

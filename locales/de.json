@@ -77,7 +77,7 @@
   "tableCopyNotFound": "Tabelle nicht gefunden.",
   "tableCopied": "Eine Kopie der Tabelle  \"${name}\" wurde erstellt.",
   "tableCopyError": "Erstellen einer Kopie der Tabelle fehlgeschlagen.",
-  "dbNotExist": "Datenbank existiert nicht!\\nErstellen oder laden Sie eine Datenbank.",
+  "dbNotExist": "Datenbank existiert nicht! Erstellen oder laden Sie eine Datenbank.",
   "selectFileForDelete": "Bitte wählen Sie eine zu löschende Datei aus.",
   "deleteConfirmText": "Möchten Sie die Datenbank  <b>\"${name}\"</b> wirklich löschen?",
   "fileDeleted": "Datei  \"${name}\" gelöscht.",

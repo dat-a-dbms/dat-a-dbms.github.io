@@ -77,7 +77,7 @@
   "tableCopyNotFound": "Tabla no encontrada.",
   "tableCopied": "Se ha creado una copia de la tabla \"${name}\".",
   "tableCopyError": "Error al crear una copia de la tabla.",
-  "dbNotExist": "¡La base de datos no existe!\\nCree o cargue una base de datos.",
+  "dbNotExist": "¡La base de datos no existe! Cree o cargue una base de datos.",
   "selectFileForDelete": "Seleccione un archivo para eliminar.",
   "deleteConfirmText": "¿Está seguro de que desea eliminar la base de datos <b>\"${name}\"</b>?",
   "fileDeleted": "Archivo \"${name}\" eliminado.",

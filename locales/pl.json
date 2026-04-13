@@ -77,7 +77,7 @@
   "tableCopyNotFound": "Tabela nie została znaleziona. ",
   "tableCopied": "Utworzono kopię tabeli  \"${name}\".",
   "tableCopyError": "Nie udało się utworzyć kopii tabeli. ",
-  "dbNotExist": "Baza danych nie istnieje!\\nUtwórz lub załaduj bazę danych. ",
+  "dbNotExist": "Baza danych nie istnieje! Utwórz lub załaduj bazę danych. ",
   "selectFileForDelete": "Proszę wybrać plik do usunięcia. ",
   "deleteConfirmText": "Czy na pewno chcesz usunąć bazę danych  <b>\"${name}\"</b>?",
   "fileDeleted": "Plik  \"${name}\" usunięty.",
