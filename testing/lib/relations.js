@@ -55,9 +55,10 @@ let relationLines = [];
             title.style.borderTopLeftRadius = "4px";
             title.style.borderTopRightRadius = "4px";
             // Кольори заголовку залежно від теми
-            const isDark = document.body.classList.contains("dark-theme");
-            title.style.backgroundColor = isDark ? "#1a2035" : "#d0e0ff";
-            title.style.color = isDark ? "#c9d1e0" : "#ffffff";
+            const isDark = document.body.classList.contains("dark-theme");            
+            title.style.backgroundColor =  "#1f3480";
+            
+            title.style.color = "#ffffff";
             block.appendChild(title);
     
             const tableList = document.createElement("table");

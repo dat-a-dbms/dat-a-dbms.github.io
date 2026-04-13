@@ -1,4 +1,11 @@
 {
+  "addShapeRect" : "Rettangolo",
+  "addShapeRoundRect" : "Rettangolo arrotondato",
+  "addShapeHLine" : "Linea orizzontale",
+  "addShapeVLine" : "Linea verticale",
+  "openShapeColorPicker" : "Colore forma",
+  "addScreenGrid" : "Griglia",
+  "openTextOptions" : "Opzioni testo",
   "importImportant": "Importante: la prima riga della tabella deve contenere le intestazioni delle colonne",
   "buttonSettings": "Impostazioni pulsante",
   "buttonText": "Testo pulsante:",

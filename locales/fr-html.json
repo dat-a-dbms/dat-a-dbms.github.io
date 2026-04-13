@@ -1,4 +1,11 @@
 {
+  "addShapeRect" : "Rectangle",
+  "addShapeRoundRect" : "Rectangle arrondi",
+  "addShapeHLine" : "Ligne horizontale",
+  "addShapeVLine" : "Ligne verticale",
+  "openShapeColorPicker" : "Couleur de la forme",
+  "addScreenGrid" : "Grille",
+  "openTextOptions" : "Options de texte",
   "importImportant": "Important : la première ligne du tableau doit contenir les en-têtes de colonnes",
   "buttonSettings": "Paramètres du bouton",
   "buttonText": "Texte du bouton :",

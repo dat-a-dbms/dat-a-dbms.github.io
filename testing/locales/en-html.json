@@ -1,4 +1,11 @@
 {
+  "addShapeRect" : "Rectangle",
+  "addShapeRoundRect" : "Rounded rectangle",
+  "addShapeHLine" : "Horizontal line",
+  "addShapeVLine" : "Vertical line",
+  "openShapeColorPicker" : "Shape color",
+  "addScreenGrid" : "Grid",
+  "openTextOptions" : "Text options",
   "importImportant": "Important: the first row of the table must contain column headers",	
   "buttonSettings": "Button settings",
   "buttonText": "Button text:",

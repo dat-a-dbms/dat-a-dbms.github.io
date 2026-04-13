@@ -1,4 +1,11 @@
 {
+  "addShapeRect" : "Rechteck",
+  "addShapeRoundRect" : "Abgerundetes Rechteck",
+  "addShapeHLine" : "Horizontale Linie",
+  "addShapeVLine" : "Vertikale Linie",
+  "openShapeColorPicker" : "Formfarbe",
+  "addScreenGrid" : "Gitter",
+  "openTextOptions" : "Texteinstellungen",
   "importImportant": "Wichtig: Die erste Zeile der Tabelle muss Spaltenüberschriften enthalten",  
   "buttonSettings": "Schaltflächeneinstellungen",
   "buttonText": "Schaltflächentext:",

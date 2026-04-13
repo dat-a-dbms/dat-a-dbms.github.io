@@ -1,4 +1,11 @@
 {
+  "addShapeRect" : "Prostokąt",
+  "addShapeRoundRect" : "Zaokrąglony prostokąt",
+  "addShapeHLine" : "Linia pozioma",
+  "addShapeVLine" : "Linia pionowa",
+  "openShapeColorPicker" : "Kolor kształtu",
+  "addScreenGrid" : "Siatka",
+  "openTextOptions" : "Ustawienia tekstu",
   "importImportant": "Ważne: pierwszy wiersz tabeli musi zawierać nagłówki kolumn",
   "buttonSettings": "Ustawienia przycisku",
   "buttonText": "Tekst przycisku:",

@@ -1,4 +1,11 @@
 {
+  "addShapeRect" : "Rectángulo",
+  "addShapeRoundRect" : "Rectángulo redondeado",
+  "addShapeHLine" : "Línea horizontal",
+  "addShapeVLine" : "Línea vertical",
+  "openShapeColorPicker" : "Color de la forma",
+  "addScreenGrid" : "Cuadrícula",
+  "openTextOptions" : "Opciones de texto",
   "importImportant": "Importante: la primera fila de la tabla debe contener los encabezados de columna",
   "buttonSettings": "Ajustes del botón",
   "buttonText": "Texto del botón:",

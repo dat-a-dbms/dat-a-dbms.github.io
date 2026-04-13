@@ -1,4 +1,11 @@
 {
+  "addShapeRect"  : "Прямокутник",
+  "addShapeRoundRect"  : "Закруглений прямокутник",
+  "addShapeHLine"  : "Горизонтальна лінія",
+  "addShapeVLine"  : "Вертикальна лінія",
+  "openShapeColorPicker"  : "Колір фігури",
+  "addScreenGrid"  : "Сітка",
+  "openTextOptions"  : "Налаштувати текст",  	
   "importImportant" : "Важливо: перший рядок таблиці має містити заголовки стовпчиків",
   "buttonSettings" : "Налаштування кнопки",
   "buttonText" : "Текст кнопки:",

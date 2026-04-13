@@ -11,11 +11,13 @@ let currentEditElement = null;
 // Конструктор звітів та форм
 function createConstructor() {
     document.getElementById(constructorMode + "CreatorModal").style.display = "flex";
+
     let newMode = t("designerNewForm");
     if (constructorMode === "report") newMode = t("designerNewReport");
     document.getElementById(constructorMode + "NameInput").value = newMode;
     screenCanvas = document.getElementById(constructorMode + "Canvas");
     screenCanvas.innerHTML = "";
+
     document.getElementById("fieldSelectionModal").style.display = "none";
     document.getElementById(constructorMode + "Canvas").classList.remove('grid-visible');
     isGridVisible = false;
