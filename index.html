@@ -431,7 +431,7 @@
 	</div>
 	
 <div id="reportCreatorModal" class="modal-overlay" style="display:none; z-index:1005;">
-	<div class="modal-box modal-box-xl modal-box-full">
+	<div id="reportCreatorModalContent" class="modal-box modal-box-xl modal-box-full">
 		
 		<!-- Лівий контейнер: вміст звіту -->
 		<div style="flex:1; display:flex; flex-direction:column; gap:10px; overflow:hidden;">
@@ -563,8 +563,8 @@
 	</div>
     <!-- Вікно перегляду створеного звіту -->
     <div id="reportPreviewModal" class="modal" style="display:none; z-index: 20000;">
-      <div class="modal-content" style="background: white; width: 90%; max-width: 1000px; height:80%; position: relative; display: flex;">
-        
+      <!--<div class="modal-content" style="background: white; width: 90%; max-width: 1000px; height:80%; position: relative; display: flex;"> -->
+      <div id="reportPreview"style="display:flex; background:#f0f0f0; border-radius:12px; padding:20px; width:80%; max-width:1000px; height:80%; box-shadow:0 0 10px rgba(0,0,0,0.3);">  
         <!-- Основна частина з canvas -->
         <div style="flex-grow: 1; padding-right: 10px;">
           <h2 id="reportPreviewTitle" style="margin-top: 0;" lang-i18n="reportPreviewTitle">Попередній перегляд звіту</h2>

@@ -149,6 +149,33 @@ function previewReport(report = null) {
 
     titleEl.innerText = reportName;
 
+    // Синхронізуємо розміри reportPreview з reportCreatorModalContent
+    const creatorContent = document.getElementById("reportCreatorModalContent");
+    const reportPreview = document.getElementById("reportPreview");
+    const designCanvas = document.getElementById("reportCanvas");
+    if (creatorContent && reportPreview) {
+        const cr = creatorContent.getBoundingClientRect();
+        reportPreview.style.width  = (cr.width  - 50) + "px";
+        reportPreview.style.height = (cr.height - 50) + "px";
+        reportPreview.style.maxWidth  = "";
+        reportPreview.style.maxHeight = "";
+    }
+    if (designCanvas && previewCanvas) {
+        const fr = designCanvas.getBoundingClientRect();
+        previewCanvas.style.width  = fr.width  + "px";
+        previewCanvas.style.height = fr.height + "px";
+        previewCanvas.style.flex   = "none";
+    } else if (report && report.canvasWidth && report.canvasHeight) {
+        previewCanvas.style.width  = report.canvasWidth  + "px";
+        previewCanvas.style.height = report.canvasHeight + "px";
+        previewCanvas.style.flex   = "none";
+    }
+
+    // Оновлюємо результати запитів, щоб дані були актуальними перед рендерингом
+    if (typeof refreshQueriesUsedInElements === "function") {
+        refreshQueriesUsedInElements(elements);
+    }
+
     elements.forEach(el => {
         // Рендеринг фігур
         if (el.type === "shape") {
@@ -516,7 +543,12 @@ function saveReport() {
         return serializeTextElement(el, "report-label");
     });
 
-    const reportObject = { name: reportName, elements };
+    const reportObject = {
+        name: reportName,
+        canvasWidth: reportCanvas.offsetWidth,
+        canvasHeight: reportCanvas.offsetHeight,
+        elements
+    };
 
     const index = database.reports.findIndex(r => r.name === reportName);
     if (index !== -1) database.reports[index] = reportObject;
