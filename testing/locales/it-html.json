@@ -48,7 +48,7 @@
   "openDTA": "📂 Apri da .DTA",
   "importSQLite": "📥 Importa da SQLite",
   "exportSQLite": "📤 Esporta in SQLite",
-  "importCSV": "📑 Importa Dati da CSV",
+  "importCSV": "🗂️ Importa tabella da file CSV",
   "databaseInfo": "ℹ️ Informazioni",
   "closeDatabase": "❌ Chiudi Database",
   "exitApplication": "🚪 Esci",

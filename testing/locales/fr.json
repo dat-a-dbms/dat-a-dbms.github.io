@@ -1,4 +1,5 @@
 {
+	"selectFileForCSVImport" : "Sélectionner un fichier CSV pour l'import",
 	"aeditDeleted":	"Ligne supprimée",
 	"importTableName": "Tableau_importé",
 	"designerSelectFormTable":    "— Sélectionner un tableau —",

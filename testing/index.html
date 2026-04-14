@@ -42,8 +42,6 @@
                 <a href="#" onclick="document.getElementById('sqliteFileInput').click()" lang-i18n="importSQLite">📥 Імпорт з sqlite DB</a>
 				<input type="file" id="sqliteFileInput" accept=".db,.sqlite" style="display:none;" onchange="importSQLiteDb(this.files[0])"> 
                 <a href="#" onclick="exportSQLiteDb()" lang-i18n="exportSQLite">📤 Експорт в sqlite DB</a> 
-                <a href="#" onclick="showCsvImportDialog()" lang-i18n="importCSV">📑 Імпорт даних з CSV</a>
-				<input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleCsvFile(this.files[0])"> 
                 <a href="#" onclick="showDatabaseInfo()" lang-i18n="databaseInfo">ℹ️ Відомості</a> 
                 <a href="#" onclick="closeDatabase()" lang-i18n="closeDatabase">❌ Закрити базу даних</a> 
                 <a href="#" onclick="exitApplication()" lang-i18n="exitApplication">🚪 Вихід</a> </div>
@@ -67,6 +65,8 @@
 			<div class="dropdown"> <a href="#" onclick="createTable()" lang-i18n="newTable">𝄜 Створити</a> 
             <a href="#" onclick="showSavedTablesDialog()" lang-i18n="savedTables">📚 Збережені таблиці</a> 
             <a href="#" onclick="showImportTableDialog()" id="import-table-link" style="display:none;" lang-i18n="importTable">📥 Імпорт таблиці</a>
+            <a href="#" onclick="showCsvImportDialog()" lang-i18n="importCSV">📑 Імпорт даних з CSV</a>
+			<input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleCsvFile(this.files[0])"> 
             </div>
 		</div>
 		<div class="menu-item" lang-i18n="menuQueries">Запити
@@ -1325,7 +1325,7 @@
     <div style="display: flex; flex-direction: column; gap: 16px; padding: 20px;">
       <h2 lang-i18n="importTableTitle" style="margin: 0;">Імпорт таблиці</h2>
       
-      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <div id="importMessage" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
         <span id="importMsg" lang-i18n="importInstructions">
           Скопіюйте дані з табличного процесора і натисніть
         </span> 
@@ -1339,13 +1339,13 @@
       <textarea id="clipboardInput" style="position: absolute; top: -10px; left: -10px; width: 1px; height: 1px; opacity: 0;" tabindex="0"></textarea>      
       <div id="previewArea" style="max-height: 400px; overflow: auto; border: 1px solid #ccc; padding: 5px; border-radius: 4px;"></div>
     </div>    
-    <!-- Другий флекс-контейнер з вертикальними кнопками -->
-    <div style="display: flex; flex-direction: column; gap: 12px; padding: 20px; border-top: 1px solid #e0e0e0;">
+    
+    <!-- Другий флекс-контейнер з вертикальними кнопками (вирівняно праворуч) -->
+    <div style="display: flex; flex-direction: column; gap: 12px; padding: 20px; border-top: 1px solid #e0e0e0; align-items: flex-end;margin-left: 30%;">
       <button onclick="confirmImportTable()" class="square-btn">
         <span style="font-size: 28px;">✅</span>
         <span lang-i18n="import" style="font-size: 12px;">Імпорт</span>
       </button>
-      
       <button onclick="closeImportTableDialog()" class="square-btn">
         <span style="font-size: 28px;">❌</span>
         <span lang-i18n="cancel" style="font-size: 12px;">Скасувати</span>

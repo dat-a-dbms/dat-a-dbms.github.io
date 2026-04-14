@@ -1,4 +1,5 @@
 {
+	"selectFileForCSVImport" : "Select CSV file for import",
 	"aeditDeleted" :"Row deleted",
 	"importTableName": "Imported_table",
 	"designerSelectFormTable":    "— Select table —",

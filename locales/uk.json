@@ -1,4 +1,5 @@
 {
+  "selectFileForCSVImport" : "Виберіть CSV-файл для імпорту", 
   "aeditDeleted" : "Рядок видалено",	
   "importTableName" : "Імпортована_таблиця",
   "designerSelectFormTable":    "— Оберіть таблицю —",
