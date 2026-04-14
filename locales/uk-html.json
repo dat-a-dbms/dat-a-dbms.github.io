@@ -64,7 +64,7 @@
   "dataWork": "⚙️ Робота з даними",
   "menuTables": "Таблиці",
   "savedTables": "📚 Збережені таблиці",
-  "importTable": "📥 Імпорт таблиці",
+  "importTable": "📥 Імпорт таблиці з буферу обміну",
   "menuQueries": "Запити",
   "savedQueries": "📚 Збережені запити",
   "menuReports": "Звіти",
