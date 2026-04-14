@@ -8,6 +8,11 @@ const _placeholderCache = {};
 // Поточний HTML-словник (зберігаємо для MutationObserver)
 let _htmlDict = {};
 
+// ★ Promise, який резолвиться після ПЕРШОГО успішного завантаження мови.
+//   Використовуйте `await window.i18nReady` у core.js перед стартом застосунку.
+let _i18nReadyResolve;
+window.i18nReady = new Promise(resolve => { _i18nReadyResolve = resolve; });
+
 function applyTranslationsToDOM(dict) {
     document.querySelectorAll('[lang-i18n]').forEach(el => {
         const key = el.getAttribute('lang-i18n');
@@ -100,10 +105,21 @@ async function loadLanguage(lang = DEFAULT_LANG) {
         // Запускаємо спостерігач після першого завантаження мови
         _startObserver();
 
+        // ★ Сигналізуємо, що i18n готовий (резолвимо лише один раз)
+        if (_i18nReadyResolve) {
+            _i18nReadyResolve();
+            _i18nReadyResolve = null;
+        }
+
         console.log(`i18n: мову встановлено — "${lang}"`);
     } catch (err) {
         console.error('i18n load error:', err);
         translations = {};
+        // ★ Навіть при помилці резолвимо Promise, щоб застосунок не завис
+        if (_i18nReadyResolve) {
+            _i18nReadyResolve();
+            _i18nReadyResolve = null;
+        }
     }
 }
 
