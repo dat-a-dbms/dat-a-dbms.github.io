@@ -1054,7 +1054,12 @@ function saveSchema() {
     const nameChanged = !isNewTable && oldTableName !== newTableName;
 
     let oldData = [];
+    let oldSchema = [];
     if (!isNewTable) {
+        // Зберігаємо стару схему ДО видалення таблиці — потрібна для зіставлення перейменованих полів
+        const oldTableEntry = database.tables.find(tbl => tbl.name === oldTableName);
+        oldSchema = oldTableEntry ? oldTableEntry.schema : [];
+
         try {
             const stmt = db.prepare(`SELECT * FROM "${oldTableName}"`);
             while (stmt.step()) {
@@ -1101,19 +1106,25 @@ function saveSchema() {
         return;
     }
 
-    const newFieldNames = schema.map(f => f.title);
     oldData.forEach(record => {
         const insertFields = [];
         const insertValues = [];
         const placeholders = [];
 
-        for (const key of newFieldNames) {
-            if (key in record) {
-                insertFields.push(`"${key}"`);
+        schema.forEach((newField, idx) => {
+            // Якщо поле не перейменовувалось — шукаємо за новою назвою
+            if (newField.title in record) {
+                insertFields.push(`"${newField.title}"`);
                 placeholders.push('?');
-                insertValues.push(record[key] ?? null);
+                insertValues.push(record[newField.title] ?? null);
+            // Якщо перейменовано — беремо значення з тієї самої позиції старої схеми
+            } else if (oldSchema[idx] && oldSchema[idx].title in record) {
+                insertFields.push(`"${newField.title}"`);
+                placeholders.push('?');
+                insertValues.push(record[oldSchema[idx].title] ?? null);
             }
-        }
+        });
+
         if (insertFields.length > 0) {
             const insertSQL = `INSERT INTO "${newTableName}" (${insertFields.join(", ")}) VALUES (${placeholders.join(", ")});`;
             try {
