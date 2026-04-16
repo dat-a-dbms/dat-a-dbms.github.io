@@ -1,4 +1,5 @@
 {
+  "aeditAddRefTitle" : "Новий запис таблиці",
   "selectFileForCSVImport" : "Виберіть CSV-файл для імпорту", 
   "aeditDeleted" : "Рядок видалено",	
   "importTableName" : "Імпортована_таблиця",

@@ -1,4 +1,5 @@
 {
+	"aeditAddRefTitle" : "Nouvelle entrée de tableau",
 	"selectFileForCSVImport" : "Sélectionner un fichier CSV pour l'import",
 	"aeditDeleted":	"Ligne supprimée",
 	"importTableName": "Tableau_importé",

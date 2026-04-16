@@ -1,4 +1,5 @@
 {
+	"aeditAddRefTitle" : "Neuer Tabelleneintrag",
 	"selectFileForCSVImport" : "CSV-Datei zum Import auswählen",
 	"aeditDeleted":	"Zeile gelöscht",
 	"importTableName": "Importierte_Tabelle",

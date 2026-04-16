@@ -1,4 +1,5 @@
 {
+	"aeditAddRefTitle" : "New table entry",
 	"selectFileForCSVImport" : "Select CSV file for import",
 	"aeditDeleted" :"Row deleted",
 	"importTableName": "Imported_table",

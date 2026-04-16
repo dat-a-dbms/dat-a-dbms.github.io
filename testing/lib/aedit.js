@@ -180,8 +180,9 @@ function advDataInput(container, cellData, col, rowData, index, isReadOnly) {
     let createdEl = null;
 
     const typeStr = String(col?.type || "").toLowerCase();
+    const isIntegerType = typeStr === "integer" || typeStr === "ціле число" || typeStr === "int";
     const isPK = !!col?.primaryKey;
-    const isPKAuto = isPK && typeStr === "integer" && col?.autoInc === true;
+    const isPKAuto = isPK && isIntegerType && col?.autoInc === true;
     const isForeignKey = !!(col && col.foreignKey && col.refTable && col.refField);
 
     // ===== хелпери для caret у contentEditable =====
@@ -227,16 +228,16 @@ function advDataInput(container, cellData, col, rowData, index, isReadOnly) {
         s = (s ?? "").toString().replace(/\r?\n/g, "");
         t = String(t || "").toLowerCase();
     
-        if (t === "text") {
+        if (t === "text" || t === "текст") {
             if (s.length > 64) s = s.slice(0, 64);
             return s;
         }
-        if (t === "integer") {
+        if (t === "integer" || t === "ціле число" || t === "int") {
             s = s.replace(/[^\d-]/g, "").replace(/(?!^)-/g, "");
             if (s.startsWith("--")) s = "-" + s.slice(2);
             return s;
         }
-        if (t === "real") {
+        if (t === "real" || t === "дійсне число") {
             s = s.replace(/[^\d.\-]/g, "")
                  .replace(/(?!^)-/g, "")
                  .replace(/(\..*)\./g, "$1");
@@ -246,54 +247,101 @@ function advDataInput(container, cellData, col, rowData, index, isReadOnly) {
     };
     
 
-    // ===== FOREIGN KEY =====
-    if (isForeignKey) {
-        const select = document.createElement("select");
+// ===== FOREIGN KEY =====
+if (isForeignKey) {
+    const select = document.createElement("select");
+    select.style.width = "100%";
+    select.style.minWidth = "0";
+    select.style.boxSizing = "border-box";
 
-        const emptyOption = document.createElement("option");
-        emptyOption.value = "empty";
-        emptyOption.textContent = t("aeditEmpty");
-        select.appendChild(emptyOption);
+    const emptyOption = document.createElement("option");
+    emptyOption.value = "empty";
+    emptyOption.textContent = (typeof t === "function" && t("aeditEmpty")) || "—";
+    select.appendChild(emptyOption);
 
-        const refTableObj = database.tables.find(t => t.name === col.refTable);
-        if (refTableObj) {
-            const refIdIndex = refTableObj.schema.findIndex(f => f.title === col.refField); // PK
-            let displayIndex = refIdIndex;
+    // Допоміжна функція: перебудовує опції select зі свіжих даних довідника
+    const rebuildFkOptions = (selectEl, currentValue) => {
+        while (selectEl.options.length > 1) selectEl.remove(1);
+        
+        const freshRef = database.tables.find(tb => tb.name === col.refTable);
+        if (!freshRef) return;
 
-            if (col.subst) {
-                const idx = refTableObj.schema.findIndex(f => !f.primaryKey); //const idx = refTableObj.schema.findIndex(f => f.title === col.title);
-                if (idx !== -1) displayIndex = idx;
-            }
-
-            if (refIdIndex !== -1) {
-                refTableObj.data.forEach(refRow => {
-                    const option = document.createElement("option");
-                    option.value = refRow[refIdIndex];          // завжди PK
-                    option.textContent = refRow[displayIndex];  // показуємо PK або підставлене значення
-                    select.appendChild(option);
-                });
-    
-                select.value = (cellData === null || cellData === undefined || cellData === "")
-                    ? "empty"
-                    : String(cellData);
-            }
+        const refIdIndex = freshRef.schema.findIndex(f => f.title === col.refField);
+        let dispIndex = refIdIndex;
+        if (col.subst) {
+            const idx = freshRef.schema.findIndex(f => !f.primaryKey);
+            if (idx !== -1) dispIndex = idx;
         }
 
-        select.disabled = !!isReadOnly;
-        container.appendChild(select);
-        createdEl = select;
+        if (refIdIndex !== -1) {
+            freshRef.data.forEach(refRow => {
+                const opt = document.createElement("option");
+                opt.value = refRow[refIdIndex];
+                opt.textContent = refRow[dispIndex];
+                selectEl.appendChild(opt);
+            });
+        }
 
-		select.addEventListener("change", () => {
-			if (select.value === "empty") {
-				rowData[index] = null;
-			} else {
-				const colType = String(col?.type || "").toLowerCase();
-				rowData[index] = (colType === "integer" || colType === "real")
-				? Number(select.value)
-				: select.value;
-			}
-		});
-    }
+        // Додаємо "+" як останній елемент списку
+        const addNewOption = document.createElement("option");
+        addNewOption.value = "__add_new__";
+        addNewOption.textContent = "─── ✚ ───";   //+     
+       
+        selectEl.appendChild(addNewOption);
+
+        selectEl.value = (currentValue === null || currentValue === undefined || currentValue === "")
+            ? "empty" : String(currentValue);
+    };
+
+    const refTableObj = database.tables.find(tb => tb.name === col.refTable);
+    if (refTableObj) rebuildFkOptions(select, cellData);
+
+    select.disabled = !!isReadOnly;
+    container.appendChild(select);
+    createdEl = select;
+
+    // Зберігаємо попереднє значення для коректного відновлення вибору
+    select.dataset.prevValue = select.value;
+
+    select.addEventListener("change", () => {
+        if (select.value === "__add_new__") {
+            // Тимчасово повертаємо попереднє значення, щоб "+" не залишався активним
+            const prev = select.dataset.prevValue || "empty";
+            select.value = prev;
+
+            if (!isReadOnly) {
+                openRefTableAddModal(col.refTable, () => {
+                    const freshRef = database.tables.find(tb => tb.name === col.refTable);
+                    if (freshRef && freshRef.data.length > 0) {
+                        const refIdIdx = freshRef.schema.findIndex(f => f.title === col.refField);
+                        const lastRow = freshRef.data[freshRef.data.length - 1];
+                        const newVal = refIdIdx !== -1 ? lastRow[refIdIdx] : null;
+
+                        // Оновлюємо список і автоматично вибираємо щойно доданий запис
+                        rebuildFkOptions(select, newVal);
+
+                        // Оновлюємо дані поточного рядка
+                        const colType = String(col?.type || "").toLowerCase();
+                        rowData[index] = (colType === "integer" || colType === "ціле число" || colType === "int" || colType === "real" || colType === "дійсне число")
+                            ? Number(newVal) : newVal;
+                    }
+                });
+            }
+            return;
+        }
+
+        select.dataset.prevValue = select.value;
+        if (select.value === "empty") {
+            rowData[index] = null;
+        } else {
+            const colType = String(col?.type || "").toLowerCase();
+            rowData[index] = (colType === "integer" || colType === "ціле число" || colType === "int" || colType === "real" || colType === "дійсне число")
+                ? Number(select.value) : select.value;
+        }
+    });
+}
+    
+    
     // ===== BOOLEAN =====
     else if (typeStr === "boolean") {
         const select = document.createElement("select");
@@ -592,7 +640,7 @@ function advDataInput(container, cellData, col, rowData, index, isReadOnly) {
                 const caret = getCaretOffset(container);
                 let newText = oldText;
                 
-                if (typeStr === "integer" || typeStr === "real") {
+                if (isIntegerType || typeStr === "real" || typeStr === "дійсне число") {
                     newText = sanitizeByType(oldText, typeStr);
                 }
     
@@ -601,7 +649,7 @@ function advDataInput(container, cellData, col, rowData, index, isReadOnly) {
                     setCaretOffset(container, Math.min(caret, newText.length));
                 }
     
-                if (typeStr === "integer" || typeStr === "real") {
+                if (isIntegerType || typeStr === "real" || typeStr === "дійсне число") {
                     const n = newText === "" ? null : Number(newText);
                     rowData[index] = (n === null || Number.isNaN(n)) ? null : n;
                 } else {
@@ -877,7 +925,9 @@ function addDataRow() {
         let defaultValue = null;
 
         // Автоінкремент
-        if (col.primaryKey && col.type.toLowerCase() === "integer" && col.autoInc === true) {
+        const colTypeStr = String(col.type || "").toLowerCase();
+        const isColInteger = colTypeStr === "integer" || colTypeStr === "ціле число" || colTypeStr === "int";
+        if (col.primaryKey && isColInteger && col.autoInc === true) {
             let max = 0;
             currentEditTable.data.forEach(row => {
                 const val = parseInt(row[index]);
@@ -1161,3 +1211,135 @@ function deleteSelectedRow(afterDeleteCallback) {
         }
     });
 }
+
+/**
+ * Відкриває вбудоване модальне вікно (oneRowEditModalOverlay) для додавання
+ * нового запису в таблицю-довідник (refTableName).
+ * Після збереження викликає onSaved() і оновлює таблицю у database + SQLite.
+ *
+ * @param {string}   refTableName — назва таблиці-довідника
+ * @param {Function} onSaved      — колбек після успішного збереження
+ */
+// Стейт поточної відкритої модалки (замикання через глобальний об'єкт)
+const _oneRowModal = {};
+
+function openRefTableAddModal(refTableName, onSaved) {
+    const refTable = database.tables.find(tb => tb.name === refTableName);
+    if (!refTable) {
+        Message((typeof t === "function" && t("aeditRefTableNotFound")) || `Таблицю "${refTableName}" не знайдено`);
+        return;
+    }
+
+    const overlay   = document.getElementById("oneRowEditModalOverlay");
+    const titleEl   = overlay.querySelector(".modal-title");
+    const headerRow = document.getElementById("oneRowEditHeaderRow");
+    const dataRow   = document.getElementById("oneRowEditDataRow");
+
+    // Зберігаємо стейт для saveOneRowModal / closeOneRowModal
+    _oneRowModal.refTable     = refTable;
+    _oneRowModal.refTableName = refTableName;
+    _oneRowModal.onSaved      = onSaved;
+    _oneRowModal.newRowData   = refTable.schema.map(() => null);
+
+    // ---------- Заголовок ----------
+    titleEl.textContent =
+        ((typeof t === "function" && t("aeditAddRefTitle")) || "Новий запис") + `: ${refTableName}`;
+
+    // ---------- THEAD ----------
+    headerRow.innerHTML = "";
+    refTable.schema.forEach(col => {
+        const th = document.createElement("th");
+        th.style.cssText = "padding:6px 10px;background:#eee;text-align:center;font-weight:600;border:1px solid #777;";
+        th.textContent = col.title + (col.primaryKey ? " 🔑" : "");
+        headerRow.appendChild(th);
+    });
+
+    // ---------- TBODY (один рядок) ----------
+    dataRow.innerHTML = "";
+    refTable.schema.forEach((col, idx) => {
+        const td = document.createElement("td");
+        td.style.cssText = "padding:4px;border:1px solid #777;vertical-align:middle;height:1.5em;";
+
+        const _ct = String(col.type || "").toLowerCase();
+        const isPKAutoInc = col.primaryKey && col.autoInc === true
+            && (_ct === "integer" || _ct === "ціле число" || _ct === "int");
+
+        let defaultValue = null;
+        if (isPKAutoInc) {
+            let max = 0;
+            (refTable.data || []).forEach(row => {
+                const val = parseInt(row[idx]);
+                if (!isNaN(val)) max = Math.max(max, val);
+            });
+            defaultValue = max + 1;
+            _oneRowModal.newRowData[idx] = defaultValue;
+
+            td.style.background = "var(--pk-auto-bg, #f0f0f0)";
+            td.style.color = "var(--pk-auto-color, #888)";
+            td.title = (typeof t === "function" && t("aeditPkAutoTitle")) || "Значення генерується автоматично";
+        }
+
+        advDataInput(td, defaultValue, col, _oneRowModal.newRowData, idx, isPKAutoInc);
+        dataRow.appendChild(td);
+    });
+
+    // ---------- Показуємо модалку ----------
+    overlay.style.display = "flex";
+}
+
+function closeOneRowModal() {
+    document.getElementById("oneRowEditModalOverlay").style.display = "none";
+    const parentModal = document.getElementById("editModal");
+    if (parentModal) {
+        parentModal.style.display = "flex";
+        parentModal.focus();
+    }
+}
+
+function saveOneRowModal() {
+    const { refTable, refTableName, onSaved, newRowData } = _oneRowModal;
+    if (!refTable) return;
+
+    const cols = [];
+    const vals = [];
+
+    refTable.schema.forEach((col, idx) => {
+        const _ct = String(col.type || "").toLowerCase();
+        const isPKAutoInc = col.primaryKey && col.autoInc
+            && (_ct === "integer" || _ct === "ціле число" || _ct === "int");
+        if (isPKAutoInc) return;
+
+        cols.push(`"${col.title}"`);
+        const v = newRowData[idx];
+        if (v === null || v === undefined || v === "") {
+            vals.push("NULL");
+        } else if (typeof v === "number") {
+            vals.push(String(v));
+        } else {
+            vals.push(`'${String(v).replace(/'/g, "''")}'`);
+        }
+    });
+
+    if (!cols.length) {
+        Message((typeof t === "function" && t("aeditRefNoFields")) || "Немає полів для збереження");
+        return;
+    }
+
+    const sql = `INSERT INTO "${refTableName}" (${cols.join(", ")}) VALUES (${vals.join(", ")});`;
+    try {
+        db.run(sql);
+
+        const res = db.exec(`SELECT * FROM "${refTableName}"`);
+        refTable.data = res.length ? res[0].values : [];
+
+        saveDatabase();
+        closeOneRowModal();
+
+        if (typeof onSaved === "function") onSaved();
+        Message((typeof t === "function" && t("dataSaved")) || "Запис додано");
+    } catch (e) {
+        Message((typeof t === "function" && t("aeditRefSaveError")) || `Помилка збереження: ${e.message}`);
+    }
+}
+
+
