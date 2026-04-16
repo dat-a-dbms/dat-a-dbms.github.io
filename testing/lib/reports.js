@@ -563,16 +563,22 @@ function deleteActiveElement() {
             Message(t("reportDeleteElement"));
             return;
         }
+        document.getElementById("deleteElConfirmText").innerHTML = t("reportDeleteConfirm")
+		document.getElementById("deleteElementModal").style.display = "flex";
+}
 
-        const confirmed = confirm(t("reportDeleteConfirm"));
-        if (!confirmed) return;
-
+function doDeleteEl() {
         activeElement.remove();
         activeElement = null;
 
         // Закрити додаткові панелі
         document.getElementById("fieldSelectionModal").style.display = "none";
+        document.getElementById("deleteElementModal").style.display = "none";
         closeTextOptionsModal();
+}		
+
+function closeElDeleteModal() {
+	document.getElementById("deleteElementModal").style.display = "none";
 } 
 
 // Перегляд створеного звіту

@@ -672,6 +672,7 @@ thead.appendChild(headerRow);
                 borderStyle: "inset",
                 borderWidth: "4px",
                 borderColor: "#888",
+                borderRadius: "15px",
                 overflow: "hidden",
                 whiteSpace: "nowrap",
                 display: "flex",

@@ -273,6 +273,21 @@
 			</div>
 		</div>
 	</div>
+	<div id="deleteElementModal" class="modal" style="display: none; z-index: 10001;">
+		<div class="alert-modal-content" style="display: flex; flex-direction: row; align-items: flex-start; padding: 1em; gap: 2em;">
+			<!-- Ліворуч: текст -->
+			<div style="flex: 1; font-size: 1.1em; padding: 0.5em;">
+				<p id="deleteElConfirmText" >Ви дійсно хочете видалити цей елемент?</p>
+			</div>
+			<!-- Праворуч: вертикальні кнопки -->
+			<div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+				<button class="square-btn" onclick="doDeleteEl()" > 🗑️ 
+                <span style="font-size: 10px;" lang-i18n="delete">Видалити</span> </button>
+				<button class="square-btn" onclick="closeElDeleteModal()" > ❌ 
+                <span style="font-size: 10px;" lang-i18n="cancel">Скасувати</span> </button>
+			</div>
+		</div>
+	</div>	
     <!-- Вікно створення запиту-->
     <div id="overwriteModal" class="modal" style="display: none; z-index: 10011;">
 		<div class="alert-modal-content" style="display: flex; flex-direction: row; align-items: flex-start; padding: 1em; gap: 2em;">
@@ -1774,7 +1789,7 @@
                     <div style="flex:1; display:flex; flex-direction:column; gap:10px;">
                         <label style="display:flex; flex-direction:column; gap:5px;">
                             <span lang-i18n="buttonText">Текст кнопки:</span>
-                            <input type="text" id="buttonTextInput" lang-i18n="defButton" value="Button" style="padding:8px; border:1px solid #ccc; border-radius:4px;">
+                            <input type="text" id="buttonTextInput"  value="defaultButton" style="padding:8px; border:1px solid #ccc; border-radius:4px;">
                         </label>
 
                         <label style="display:flex; flex-direction:column; gap:5px;">
