@@ -1,4 +1,7 @@
 {
+	"urlLoadLoading" : "Chargement du fichier…",
+	"urlLoadInvalidUrl" : "URL non valide ou le fichier n'est pas au format .dta :",
+	"urlLoadError" : "Erreur lors du chargement du fichier :",
 	"aeditAddRefTitle" : "Nouvelle entrée de tableau",
 	"selectFileForCSVImport" : "Sélectionner un fichier CSV pour l'import",
 	"aeditDeleted":	"Ligne supprimée",

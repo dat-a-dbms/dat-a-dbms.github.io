@@ -1,4 +1,7 @@
 {
+  "urlLoadLoading" : "Завантаження файлу…",
+  "urlLoadInvalidUrl" : "Помилкова адреса або файл не .dta:",
+  "urlLoadError" : "Помилка завантаження файлу:",
   "aeditAddRefTitle" : "Новий запис таблиці",
   "selectFileForCSVImport" : "Виберіть CSV-файл для імпорту", 
   "aeditDeleted" : "Рядок видалено",	

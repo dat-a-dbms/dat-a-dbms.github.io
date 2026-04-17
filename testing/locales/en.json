@@ -1,4 +1,7 @@
 {
+	"urlLoadLoading" : "Loading file…",
+	"urlLoadInvalidUrl" : "Invalid URL or file is not .dta:",
+	"urlLoadError" : "Error loading file:",
 	"aeditAddRefTitle" : "New table entry",
 	"selectFileForCSVImport" : "Select CSV file for import",
 	"aeditDeleted" :"Row deleted",

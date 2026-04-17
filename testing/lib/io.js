@@ -2095,3 +2095,97 @@ function saveImportedTable() {
   closeImportTableDialog();
   closeConfirmImport();
 }
+/**
+ * Завантаження файлу-архіву .dta за URL-параметром ?load=
+ *
+ * Використання:
+ *   dat-a.pp.ua?load=ed-info.github.io/sample-db.dta
+ *
+ * Правила:
+ *   - параметр називається "load"
+ *   - значення — адреса файлу БЕЗ схеми (http/https додається автоматично)
+ *     або ПОВНА адреса (https://...)
+ *   - файл повинен мати розширення .dta
+ *   - викликається одразу після ініціалізації SQL.js (після window.i18nReady)
+ */
+
+/**
+ * Зчитує параметр ?load= з поточного URL.
+ * Повертає повну URL-адресу файлу або null.
+ */
+function getLoadParam() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("load");
+    if (!raw) return null;
+
+    // Якщо вже є схема — повертаємо як є
+    if (/^https?:\/\//i.test(raw)) return raw;
+
+    // Інакше — додаємо https://
+    return "https://" + raw;
+}
+
+/**
+ * Перевіряє, чи URL веде на .dta файл.
+ */
+function isValidDtaUrl(url) {
+    try {
+        const u = new URL(url);
+        return u.pathname.toLowerCase().endsWith(".dta");
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Завантажує .dta файл з вказаної URL-адреси та передає його в importDTA().
+ * Показує індикатор завантаження і повідомлення про помилки через Message().
+ *
+ * Викликати після того, як SQL та i18n вже готові.
+ */
+async function loadDtaFromUrl() {
+    const url = getLoadParam();
+    if (!url) return; // параметр відсутній — нічого не робимо
+
+    if (!isValidDtaUrl(url)) {
+        console.warn("url-load: невалідна адреса або не .dta файл:", url);
+        Message(t("urlLoadInvalidUrl") || `Невірна адреса файлу: ${url}`);
+        return;
+    }
+
+    console.log("url-load: завантаження файлу з", url);
+
+    // Показуємо повідомлення про завантаження
+    Message(t("urlLoadLoading") || `Завантаження: ${url}…`);
+
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status} ${response.statusText}`);
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+
+        // Визначаємо ім'я файлу з URL
+        const urlPath = new URL(url).pathname;
+        const fileName = urlPath.split("/").pop() || "database.dta";
+
+        // Створюємо File-об'єкт, сумісний з importDTA(file)
+        const file = new File([arrayBuffer], fileName, { type: "application/octet-stream" });
+
+        await importDTA(file);
+
+        // Після успішного завантаження прибираємо ?load= з адресного рядка
+        // (щоб повторне відкриття сторінки не перезавантажувало файл)
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete("load");
+        window.history.replaceState({}, "", cleanUrl.toString());
+
+    } catch (err) {
+        console.error("url-load: помилка завантаження:", err);
+        Message(
+            (t("urlLoadError") || "Помилка завантаження файлу:") + " " + err.message
+        );
+    }
+}

@@ -1,4 +1,7 @@
 {
+	"urlLoadLoading" : "Wczytywanie pliku…",
+	"urlLoadInvalidUrl" : "Błędny adres URL lub plik nie jest w formacie .dta:",
+	"urlLoadError" : "Błąd wczytywania pliku:",    
     "aeditAddRefTitle" : "Nowy wpis w tabeli",
     "selectFileForCSVImport" : "Wybierz plik CSV do importu",	
 	"aeditDeleted":	"Wiersz usunięty",

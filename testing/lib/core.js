@@ -89,26 +89,33 @@ let tableList = [];
     }
 
     // Завантаження SQL.js
-    initSqlJs({
-            locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}`
-        }).then(async SQLLib => {
-            SQL = SQLLib;
-            const autoLoad = localStorage.getItem(SETTINGS_KEYS.AUTO_LOAD_LAST_DB) === "true";
-            console.log("autoLoad=",autoLoad)
-            if (autoLoad) {
-                
-                const last = localStorage.getItem('lastOpenedFile');
-                console.log("autoLoadDB=",last + '.db-data')
-                if (last) {
-                    const data = await idbLoad(last + '.db-data');
-                    
-                    if (data) {
-                        selectedDbFile = last;
-                        await loadSelectedDb();
-                    }
-                }
-            }	
-        });
+   initSqlJs({
+       locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}`
+   }).then(async SQLLib => {
+       SQL = SQLLib;
+   
+       // Завантаження з URL-параметра ?load= 
+       // Якщо в адресі є ?load=..., файл .dta завантажується в першу чергу,
+       // autoLoad ігнорується (щоб не перетирати щойно відкриту базу).
+       if (getLoadParam()) {
+           await loadDtaFromUrl();
+           return; // виходимо, щоб autoLoad не перезаписав базу
+       }
+       //   
+       const autoLoad = localStorage.getItem(SETTINGS_KEYS.AUTO_LOAD_LAST_DB) === "true";
+       console.log("autoLoad=", autoLoad);
+       if (autoLoad) {
+           const last = localStorage.getItem('lastOpenedFile');
+           console.log("autoLoadDB=", last + '.db-data');
+           if (last) {
+               const data = await idbLoad(last + '.db-data');
+               if (data) {
+                   selectedDbFile = last;
+                   await loadSelectedDb();
+               }
+           }
+       }
+   });
 })();
 /*
 initSqlJs({
