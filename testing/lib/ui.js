@@ -33,7 +33,7 @@ function closeModal() {
 }
 let messageTimer = null;
 
-function Message(msg) {
+function Message(msg, forever = false) {
     const modal = document.getElementById("messageModal");
     const content = document.getElementById("messageContent");
 
@@ -45,10 +45,12 @@ function Message(msg) {
     // показати
     modal.classList.add("show");
 
-    // через 3 секунди сховати
-    messageTimer = setTimeout(() => {
-        modal.classList.remove("show");
-    }, 3000);
+    // сховати через 3 секунди, тільки якщо forever !== true
+    if (!forever) {
+        messageTimer = setTimeout(() => {
+            modal.classList.remove("show");
+        }, 3000);
+    }
 }
 
 function closeMessage() {

@@ -555,7 +555,38 @@ function saveReport() {
     else database.reports.push(reportObject);
 
     saveDatabase();
+    if (typeof isDesignerDirty !== "undefined") isDesignerDirty = false;
     Message(t("reportSaved", reportName));
+}
+
+/**
+ * Закриття Конструктора звітів.
+ * Якщо є незбережені зміни (прапор isDesignerDirty) — питає про збереження.
+ **/
+function closeReportModal() {
+    if (typeof isDesignerDirty !== "undefined" && isDesignerDirty) {
+        showConfirmSave(
+            () => {
+                saveReport();
+                _doCloseReportModal();
+            },
+            () => {
+                _doCloseReportModal();
+            }
+        );
+    } else {
+        _doCloseReportModal();
+    }
+}
+
+function _doCloseReportModal() {
+    document.getElementById("reportCreatorModal").style.display = "none";
+    if (typeof isDesignerDirty !== "undefined") isDesignerDirty = false;
+}
+
+// Викликається кнопкою закриття Конструктора звітів у HTML
+function closeReportCreatorModal() {
+    closeReportModal();
 }
 
 function deleteActiveElement() {

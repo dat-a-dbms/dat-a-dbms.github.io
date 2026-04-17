@@ -917,8 +917,33 @@ function generateSqlQuery() {
     if (existingQueryIndex !== -1) queries.definitions[existingQueryIndex] = queryDefinition;
     else queries.definitions.push(queryDefinition);
     saveDatabase();
-    console.log("queryConfig=",queryDefinition )
-    runSqlQuery(sql, queryName);
+    console.log("queryConfig=",queryDefinition)
+    return { sql, queryName };
+}
+
+/**
+ * Зберігає сконструйований запит БЕЗ виконання
+ */
+function saveQueryOnly() {
+    const result = generateSqlQuery();
+    if (result) {
+        Message(t("querySaved"));
+    }
+}
+function viewSQL() {
+    const result = generateSqlQuery();
+    if (result) {
+        Message(result.sql, true);
+    }
+}
+/**
+ * Зберігає сконструйований запит і одразу виконує його
+ */
+function saveAndRunQuery() {
+    const result = generateSqlQuery();
+    if (result) {
+        runSqlQuery(result.sql, result.queryName);
+    }
 }
 
     let pendingQueryText = "";

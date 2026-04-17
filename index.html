@@ -354,24 +354,32 @@
 		</div>
 		
 		<!-- Правий контейнер: всі кнопки вертикально, квадратні -->
-		<div style="display:flex; flex-direction:column; gap:12px; min-width:80px; align-items:center;">
-			<button class="square-btn" onclick="addQueryRow()" >
-				<div style="font-size:24px; line-height:1;">+</div>
+		<div style="display:flex; flex-direction:column; gap:8px; min-width:80px; align-items:center;">
+			<button class="mid-btn" onclick="addQueryRow()" >
+				<div style="font-size:20px; line-height:1;">+</div>
 				<div style="font-size:10px;" lang-i18n="addRow">Додати рядок</div>
 			</button>
-			<button class="square-btn" onclick="addJoinRow()" >
-				<div style="font-size:24px; line-height:1;">🔗</div>
+			<button class="mid-btn" onclick="addJoinRow()" >
+				<div style="font-size:18px; line-height:1;">🔗</div>
 				<div style="font-size:10px;" lang-i18n="addJoin">addJoin</div>
 			</button>
-			<button class="square-btn" onclick="openRelationFromQuery()" >
+			<button class="mid-btn" onclick="openRelationFromQuery()" >
 				<div style="font-size:20px; line-height:1;">🧩</div>
 				<div style="font-size:10px;" lang-i18n="relationBuilder">relBuilder</div>
 			</button>
-			<button class="square-btn" onclick="generateSqlQuery()" >
-				<div style="font-size:24px; line-height:1;">🚩️</div>
+			<button class="mid-btn" onclick="saveQueryOnly()" >
+				<div style="font-size:20px; line-height:1;">💾</div>
+				<div style="font-size:10px;" lang-i18n="save">Зберегти</div>
+			</button>
+			<button class="mid-btn" onclick="saveAndRunQuery()" >
+				<div style="font-size:18px; line-height:1;">🚩️</div>
 				<div style="font-size:10px;" lang-i18n="saveAndExecute">Зберегти та виконати</div>
 			</button>
-			<button class="square-btn" onclick="closeQueryModal()" >
+			<button class="mid-btn" onclick="viewSQL()" >
+				<img src="./img/sql.png" alt="SQL">
+				<div style="font-size:10px;padding:5px;">SQL</div>
+			</button>
+			<button class="mid-btn" onclick="closeQueryModal()" >
 				<div style="font-size:20px; line-height:1;">❌</div>
 				<div style="font-size:10px;" lang-i18n="close">Закрити</div>
 			</button>

@@ -1052,22 +1052,52 @@ function deleteSelectedRow(afterDeleteCallback) {
         return;
     }
 
-    // Отримуємо значення PK для повідомлення
+    // Отримуємо значення PK для повідомлення.
+    // Якщо PK-колонка прихована у відображенні — беремо значення з originalTable.data
+    // по індексу рядка в tbody (порядок рядків DOM збігається з порядком даних).
+    const _origTableForDisplay = database.tables.find(t => t.name === currentEditTable.name);
+    const _activeTbodyForDisplay = currentEditTable._tbody ||
+        document.getElementById("editBody") ||
+        row.closest("tbody");
+    const _rowDataForDisplay = _activeTbodyForDisplay
+        ? Array.from(_activeTbodyForDisplay.querySelectorAll("tr")).indexOf(row)
+        : -1;
+
+    // Визначаємо які поля реально відображаються у DOM.
+    // Пріоритет: явно передане _selectedFields на currentEditTable (форма з кількома таблицями),
+    // потім window._currentTableSelectedFields по імені, потім порожній масив (всі колонки видимі).
+    const _selectedFields = currentEditTable._selectedFields
+        ?? window._currentTableSelectedFields?.[currentEditTable.name]
+        ?? [];
+
     let pkDisplayValues = [];
     pkCols.forEach(pk => {
-        // Знаходимо відповідний індекс у відфільтрованому відображенні
-        let displayIndex = -1;
-        for (let i = 0; i < currentEditTable.schema.length; i++) {
-            if (currentEditTable.schema[i].title === pk.title) {
-                displayIndex = i;
-                break;
+        // Перевіряємо чи PK відображається у DOM:
+        // або selectedFields порожній (всі колонки), або PK є серед selectedFields
+        const pkVisibleInDom = _selectedFields.length === 0 || _selectedFields.includes(pk.title);
+
+        if (pkVisibleInDom) {
+            // Знаходимо індекс комірки у відфільтрованому відображенні
+            const visibleSchema = _selectedFields.length > 0
+                ? _selectedFields
+                : currentEditTable.schema.map(c => c.title);
+            const displayIndex = visibleSchema.indexOf(pk.title);
+            if (displayIndex !== -1 && cells[displayIndex]) {
+                pkDisplayValues.push(cells[displayIndex].innerText.trim());
+                return;
             }
         }
-        if (displayIndex !== -1 && cells[displayIndex]) {
-            pkDisplayValues.push(cells[displayIndex].innerText.trim());
+
+        // PK прихований або не знайдено в DOM — беремо з масиву даних
+        if (_origTableForDisplay && _rowDataForDisplay !== -1) {
+            const origPkIndex = _origTableForDisplay.schema.findIndex(c => c.title === pk.title);
+            if (origPkIndex !== -1 && _origTableForDisplay.data[_rowDataForDisplay]) {
+                const val = _origTableForDisplay.data[_rowDataForDisplay][origPkIndex];
+                pkDisplayValues.push(val !== null && val !== undefined ? String(val) : "");
+            }
         }
     });
-    
+
     const pkDisplayValue = pkDisplayValues.join(", ");
 
     // Викликаємо модальне підтвердження
@@ -1103,11 +1133,17 @@ function deleteSelectedRow(afterDeleteCallback) {
         // Знаходимо індекс рядка в оригінальних даних
         let rowIndexToDelete = -1;
 
-        // Спочатку намагаємось знайти за _pkSnapshot (надійний шлях)
+        // Визначаємо tbody: спочатку з currentEditTable._tbody (таблиці форми),
+        // потім fallback на стандартний editBody
         const selectedRow = selectedCell.parentElement;
-        const rowData = Array.from(document.getElementById("editBody").querySelectorAll("tr"))
-            .indexOf(selectedRow);
+        const activeTbody = currentEditTable._tbody ||
+            document.getElementById("editBody") ||
+            selectedRow.closest("tbody");
+        const rowData = activeTbody
+            ? Array.from(activeTbody.querySelectorAll("tr")).indexOf(selectedRow)
+            : -1;
 
+        // Шлях 1: _pkSnapshot
         if (rowData !== -1 && currentEditTable.data[rowData]?._pkSnapshot) {
             const snapshot = currentEditTable.data[rowData]._pkSnapshot;
             for (let i = 0; i < originalTable.data.length; i++) {
@@ -1122,7 +1158,14 @@ function deleteSelectedRow(afterDeleteCallback) {
             }
         }
 
-        // Запасний шлях: порівнюємо за значеннями DOM-комірок
+        // Шлях 2: порядок рядків у DOM збігається з порядком у originalTable.data,
+        // тому rowData є прямим індексом рядка для видалення.
+        // Це працює і коли PK-поле приховане у таблиці форми.
+        if (rowIndexToDelete === -1 && rowData !== -1 && rowData < originalTable.data.length) {
+            rowIndexToDelete = rowData;
+        }
+
+        // Шлях 3: порівнюємо лише за DOM-комірками (лише якщо PK відображається)
         if (rowIndexToDelete === -1) {
             for (let i = 0; i < originalTable.data.length; i++) {
                 let matches = true;
@@ -1341,5 +1384,3 @@ function saveOneRowModal() {
         Message((typeof t === "function" && t("aeditRefSaveError")) || `Помилка збереження: ${e.message}`);
     }
 }
-
-
