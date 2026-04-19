@@ -1419,17 +1419,73 @@ function exportSQLiteDb() {
  * ============================================================
  */
 
-// Парсинг CSV-тексту у масив рядків
+// Парсинг CSV-тексту у масив рядків (RFC 4180 — підтримка лапок і символів-розділювачів у комірках)
 function parseCsvText(csvText) {
-    const lines = csvText.trim().split("\n");
-    if (!lines.length) return null;
-    const firstLine = lines[0];
-    const hasSemicolon = (firstLine.split(";").length - 1);
-    const hasComma     = (firstLine.split(",").length - 1);
+    // Нормалізуємо переводи рядків
+    const text = csvText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    if (!text.trim()) return null;
+
+    // Визначаємо роздільник за першим рядком (враховуємо лапки при підрахунку)
+    const firstLine = text.split("\n")[0];
+    const countDelim = (str, delim) => {
+        let count = 0, inQ = false;
+        for (let i = 0; i < str.length; i++) {
+            if (str[i] === '"') inQ = !inQ;
+            else if (!inQ && str[i] === delim) count++;
+        }
+        return count;
+    };
+    const hasSemicolon = countDelim(firstLine, ";");
+    const hasComma     = countDelim(firstLine, ",");
     const delimiter    = hasSemicolon > hasComma ? ";" : ",";
-    return lines.map(line =>
-        line.split(delimiter).map(val => val.trim().replace(/^"(.*)"$/, "$1"))
-    );
+
+    // Повноцінний RFC 4180 парсер: розуміє лапки, екранування (""), багаторядкові комірки
+    const rows = [];
+    let row = [];
+    let i = 0;
+
+    while (i < text.length) {
+        if (text[i] === '"') {
+            // Quoted field
+            let cell = "";
+            i++; // пропускаємо відкриваючу лапку
+            while (i < text.length) {
+                if (text[i] === '"') {
+                    if (text[i + 1] === '"') {
+                        // Екранована лапка "" → одна лапка
+                        cell += '"';
+                        i += 2;
+                    } else {
+                        // Закриваюча лапка
+                        i++;
+                        break;
+                    }
+                } else {
+                    cell += text[i];
+                    i++;
+                }
+            }
+            row.push(cell);
+            // Пропускаємо роздільник або кінець рядка після закриваючої лапки
+            if (text[i] === delimiter) i++;
+            else if (text[i] === "\n") { rows.push(row); row = []; i++; }
+        } else {
+            // Unquoted field — читаємо до роздільника або кінця рядка
+            let cell = "";
+            while (i < text.length && text[i] !== delimiter && text[i] !== "\n") {
+                cell += text[i];
+                i++;
+            }
+            row.push(cell.trim());
+            if (text[i] === delimiter) i++;
+            else if (text[i] === "\n") { rows.push(row); row = []; i++; }
+        }
+    }
+    // Останній рядок (якщо немає фінального \n)
+    if (row.length > 0) rows.push(row);
+
+    // Фільтруємо порожні рядки (наприклад, порожній останній рядок файлу)
+    return rows.filter(r => r.some(cell => cell !== "")) || null;
 }
 
 // Обробка вибраного файлу: парсинг → прев'ю
