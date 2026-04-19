@@ -1,48 +1,29 @@
-// ===== _app_settings: службова таблиця налаштувань у SQLite =====
-// Не відображається у списку таблиць користувача.
+// ===== _app_settings: налаштування зберігаються у файлі _app_settings.json всередині .DTA =====
+// Не є таблицею SQLite. У пам'яті зберігається як об'єкт appSettings.
 
-function ensureAppSettingsTable() {
-    if (!db) return;
-    db.run(`
-        CREATE TABLE IF NOT EXISTS "_app_settings" (
-            "key"   TEXT PRIMARY KEY,
-            "value" TEXT
-        );
-    `);
-}
+const appSettings = {};
 
 function appSettingGet(key) {
-    if (!db) return null;
-    try {
-        const res = db.exec(`SELECT "value" FROM "_app_settings" WHERE "key" = '${key.replace(/'/g, "''")}' LIMIT 1;`);
-        if (res.length && res[0].values.length) return res[0].values[0][0];
-    } catch (e) {
-        console.warn("appSettingGet error:", e);
-    }
-    return null;
+    return Object.prototype.hasOwnProperty.call(appSettings, key)
+        ? appSettings[key]
+        : null;
 }
 
 function appSettingSet(key, value) {
-    if (!db) return;
-    ensureAppSettingsTable();
-    db.run(
-        `INSERT INTO "_app_settings" ("key","value") VALUES (?,?) ON CONFLICT("key") DO UPDATE SET "value"=excluded."value";`,
-        [key, String(value)]
-    );
+    appSettings[key] = String(value);
 }
 
 /**
- * Читає STORE_FILES_IN_DB з _app_settings і синхронізує в localStorage.
- * Якщо в БД значення немає — читає з localStorage і записує в БД.
+ * Читає storeFilesInDb з appSettings і синхронізує в localStorage.
+ * Якщо в appSettings значення немає — читає з localStorage і записує в appSettings.
  */
 function syncStoreFilesInDbSetting() {
-    ensureAppSettingsTable();
-    const dbVal = appSettingGet("storeFilesInDb");
-    if (dbVal !== null) {
-        // БД — джерело правди при перенесенні на інший ПК
-        localStorage.setItem("app_settings_storeFilesInDb", dbVal);
+    const memVal = appSettingGet("storeFilesInDb");
+    if (memVal !== null) {
+        // appSettings — джерело правди при перенесенні на інший ПК (завантаження з .DTA)
+        localStorage.setItem("app_settings_storeFilesInDb", memVal);
     } else {
-        // Перший запуск: переносимо значення з localStorage до БД
+        // Перший запуск: переносимо значення з localStorage до appSettings
         const lsVal = localStorage.getItem("app_settings_storeFilesInDb") ?? "false";
         appSettingSet("storeFilesInDb", lsVal);
     }
@@ -210,7 +191,7 @@ async function loadDatabase() {
 async function saveDatabase() {
         console.log("Зберігаємо базу даних: ", database.fileName)
         if (!db) return;
-        // Синхронізуємо налаштування з localStorage → _app_settings перед збереженням
+        // Синхронізуємо налаштування з localStorage → appSettings перед збереженням
         const storeFilesInDb = localStorage.getItem("app_settings_storeFilesInDb") ?? "false";
         appSettingSet("storeFilesInDb", storeFilesInDb);
         await idbSave(database.fileName + ".db-data", db.export());
@@ -422,6 +403,11 @@ async function exportDTA() {
     const formsJson = JSON.stringify(database.forms || [], null, 2);
     zip.file("forms.json", formsJson);
 
+    // Налаштування програми (_app_settings.json)
+    const storeFilesInDbVal = localStorage.getItem("app_settings_storeFilesInDb") ?? "false";
+    appSettingSet("storeFilesInDb", storeFilesInDbVal);
+    zip.file("_app_settings.json", JSON.stringify(Object.assign({}, appSettings), null, 2));
+
     // Архів
     const content = await zip.generateAsync({ type: "blob" });
     const filename = (database.fileName || "my_database") + ".dta";
@@ -484,6 +470,18 @@ async function importDTA(file) {
      console.log(database.forms)   
     } else {
         database.forms = [];
+    }
+
+    // Налаштування програми (_app_settings.json)
+    if (zip.file("_app_settings.json")) {
+        try {
+            const settingsText = await zip.file("_app_settings.json").async("string");
+            const loaded = JSON.parse(settingsText);
+            Object.assign(appSettings, loaded);
+            console.log("Налаштування завантажено з _app_settings.json:", appSettings);
+        } catch (e) {
+            console.warn("Не вдалося прочитати _app_settings.json:", e);
+        }
     }
 
     // Відновлення таблиць через sqlite_master + savedSchemas
@@ -704,55 +702,7 @@ function exportSQLiteDb() {
 /**
  * Імпорт з CVS файлу
  **/ 
-// Показати діалог вибору таблиці для імпорту// ===== _app_settings: службова таблиця налаштувань у SQLite =====
-// Не відображається у списку таблиць користувача.
-
-function ensureAppSettingsTable() {
-    if (!db) return;
-    db.run(`
-        CREATE TABLE IF NOT EXISTS "_app_settings" (
-            "key"   TEXT PRIMARY KEY,
-            "value" TEXT
-        );
-    `);
-}
-
-function appSettingGet(key) {
-    if (!db) return null;
-    try {
-        const res = db.exec(`SELECT "value" FROM "_app_settings" WHERE "key" = '${key.replace(/'/g, "''")}' LIMIT 1;`);
-        if (res.length && res[0].values.length) return res[0].values[0][0];
-    } catch (e) {
-        console.warn("appSettingGet error:", e);
-    }
-    return null;
-}
-
-function appSettingSet(key, value) {
-    if (!db) return;
-    ensureAppSettingsTable();
-    db.run(
-        `INSERT INTO "_app_settings" ("key","value") VALUES (?,?) ON CONFLICT("key") DO UPDATE SET "value"=excluded."value";`,
-        [key, String(value)]
-    );
-}
-
-/**
- * Читає STORE_FILES_IN_DB з _app_settings і синхронізує в localStorage.
- * Якщо в БД значення немає — читає з localStorage і записує в БД.
- */
-function syncStoreFilesInDbSetting() {
-    ensureAppSettingsTable();
-    const dbVal = appSettingGet("storeFilesInDb");
-    if (dbVal !== null) {
-        // БД — джерело правди при перенесенні на інший ПК
-        localStorage.setItem("app_settings_storeFilesInDb", dbVal);
-    } else {
-        // Перший запуск: переносимо значення з localStorage до БД
-        const lsVal = localStorage.getItem("app_settings_storeFilesInDb") ?? "false";
-        appSettingSet("storeFilesInDb", lsVal);
-    }
-}
+// Показати діалог вибору таблиці для імпорту
 
 function openAppDB() {
     return new Promise((resolve, reject) => {
@@ -916,7 +866,7 @@ async function loadDatabase() {
 async function saveDatabase() {
         console.log("Зберігаємо базу даних: ", database.fileName)
         if (!db) return;
-        // Синхронізуємо налаштування з localStorage → _app_settings перед збереженням
+        // Синхронізуємо налаштування з localStorage → appSettings перед збереженням
         const storeFilesInDb = localStorage.getItem("app_settings_storeFilesInDb") ?? "false";
         appSettingSet("storeFilesInDb", storeFilesInDb);
         await idbSave(database.fileName + ".db-data", db.export());
@@ -1128,6 +1078,11 @@ async function exportDTA() {
     const formsJson = JSON.stringify(database.forms || [], null, 2);
     zip.file("forms.json", formsJson);
 
+    // Налаштування програми (_app_settings.json)
+    const storeFilesInDbVal = localStorage.getItem("app_settings_storeFilesInDb") ?? "false";
+    appSettingSet("storeFilesInDb", storeFilesInDbVal);
+    zip.file("_app_settings.json", JSON.stringify(Object.assign({}, appSettings), null, 2));
+
     // Архів
     const content = await zip.generateAsync({ type: "blob" });
     const filename = (database.fileName || "my_database") + ".dta";
@@ -1190,6 +1145,18 @@ async function importDTA(file) {
      console.log(database.forms)   
     } else {
         database.forms = [];
+    }
+
+    // Налаштування програми (_app_settings.json)
+    if (zip.file("_app_settings.json")) {
+        try {
+            const settingsText = await zip.file("_app_settings.json").async("string");
+            const loaded = JSON.parse(settingsText);
+            Object.assign(appSettings, loaded);
+            console.log("Налаштування завантажено з _app_settings.json:", appSettings);
+        } catch (e) {
+            console.warn("Не вдалося прочитати _app_settings.json:", e);
+        }
     }
 
     // Відновлення таблиць через sqlite_master + savedSchemas
