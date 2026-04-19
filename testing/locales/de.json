@@ -1,4 +1,5 @@
 {
+	"aeditExpandCell" : "Zum Bearbeiten erweitern",
 	"urlLoadLoading" : "Datei wird geladen…",
 	"urlLoadInvalidUrl" : "Ungültige URL oder Datei ist keine .dta-Datei:",
 	"urlLoadError" : "Fehler beim Laden der Datei:",

@@ -1,4 +1,5 @@
 {
+	"aeditExpandCell" : "Expand to edit",
 	"urlLoadLoading" : "Loading file…",
 	"urlLoadInvalidUrl" : "Invalid URL or file is not .dta:",
 	"urlLoadError" : "Error loading file:",

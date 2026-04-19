@@ -1,4 +1,5 @@
 {
+	"aeditExpandCell" : "Rozwiń, aby edytować",
 	"urlLoadLoading" : "Wczytywanie pliku…",
 	"urlLoadInvalidUrl" : "Błędny adres URL lub plik nie jest w formacie .dta:",
 	"urlLoadError" : "Błąd wczytywania pliku:",    

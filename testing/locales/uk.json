@@ -1,4 +1,5 @@
 {
+  "aeditExpandCell" : "Розгорнути для редагування",
   "urlLoadLoading" : "Завантаження файлу…",
   "urlLoadInvalidUrl" : "Помилкова адреса або файл не .dta:",
   "urlLoadError" : "Помилка завантаження файлу:",

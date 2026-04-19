@@ -670,6 +670,186 @@ if (isForeignKey) {
 
 
 /**
+ * Перевіряє, чи переповнений текстовий вміст комірки (ширший за комірку),
+ * і показує / оновлює кнопку «+» у правому нижньому куті.
+ */
+function _updateExpandBtn(td, colSchema, rowData, index, isReadOnly) {
+    _removeExpandBtn(td);
+
+    // Кнопка потрібна лише для текстових / числових комірок (contentEditable)
+    const typeStr = String(colSchema?.type || "").toLowerCase();
+    const isSpecial = (
+        typeStr === "boolean" || typeStr === "date" || typeStr === "list" ||
+        typeStr === "image" || typeStr === "file" ||
+        !!(colSchema?.foreignKey && colSchema?.refTable)
+    );
+    if (isSpecial) return;
+
+    // Перевіряємо переповнення: scrollWidth > offsetWidth
+    const isOverflow = td.scrollWidth > td.offsetWidth + 2;
+    if (!isOverflow) return;
+
+    const btn = document.createElement("button");
+    btn.className = "cell-expand-btn";
+    btn.textContent = "▼";
+    btn.title = (typeof t === "function" && t("aeditExpandCell")) || "Редагувати повний вміст";
+    btn.type = "button";
+
+    Object.assign(btn.style, {
+        position: "absolute",
+        right: "0",
+        bottom: "0",
+        width: "12px",
+        height: "12px",
+        fontSize: "6px",
+       // lineHeight: "6px",
+        padding: "0",
+        margin: "0",
+        border: "none",
+        borderTopLeftRadius: "6px",
+        background: "#2255cc",
+        color: "#fff",
+        cursor: "pointer",
+        zIndex: "10",
+        textAlign: "center",
+        fontWeight: "bold",
+        boxShadow: "-1px -1px 3px rgba(0,0,0,0.2)"
+    });
+
+    // Гарантуємо, що td має position:relative для абсолютного позиціонування кнопки
+    if (!td.style.position || td.style.position === "static") {
+        td.style.position = "relative";
+    }
+
+    btn.addEventListener("mousedown", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+    });
+
+    btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        _openCellTextModal(td, colSchema, rowData, index, isReadOnly);
+    });
+
+    td.appendChild(btn);
+}
+
+function _removeExpandBtn(td) {
+    if (!td) return;
+    const existing = td.querySelector(".cell-expand-btn");
+    if (existing) existing.remove();
+}
+
+/**
+ * Відкриває модальне вікно для редагування повного тексту комірки.
+ * Enter — зберегти та закрити, Escape / клік поза вікном — закрити без змін.
+ */
+function _openCellTextModal(td, colSchema, rowData, index, isReadOnly) {
+    // Уникаємо дублювання
+    const existing = document.getElementById("cellTextEditOverlay");
+    if (existing) existing.remove();
+
+    // Читаємо текст комірки, ігноруючи кнопку розгортання
+    const expandBtn = td.querySelector(".cell-expand-btn");
+    if (expandBtn) expandBtn.style.display = "none";
+    const currentText = td.innerText ?? td.textContent ?? "";
+    if (expandBtn) expandBtn.style.display = "";
+
+    const overlay = document.createElement("div");
+    overlay.id = "cellTextEditOverlay";
+    Object.assign(overlay.style, {
+        position: "fixed",
+        inset: "0",
+        background: "rgba(0,0,0,0.35)",
+        zIndex: "10000",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+    });
+
+    const modal = document.createElement("div");
+    Object.assign(modal.style, {
+        background: "var(--modal-bg, #fff)",
+        border: "1px solid #aaa",
+        borderRadius: "6px",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.25)",
+        padding: "16px",
+        minWidth: "320px",
+        maxWidth: "560px",
+        width: "40vw",
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px"
+    });
+
+    const label = document.createElement("div");
+    label.style.cssText = "font-size:12px;color:#666;";
+    label.textContent = (colSchema?.title || "") +
+        (isReadOnly ? " (read only)" : " ");
+
+    const textarea = document.createElement("textarea");
+    textarea.value = currentText;
+    textarea.readOnly = !!isReadOnly;
+    textarea.rows = 6;
+    Object.assign(textarea.style, {
+        width: "100%",
+        boxSizing: "border-box",
+        resize: "vertical",
+        fontFamily: "inherit",
+        fontSize: "inherit",
+        padding: "6px",
+        border: "1px solid #ccc",
+        borderRadius: "4px",
+        background: isReadOnly ? "#f5f5f5" : "var(--input-bg, #fff)"
+    });
+
+    modal.appendChild(label);
+    modal.appendChild(textarea);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    textarea.focus();
+    textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
+
+    function saveAndClose() {
+        const newVal = textarea.value;
+        // Оновлюємо вміст комірки
+        td.innerText = newVal;
+        // Оновлюємо rowData
+        const typeStr = String(colSchema?.type || "").toLowerCase();
+        if (typeStr === "integer" || typeStr === "ціле число" || typeStr === "int" ||
+            typeStr === "real" || typeStr === "дійсне число") {
+            const n = newVal === "" ? null : Number(newVal);
+            rowData[index] = (n === null || Number.isNaN(n)) ? null : n;
+        } else {
+            rowData[index] = newVal;
+        }
+        overlay.remove();
+    }
+
+    function cancelAndClose() {
+        overlay.remove();
+    }
+
+    textarea.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            if (!isReadOnly) saveAndClose();
+            else overlay.remove();
+        }
+        if (e.key === "Escape") {
+            e.preventDefault();
+            cancelAndClose();
+        }
+    });
+
+    overlay.addEventListener("mousedown", (e) => {
+        if (e.target === overlay) cancelAndClose();
+    });
+}
+
+
+/**
  * Функція editData
  * ------------------
  * Призначення: Відображає інтерфейс редагування таблиці або перегляду запиту у модальному вікні.
@@ -910,9 +1090,23 @@ function editData(tableName) {
 
             td.addEventListener("click", () => {
                 if (selectedCell?.parentElement) selectedCell.parentElement.classList.remove("selected-row");
+                // Видаляємо кнопку розгортання з попередньої виділеної комірки
+                if (selectedCell) _removeExpandBtn(selectedCell);
                 selectedCell = td;
                 selectedCell.parentElement.classList.add("selected-row");
+                // Показуємо кнопку розгортання якщо вміст ширший за комірку
+                _updateExpandBtn(td, colSchema, rowData, index, isQueryTable);
             });
+
+            td.addEventListener("blur", (e) => {
+                // Не прибираємо кнопку якщо клік потрапив на саму кнопку
+                if (e.relatedTarget && e.relatedTarget.classList.contains("cell-expand-btn")) return;
+                setTimeout(() => {
+                    if (document.activeElement !== td && !td.querySelector(".cell-expand-btn:focus")) {
+                        _removeExpandBtn(td);
+                    }
+                }, 100);
+            }, true);
 
             tr.appendChild(td);
         });
@@ -936,6 +1130,14 @@ function editData(tableName) {
     }
 
     document.getElementById("editModal").style.display = "flex";
+
+    // Прибираємо кнопку розгортання при кліку поза комірками таблиці
+    const _bodyClickCleanup = (e) => {
+        if (!e.target.closest("td") && !e.target.classList.contains("cell-expand-btn")) {
+            if (selectedCell) _removeExpandBtn(selectedCell);
+        }
+    };
+    body.addEventListener("click", _bodyClickCleanup);
 }
 
 
