@@ -58,6 +58,10 @@ function saveForm() {
         if (el.classList.contains("form-shape")) {
             return serializeShapeElement(el);
         }
+        // Зображення
+        if (el.classList.contains("form-image")) {
+            return serializeImageElement(el);
+        }
         //обробка таблиці
         if (el.classList.contains("form-table")) {
             return serializeTableElement(el);
@@ -217,6 +221,13 @@ function previewForm(form = null, resetIndex = false) {
                     fillTransparent: el.fillTransparent
                 };
             }
+            // Обробка зображень
+            if (el.type === "image") {
+                return {
+                    ...base,
+                    imageUrl: el.imageUrl || ""
+                };
+            }
             // Властивості текстових елементів та полів
             return {
                 ...base,
@@ -280,6 +291,17 @@ function previewForm(form = null, resetIndex = false) {
                     strokeColor: el.dataset.strokeColor || "#333333",
                     fillColor: el.dataset.fillColor || "#ffffff",
                     fillTransparent: el.dataset.fillTransparent === "1"
+                };
+            }
+            // Обробка зображень
+            if (el.classList.contains("form-image")) {
+                return {
+                    type: "image",
+                    left: el.style.left,
+                    top: el.style.top,
+                    width: el.style.width,
+                    height: el.style.height,
+                    imageUrl: el.dataset.imageUrl || ""
                 };
             }
             // Поля та написи
@@ -833,6 +855,26 @@ thead.appendChild(headerRow);
                 }
             }
             previewCanvas.appendChild(shapeDiv);
+        } else if (el.type === "image") {
+            const imgDiv = document.createElement("div");
+            imgDiv.className = "form-image-preview";
+            Object.assign(imgDiv.style, {
+                position: "absolute",
+                left: el.left,
+                top: el.top,
+                width: el.width,
+                height: el.height,
+                boxSizing: "border-box",
+                overflow: "hidden",
+                pointerEvents: "none"
+            });
+            if (el.imageUrl) {
+                const img = document.createElement("img");
+                img.src = el.imageUrl;
+                Object.assign(img.style, { width: "100%", height: "100%", objectFit: "contain", display: "block" });
+                imgDiv.appendChild(img);
+            }
+            previewCanvas.appendChild(imgDiv);
         }
     });
     // Синхронізуємо розміри formPreview з formCreatorModalContent

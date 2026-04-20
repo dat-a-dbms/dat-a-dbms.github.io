@@ -1138,6 +1138,122 @@ function editData(tableName) {
         }
     };
     body.addEventListener("click", _bodyClickCleanup);
+
+    // ---------- Індикатори скролінгу ----------
+    _setupScrollIndicators();
+}
+
+/**
+ * Встановлює індикатори позиції скролінгу для вікна редагування таблиці:
+ * - горизонтальний індикатор у рядку заголовка (editTitle)
+ * - вертикальний індикатор у колонці кнопок (editModalButtons)
+ */
+function _setupScrollIndicators() {
+    const editTableEl = document.getElementById('editTable');
+    if (!editTableEl) return;
+    const wrapper = editTableEl.parentElement;
+    if (!wrapper) return;
+
+    const hScrollContainer = editTableEl.parentElement;
+    const vScrollContainer = wrapper;  
+
+    // --- Горизонтальний індикатор (в елементі h2#editTitle) ---
+    const titleEl = document.getElementById("editTitle");
+    if (titleEl && hScrollContainer) {
+        // h2 має display:block — робимо flex, щоб індикатор можна було притиснути праворуч
+        Object.assign(titleEl.style, {
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "8px"
+        });
+
+        let hIndicator = document.getElementById("editScrollHIndicator");
+        if (!hIndicator) {
+            hIndicator = document.createElement("span");
+            hIndicator.id = "editScrollHIndicator";
+            Object.assign(hIndicator.style, {
+                flexShrink: "0",
+                fontSize: "18px",
+                lineHeight: "1",
+                pointerEvents: "none",
+                userSelect: "none",
+                opacity: "0.7",
+                minWidth: "30px",
+                textAlign: "right"
+            });
+            titleEl.appendChild(hIndicator);
+        }
+
+        const updateH = () => {
+            const scrollLeft = hScrollContainer.scrollLeft;
+            const maxScrollLeft = hScrollContainer.scrollWidth - hScrollContainer.clientWidth;
+            const hasLeft = scrollLeft > 1;
+            const hasRight = maxScrollLeft > 1 && scrollLeft < maxScrollLeft - 1;
+
+            if (hasLeft && hasRight) {
+                hIndicator.textContent = "◂ ▸";
+            } else if (hasLeft) {
+                hIndicator.textContent = "◂";
+            } else if (hasRight) {
+                hIndicator.textContent = "▸";
+            } else {
+                hIndicator.textContent = "";
+            }
+        };
+
+        hScrollContainer.addEventListener("scroll", updateH);
+        setTimeout(updateH, 50);
+    }
+
+    // --- Вертикальний індикатор (в колонці кнопок editModalButtons) ---
+    const buttonsCol = document.getElementById("editModalButtons");
+    if (buttonsCol && vScrollContainer) {
+        let vIndicator = document.getElementById("editScrollVIndicator");
+        if (!vIndicator) {
+            vIndicator = document.createElement("div");
+            vIndicator.id = "editScrollVIndicator";
+            Object.assign(vIndicator.style, {
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "2px",
+                fontSize: "14px",
+                lineHeight: "1",
+                pointerEvents: "none",
+                userSelect: "none",
+                color: "inherit",
+                opacity: "0.7",
+                marginTop: "auto"
+            });
+            buttonsCol.appendChild(vIndicator);
+        } else {
+            vIndicator.innerHTML = "";
+        }
+
+        const updateV = () => {
+            const scrollTop = vScrollContainer.scrollTop;
+            const maxScrollTop = vScrollContainer.scrollHeight - vScrollContainer.clientHeight;
+            const hasUp = scrollTop > 1;
+            const hasDown = maxScrollTop > 1 && scrollTop < maxScrollTop - 1;
+
+            vIndicator.innerHTML = "";
+            if (hasUp) {
+                const up = document.createElement("span");
+                up.textContent = "▲";
+                vIndicator.appendChild(up);
+            }
+            if (hasDown) {
+                const down = document.createElement("span");
+                down.textContent = "▼";
+                vIndicator.appendChild(down);
+            }
+        };
+
+        vScrollContainer.addEventListener("scroll", updateV);
+        setTimeout(updateV, 50);
+    }
 }
 
 
@@ -1208,7 +1324,6 @@ function addDataRow() {
     }
 }
 
-
 // Допоміжна функція для виділення рядка
 function highlightRow(tr) {
     const tbody = tr.parentElement;
@@ -1217,7 +1332,6 @@ function highlightRow(tr) {
 }
 
 //
-
 let deleteRowCallback = null; // сюди збережемо функцію, яку виконаємо після підтвердження
 
 function confirmDeleteRow(pkValue, onConfirm) {
@@ -1261,16 +1375,7 @@ function deleteRowCancelled() {
 * - Формує SQL-запит DELETE і виконує його;
 * - Видаляє рядок із таблиці і зберігає БД.
 **/
-/**
-* Функція deleteSelectedRow()
-* ---------------------------
-* Призначення: Видаляє вибраний рядок із таблиці редагування, якщо вона не є запитом і має первинний ключ.
-**/
-/**
-* Функція deleteSelectedRow()
-* ---------------------------
-* Призначення: Видаляє вибраний рядок із таблиці редагування, якщо вона не є запитом і має первинний ключ.
-**/
+
 function deleteSelectedRow(afterDeleteCallback) {
     if (!selectedCell || !currentEditTable || currentEditTable.name?.startsWith('*')) {
         Message(t("aeditDeleteSelectFirst"));

@@ -866,6 +866,59 @@ function renderCanvas(stored) {
             makeDraggableAndResizable(div);
             return;
         }
+        // --- Елементи зображень ---
+        if (el.type === "image") {
+            const div = document.createElement("div");
+            div.classList.add(cm + "-element", cm + "-image");
+            div.dataset.imageUrl = el.imageUrl || "";
+            Object.assign(div.style, {
+                position: "absolute",
+                left: el.left + "px",
+                top: el.top + "px",
+                width: el.width + "px",
+                height: el.height + "px",
+                border: "2px dashed #888",
+                backgroundColor: el.imageUrl ? "transparent" : "rgba(220,220,220,0.4)",
+                cursor: "grab",
+                boxSizing: "border-box",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+            });
+            if (el.imageUrl) {
+                const img = document.createElement("img");
+                img.src = el.imageUrl;
+                Object.assign(img.style, { width: "100%", height: "100%", objectFit: "contain", display: "block", pointerEvents: "none" });
+                div.appendChild(img);
+            } else {
+                const lbl = document.createElement("div");
+                lbl.className = "image-placeholder-label";
+                lbl.innerText = "IMAGE";
+                Object.assign(lbl.style, { pointerEvents: "none", fontSize: "14px", fontFamily: "Arial", color: "#666", fontWeight: "bold", userSelect: "none" });
+                div.appendChild(lbl);
+            }
+            div.addEventListener("click", (e) => {
+                if (e.target.classList.contains("resize-handle")) return;
+                const rect = div.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+                const BORDER_TOLERANCE = 10;
+                const nearBorder = clickX < BORDER_TOLERANCE || clickX > rect.width - BORDER_TOLERANCE ||
+                                   clickY < BORDER_TOLERANCE || clickY > rect.height - BORDER_TOLERANCE;
+                if (!nearBorder) {
+                    activeElement = div;
+                    openImageEditor("IMAGE", div.dataset.imageUrl || "", (url) => {
+                        div.dataset.imageUrl = url || "";
+                        _updateImageElement(div, url);
+                        isDesignerDirty = true;
+                    });
+                }
+            });
+            cCanvas.appendChild(div);
+            addResizeHandles(div);
+            makeDraggableAndResizable(div);
+            return;
+        }
         // --- Текстові елементи ---
         const div = document.createElement("div");
         div.classList.add(cm + "-element");
@@ -1292,6 +1345,110 @@ function addShapeHLine() {
 
 function addShapeVLine() {
     _createShape("vline");
+}
+
+// === ЗОБРАЖЕННЯ ===
+/**
+ * Створює елемент-зображення на canvas.
+ * В конструкторі показує прямокутник з написом IMAGE.
+ * При кліку в центр відкриває вікно вибору зображення.
+ */
+function addImage() {
+    const canvas = screenCanvas;
+    const cm = constructorMode;
+    const el = document.createElement("div");
+    el.classList.add(cm + "-element", cm + "-image");
+    el.dataset.imageUrl = el.dataset.imageUrl || "";
+    Object.assign(el.style, {
+        position: "absolute",
+        left: "20px",
+        top: "20px",
+        width: "160px",
+        height: "120px",
+        border: "2px dashed #888",
+        backgroundColor: "rgba(220,220,220,0.4)",
+        cursor: "grab",
+        boxSizing: "border-box",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+    });
+    // Напис IMAGE всередині
+    const label = document.createElement("div");
+    label.className = "image-placeholder-label";
+    label.innerText = "IMAGE";
+    Object.assign(label.style, {
+        pointerEvents: "none",
+        fontSize: "14px",
+        fontFamily: "Arial",
+        color: "#666",
+        fontWeight: "bold",
+        userSelect: "none"
+    });
+    el.appendChild(label);
+    // Клік у центр → відкриваємо вибір зображення
+    el.addEventListener("click", (e) => {
+        if (e.target.classList.contains("resize-handle")) return;
+        const rect = el.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        const BORDER_TOLERANCE = 10;
+        const nearBorder = clickX < BORDER_TOLERANCE || clickX > rect.width - BORDER_TOLERANCE ||
+                           clickY < BORDER_TOLERANCE || clickY > rect.height - BORDER_TOLERANCE;
+        if (!nearBorder) {
+            activeElement = el;
+            openImageEditor("IMAGE", el.dataset.imageUrl || "", (url) => {
+                el.dataset.imageUrl = url || "";
+                _updateImageElement(el, url);
+                isDesignerDirty = true;
+            });
+        }
+    });
+    
+    canvas.appendChild(el);
+    addResizeHandles(el);
+    makeDraggableAndResizable(el);
+    isDesignerDirty = true;
+    return el;
+}
+
+/**
+ * Оновлює вигляд елемента-зображення у конструкторі після зміни URL.
+ */
+function _updateImageElement(el, url) {
+    // Видаляємо старий вміст (крім маркерів)
+    [...el.childNodes].forEach(c => {
+        if (!c.classList || !c.classList.contains("resize-handle")) c.remove();
+    });
+    if (url) {
+        const img = document.createElement("img");
+        img.src = url;
+        Object.assign(img.style, {
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            display: "block",
+            pointerEvents: "none"
+        });
+        el.style.border = "2px dashed #888";
+        el.style.backgroundColor = "transparent";
+        el.insertBefore(img, el.firstChild);
+    } else {
+        const label = document.createElement("div");
+        label.className = "image-placeholder-label";
+        label.innerText = "IMAGE";
+        Object.assign(label.style, {
+            pointerEvents: "none",
+            fontSize: "14px",
+            fontFamily: "Arial",
+            color: "#666",
+            fontWeight: "bold",
+            userSelect: "none"
+        });
+        el.style.border = "2px dashed #888";
+        el.style.backgroundColor = "rgba(220,220,220,0.4)";
+        el.insertBefore(label, el.firstChild);
+    }
 }
 
 function openShapeColorPicker() {

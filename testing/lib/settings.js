@@ -90,18 +90,75 @@ function applyDarkTheme(enabled) {
     localStorage.setItem(SETTINGS_KEYS.DARK_THEME, enabled);
 }
 
+/**
+ * Отримує налаштування з прив'язаного ключа "dbName.app-settings" і застосовує до UI.
+ * Викликається автоматично з io.js → syncAllAppSettings() після кожного
+ * завантаження бази (з localStorage, IndexedDB або .DTA файлу).
+ * @param {Object} s  { darkTheme, language, simpleInterface, storeFilesInDb, autoLoadLastDb }
+ */
+function applyAppSettingsToUI(s) {
+    if (!s) return;
+
+    if (s.darkTheme !== undefined) {
+        const v = s.darkTheme === true || s.darkTheme === "true";
+        const cb = document.getElementById('darkThemeCheckbox');
+        if (cb) cb.checked = v;
+        document.body.classList.toggle('dark-theme', v);
+        localStorage.setItem(SETTINGS_KEYS.DARK_THEME, String(v));
+    }
+
+    if (s.language) {
+        const prevLang = localStorage.getItem(SETTINGS_KEYS.LANGUAGE);
+        const sel = document.getElementById('languageSelect');
+        if (sel) sel.value = s.language;
+        localStorage.setItem(SETTINGS_KEYS.LANGUAGE, s.language);
+        if (s.language !== prevLang && typeof setLang === 'function') setLang(s.language);
+    }
+
+    if (s.simpleInterface !== undefined) {
+        const v = s.simpleInterface === true || s.simpleInterface === "true";
+        const cb = document.getElementById('simpleInterfaceCheckbox');
+        if (cb) cb.checked = v;
+        localStorage.setItem(SETTINGS_KEYS.SIMPLE_INTERFACE, String(v));
+        // applySimpleInterface відкриває головне меню — викликаємо тільки якщо реально true
+        if (v) applySimpleInterface(v);
+    }
+
+    if (s.storeFilesInDb !== undefined) {
+        const cb = document.getElementById('storeFilesInDbCheckbox');
+        if (cb) cb.checked = s.storeFilesInDb === true || s.storeFilesInDb === "true";
+        localStorage.setItem(SETTINGS_KEYS.STORE_FILES_IN_DB, String(s.storeFilesInDb));
+    }
+
+    if (s.autoLoadLastDb !== undefined) {
+        const cb = document.getElementById('autoLoadLastDbCheckbox');
+        if (cb) cb.checked = s.autoLoadLastDb === true || s.autoLoadLastDb === "true";
+        localStorage.setItem(SETTINGS_KEYS.AUTO_LOAD_LAST_DB, String(s.autoLoadLastDb));
+    }
+}
+
 // Відкриття / закриття налаштувань 
 function openSettingsModal() {
+    // Якщо база відкрита — показуємо її власні налаштування; інакше — глобальні
+    const hasDb = typeof database !== "undefined" && database.fileName;
+    const dbS = (hasDb && typeof loadDbSettings === "function")
+        ? loadDbSettings(database.fileName) : {};
+    const bool = (k, lsKey) => k in dbS
+        ? (dbS[k] === true || dbS[k] === "true")
+        : localStorage.getItem(lsKey) === 'true';
+    const str  = (k, lsKey, fb) => k in dbS
+        ? (dbS[k] || fb) : (localStorage.getItem(lsKey) || fb);
+
     document.getElementById('autoLoadLastDbCheckbox').checked =
-        localStorage.getItem(SETTINGS_KEYS.AUTO_LOAD_LAST_DB) === 'true';
+        bool('autoLoadLastDb', SETTINGS_KEYS.AUTO_LOAD_LAST_DB);
     document.getElementById('simpleInterfaceCheckbox').checked =
-        localStorage.getItem(SETTINGS_KEYS.SIMPLE_INTERFACE) === 'true';
+        bool('simpleInterface', SETTINGS_KEYS.SIMPLE_INTERFACE);
     document.getElementById('darkThemeCheckbox').checked =
-        localStorage.getItem(SETTINGS_KEYS.DARK_THEME) === 'true';
-    document.getElementById('storeFilesInDbCheckbox').checked = 
-        localStorage.getItem(SETTINGS_KEYS.STORE_FILES_IN_DB) === 'true';    
+        bool('darkTheme', SETTINGS_KEYS.DARK_THEME);
+    document.getElementById('storeFilesInDbCheckbox').checked =
+        bool('storeFilesInDb', SETTINGS_KEYS.STORE_FILES_IN_DB);
     document.getElementById('languageSelect').value =
-        localStorage.getItem(SETTINGS_KEYS.LANGUAGE) || 'uk';
+        str('language', SETTINGS_KEYS.LANGUAGE, 'uk');
     document.getElementById('settingsModal').style.display = 'flex';
 }
 
@@ -111,18 +168,40 @@ function closeSettingsModal() {
 
 // Збереження налаштувань
 async function saveSettings() {
-    const autoLoad       = document.getElementById('autoLoadLastDbCheckbox').checked;
+    const autoLoad        = document.getElementById('autoLoadLastDbCheckbox').checked;
     const simpleInterface = document.getElementById('simpleInterfaceCheckbox').checked;
-    const darkTheme      = document.getElementById('darkThemeCheckbox').checked;
-    const storeFilesInDb = document.getElementById('storeFilesInDbCheckbox').checked;    
-    const language       = document.getElementById('languageSelect').value;
-	localStorage.setItem(SETTINGS_KEYS.STORE_FILES_IN_DB, storeFilesInDb);
-    localStorage.setItem(SETTINGS_KEYS.AUTO_LOAD_LAST_DB, autoLoad);
-    // applyDarkTheme / applySimpleInterface самі зберігають свої ключі
+    const darkTheme       = document.getElementById('darkThemeCheckbox').checked;
+    const storeFilesInDb  = document.getElementById('storeFilesInDbCheckbox').checked;
+    const language        = document.getElementById('languageSelect').value;
+    const prevLang        = localStorage.getItem(SETTINGS_KEYS.LANGUAGE);
+
+    // Завжди зберігаємо глобально (для роботи до відкриття будь-якої бази)
+    localStorage.setItem(SETTINGS_KEYS.AUTO_LOAD_LAST_DB,  String(autoLoad));
+    localStorage.setItem(SETTINGS_KEYS.SIMPLE_INTERFACE,   String(simpleInterface));
+    localStorage.setItem(SETTINGS_KEYS.DARK_THEME,         String(darkTheme));
+    localStorage.setItem(SETTINGS_KEYS.STORE_FILES_IN_DB,  String(storeFilesInDb));
+    localStorage.setItem(SETTINGS_KEYS.LANGUAGE,           language);
+
+    // Якщо відкрита база — зберегти прив'язано до її файлу
+    const hasDb = typeof database !== "undefined" && database.fileName;
+    if (hasDb && typeof saveDbSettings === "function") {
+        const dbS = {
+            autoLoadLastDb:  String(autoLoad),
+            simpleInterface: String(simpleInterface),
+            darkTheme:       String(darkTheme),
+            storeFilesInDb:  String(storeFilesInDb),
+            language
+        };
+        saveDbSettings(database.fileName, dbS);
+        // Оновити appSettings у пам'яті
+        if (typeof appSettingSet === "function")
+            Object.entries(dbS).forEach(([k,v]) => appSettingSet(k, v));
+    }
+
     applySimpleInterface(simpleInterface);
     applyDarkTheme(darkTheme);
 
-    if (language !== localStorage.getItem(SETTINGS_KEYS.LANGUAGE)) {
+    if (language !== prevLang) {
         await setLang(language);
         const langText = document.getElementById('languageSelect')
             .options[document.getElementById('languageSelect').selectedIndex].text;
@@ -139,7 +218,7 @@ function clearStorage() {
 
     const suffixes = [
         '.db-data', '.tables-data', '.queries-data',
-        '.query-results', '.reports-data', '.forms-data', '.relations-data'
+        '.query-results', '.reports-data', '.forms-data', '.relations-data', '.app-settings'
     ];
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
@@ -168,13 +247,8 @@ function clearStorage() {
     setTimeout(() => location.reload(), 1500);
 }
 
-// Патч loadDatabase 
-const originalLoadDatabase = loadDatabase;
-window.loadDatabase = async function () {
-    await originalLoadDatabase();
-    applySimpleInterface(localStorage.getItem(SETTINGS_KEYS.SIMPLE_INTERFACE) === 'true');
-    applyDarkTheme(localStorage.getItem(SETTINGS_KEYS.DARK_THEME) === 'true');
-};
+// Налаштування застосовуються через applyAppSettingsToUI() що викликається
+// з io.js → syncAllAppSettings() після кожного завантаження бази.
 
 // Ініціалізація після завантаження DOM 
 document.addEventListener('DOMContentLoaded', async () => {

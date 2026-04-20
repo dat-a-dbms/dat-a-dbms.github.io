@@ -1,3 +1,4 @@
+
 // ===== _app_settings: налаштування зберігаються у файлі _app_settings.json всередині .DTA =====
 // Не є таблицею SQLite. У пам'яті зберігається як об'єкт appSettings.
 
@@ -13,21 +14,48 @@ function appSettingSet(key, value) {
     appSettings[key] = String(value);
 }
 
-/**
- * Читає storeFilesInDb з appSettings і синхронізує в localStorage.
- * Якщо в appSettings значення немає — читає з localStorage і записує в appSettings.
- */
-function syncStoreFilesInDbSetting() {
-    const memVal = appSettingGet("storeFilesInDb");
-    if (memVal !== null) {
-        // appSettings — джерело правди при перенесенні на інший ПК (завантаження з .DTA)
-        localStorage.setItem("app_settings_storeFilesInDb", memVal);
-    } else {
-        // Перший запуск: переносимо значення з localStorage до appSettings
-        const lsVal = localStorage.getItem("app_settings_storeFilesInDb") ?? "false";
-        appSettingSet("storeFilesInDb", lsVal);
-    }
+// Ключі налаштувань що зберігаються разом із базою (у localStorage під "dbName.app-settings")
+const APP_SETTING_KEYS = ["storeFilesInDb","darkTheme","language","simpleInterface","autoLoadLastDb"];
+
+// Читає прив'язані налаштування конкретного файлу бази з localStorage
+function loadDbSettings(dbName) {
+    try { 
+		console.log("Settings load=",JSON.parse(localStorage.getItem(dbName + ".app-settings") || "{}"))
+		return JSON.parse(localStorage.getItem(dbName + ".app-settings") || "{}"); }
+    catch(e) { return {}; }
 }
+
+// Зберігає прив'язані налаштування конкретного файлу бази в localStorage
+function saveDbSettings(dbName, obj) {
+	console.log("Settings saved=",dbName + ".app-settings", JSON.stringify(obj))
+    localStorage.setItem(dbName + ".app-settings", JSON.stringify(obj));
+}
+
+/**
+ * Викликається після кожного завантаження бази.
+ * 1. Якщо appSettings непорожній (прийшов з .DTA) — записує ці значення в "dbName.app-settings"
+ * 2. Якщо appSettings порожній — завантажує з "dbName.app-settings"
+ * 3. Fallback — глобальні "app_settings_*" (браузерні значення, лише якщо база нова)
+ * Після цього викликає applyAppSettingsToUI() для оновлення інтерфейсу.
+ */
+function syncAllAppSettings(dbName) {
+    const stored = loadDbSettings(dbName);
+    const result = {};
+    APP_SETTING_KEYS.forEach(key => {
+        const fromDta = appSettingGet(key);
+        if (stored[key] !== undefined) {
+            result[key] = stored[key];                      // збережені налаштування цієї бази
+        } else {
+            result[key] = localStorage.getItem("app_settings_" + key) ?? "false"; // fallback
+        }
+        appSettingSet(key, result[key]);
+    });
+    saveDbSettings(dbName, result);
+    if (typeof applyAppSettingsToUI === "function") applyAppSettingsToUI(result);
+}
+
+// Зворотна сумісність
+function syncStoreFilesInDbSetting() { syncAllAppSettings(database.fileName || "my_database"); }
 
 function openAppDB() {
     return new Promise((resolve, reject) => {
@@ -117,7 +145,7 @@ async function loadDatabase() {
     if (data) {
         db = new SQL.Database(data);
         console.log("База даних завантажена: ", db);
-        syncStoreFilesInDbSetting();            
+        syncAllAppSettings(name);
         
         // Завантажити запити тільки якщо є база
         const savedQueries = localStorage.getItem(name + ".queries-data");
@@ -165,7 +193,7 @@ async function loadDatabase() {
 
     } else {
         db = new SQL.Database();
-        syncStoreFilesInDbSetting();
+        syncAllAppSettings(name);
         queries.definitions = [];
         database.reports = [];
         database.forms = [];
@@ -191,9 +219,8 @@ async function loadDatabase() {
 async function saveDatabase() {
         console.log("Зберігаємо базу даних: ", database.fileName)
         if (!db) return;
-        // Синхронізуємо налаштування з localStorage → appSettings перед збереженням
-        const storeFilesInDb = localStorage.getItem("app_settings_storeFilesInDb") ?? "false";
-        appSettingSet("storeFilesInDb", storeFilesInDb);
+        // Зберегти налаштування прив'язано до файлу бази
+        { const s={}; APP_SETTING_KEYS.forEach(k=>{ s[k]=appSettingGet(k)??"false"; }); saveDbSettings(database.fileName,s); }
         await idbSave(database.fileName + ".db-data", db.export());
         console.log("Зберігаємо таблиці: ",database.tables)
         localStorage.setItem(database.fileName + ".tables-data", JSON.stringify(
@@ -279,7 +306,7 @@ async function loadSelectedDb() {
 
     // Очистити database, queries та меню
     clearDB();
-    syncStoreFilesInDbSetting();
+    // syncAllAppSettings викличеться з loadDatabase() нижче
 
     // Завантажити дані з локального сховища
     const fullDatabase = JSON.parse(localStorage.getItem(selectedDbFile + ".tables-data"));
@@ -403,9 +430,8 @@ async function exportDTA() {
     const formsJson = JSON.stringify(database.forms || [], null, 2);
     zip.file("forms.json", formsJson);
 
-    // Налаштування програми (_app_settings.json)
-    const storeFilesInDbVal = localStorage.getItem("app_settings_storeFilesInDb") ?? "false";
-    appSettingSet("storeFilesInDb", storeFilesInDbVal);
+    // Налаштування програми (_app_settings.json) — усі ключі цієї бази
+    { const s=loadDbSettings(database.fileName); APP_SETTING_KEYS.forEach(k=>{ appSettingSet(k, s[k]??appSettingGet(k)??"false"); }); }
     zip.file("_app_settings.json", JSON.stringify(Object.assign({}, appSettings), null, 2));
 
     // Архів
@@ -486,7 +512,7 @@ async function importDTA(file) {
 
     // Відновлення таблиць через sqlite_master + savedSchemas
     database.tables = [];
-    syncStoreFilesInDbSetting();
+    syncAllAppSettings(database.fileName);
     const res = db.exec("SELECT name, sql FROM sqlite_master WHERE type='table';");
     if (res.length > 0) {
         const tableRows = res[0].values;
@@ -572,7 +598,7 @@ function importSQLiteDb(file) {
                 await idbSave(fileName + ".db-data", uIntArray);
                
                 db = importedDb;
-                syncStoreFilesInDbSetting();
+                syncAllAppSettings(fileName);
     
                 const res = db.exec("SELECT name, sql FROM sqlite_master WHERE type='table';");
                 if (res.length > 0) {
@@ -699,681 +725,7 @@ function exportSQLiteDb() {
         URL.revokeObjectURL(a.href);
         a.remove();
     }
-/**
- * Імпорт з CVS файлу
- **/ 
-// Показати діалог вибору таблиці для імпорту
-
-function openAppDB() {
-    return new Promise((resolve, reject) => {
-        const req = indexedDB.open(IDB_NAME, 1);
-        req.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE);
-        req.onsuccess = e => resolve(e.target.result);
-        req.onerror = e => reject(e.target.error);
-    });
-}
-
-async function idbSave(key, value) {
-    const idb = await openAppDB();
-    return new Promise((resolve, reject) => {
-        const tx = idb.transaction(IDB_STORE, "readwrite");
-        tx.objectStore(IDB_STORE).put(value, key);
-        tx.oncomplete = resolve;
-        tx.onerror = e => reject(e.target.error);
-    });
-}
-
-async function idbLoad(key) {
-    const idb = await openAppDB();
-    return new Promise((resolve, reject) => {
-        const tx = idb.transaction(IDB_STORE, "readonly");
-        const req = tx.objectStore(IDB_STORE).get(key);
-        req.onsuccess = e => resolve(e.target.result ?? null);
-        req.onerror = e => reject(e.target.error);
-    });
-}
-
-async function idbDelete(key) {
-    const idb = await openAppDB();
-    return new Promise((resolve, reject) => {
-        const tx = idb.transaction(IDB_STORE, "readwrite");
-        tx.objectStore(IDB_STORE).delete(key);
-        tx.oncomplete = resolve;
-        tx.onerror = e => reject(e.target.error);
-    });
-}
-//
-/**
- * Автоматичне відкриття форми STARTUP після завантаження бази даних
- */
-function autoOpenStartupForm() {
-    // Перевіряємо наявність форми з назвою STARTUP
-    if (!database.forms || database.forms.length === 0) {
-        console.log("Немає форм для автоматичного відкриття");
-        return;
-    }
-    const startupForm = database.forms.find(form => form.name.toUpperCase() === "STARTUP" || form.name.toUpperCase() === "STARTUP_FORM" || form.name === "Стартова");
-    if (!startupForm) {
-        console.log("Форму STARTUP не знайдено");
-        return;
-    }
-    console.log("Знайдено стартову форму:", startupForm.name);
-    // Невелика затримка, щоб DOM повністю завантажився
-    setTimeout(() => {
-        // Закриваємо всі можливі модальні вікна
-        closeAllModals();
-        // Відкриваємо форму в режимі перегляду
-        previewForm(startupForm, true);
-    }, 500);
-}
-// ===== File BLOB encode/decode =====
-function encodeFileBlob(name, type, arrayBuffer) {
-    const header = new TextEncoder().encode(JSON.stringify({ name, type }));
-    const result = new Uint8Array(4 + header.length + arrayBuffer.byteLength);
-    new DataView(result.buffer).setUint32(0, header.length);
-    result.set(header, 4);
-    result.set(new Uint8Array(arrayBuffer), 4 + header.length);
-    return result;
-}
-
-function decodeFileBlob(uint8array) {
-    const headerLen = new DataView(uint8array.buffer, uint8array.byteOffset).getUint32(0);
-    const header = JSON.parse(new TextDecoder().decode(uint8array.slice(4, 4 + headerLen)));
-    return { name: header.name, type: header.type, data: uint8array.slice(4 + headerLen) };
-}
-
-// Завантаження БД з IndexedDB або створення нової
-async function loadDatabase() {
-    console.log("loadDatabase")
-    const name = database.fileName || "my_database";
-    const data = await idbLoad(name + ".db-data");
-    console.log("name =", name)
-
-    if (data) {
-        db = new SQL.Database(data);
-        console.log("База даних завантажена: ", db);
-        syncStoreFilesInDbSetting();            
-        
-        // Завантажити запити тільки якщо є база
-        const savedQueries = localStorage.getItem(name + ".queries-data");
-        if (savedQueries) {
-            queries.definitions = JSON.parse(savedQueries);
-            console.log("Визначення запитів завантажено: ", queries.definitions);
-        } else {
-            queries.definitions = [];
-        }
-        
-        const savedQueryResults = localStorage.getItem(name + ".query-results");
-        if (savedQueryResults) {
-            queries.results = JSON.parse(savedQueryResults);
-            console.log("Результати запитів завантажено:", queries.results);
-        } else {
-            queries.results = [];
-        }
-
-        const savedReports = localStorage.getItem(name + ".reports-data");
-        if (savedReports) {
-            database.reports = JSON.parse(savedReports);
-            console.log("Звіти завантажено: ", database.reports);               
-        } else {
-            database.reports = [];
-        }
-        
-        const savedForms = localStorage.getItem(name + ".forms-data");
-        if (savedForms) {
-            database.forms = JSON.parse(savedForms);
-            console.log("Форми завантажено: ", database.forms);
-        } else {
-            database.forms = [];
-        }
-        
-        const savedRelations = localStorage.getItem(name + ".relations-data");
-        if (savedRelations) {
-            database.relations = JSON.parse(savedRelations);
-            console.log("Зв'язки завантажено: ", database.relations);
-        } else {
-            database.relations = [];
-        }
-
-        //АВТОМАТИЧНЕ ВІДКРИТТЯ СТАРТОВОЇ ФОРМИ
-        autoOpenStartupForm();
-
-    } else {
-        db = new SQL.Database();
-        syncStoreFilesInDbSetting();
-        queries.definitions = [];
-        database.reports = [];
-        database.forms = [];
-        console.log("Нова база даних створена");
-    }
-    newDbFile = false;
-    queries.results = [];
-    const itl = document.getElementById("import-table-link");
-    if (itl) {
-        itl.style.display = "block";
-    }
-    updateMainTitle();
-    updateQuickAccessPanel(
-        getCurrentTableNames(),
-        getCurrentQueryNames(),
-        getCurrentReportNames(),
-        getCurrentFormNames()
-    ); 
-    localStorage.setItem('lastOpenedFile', name);
-}
-
-// Збереження БД у IndexedDB
-async function saveDatabase() {
-        console.log("Зберігаємо базу даних: ", database.fileName)
-        if (!db) return;
-        // Синхронізуємо налаштування з localStorage → appSettings перед збереженням
-        const storeFilesInDb = localStorage.getItem("app_settings_storeFilesInDb") ?? "false";
-        appSettingSet("storeFilesInDb", storeFilesInDb);
-        await idbSave(database.fileName + ".db-data", db.export());
-        console.log("Зберігаємо таблиці: ",database.tables)
-        localStorage.setItem(database.fileName + ".tables-data", JSON.stringify(
-            database.tables.map(({ data, ...rest }) => rest)
-        ));
-        // Зберігаємо запити та їх результати
-        console.log("Зберігаємо запити: ",queries.definitions)
-        localStorage.setItem(database.fileName + ".queries-data", JSON.stringify(queries.definitions));
-        console.log("Зберігаємо результати запитів: ",queries.results)
-        localStorage.setItem(database.fileName + ".query-results", JSON.stringify(queries.results || []));
-
-
-        // Зберігаємо звіти
-        localStorage.setItem(database.fileName + ".reports-data", JSON.stringify(database.reports || []));
-        console.log("Зберігаємо звіти: ",database.reports)
-        // Зберігаємо форми
-        localStorage.setItem(database.fileName + ".forms-data", JSON.stringify(database.forms || []));
-        console.log("Зберігаємо форми: ",database.forms)
-        // Зберігаємо зв'язки (тільки readonly — FK-зв'язки)
-        const relationsToSave = (database.relations || []).filter(r => r.readonly === true);
-        console.log("Зберігаємо зв'язки: ", relationsToSave)
-        localStorage.setItem(database.fileName + ".relations-data", JSON.stringify(relationsToSave));
-        
-        console.log("База даних збережена у localStorage");
-        document.getElementById("import-table-link").style.display = "block";
-        updateQuickAccessPanel(
-                  getCurrentTableNames(),
-                  getCurrentQueryNames(),
-                  getCurrentReportNames(),
-                  getCurrentFormNames()
-                );                
-                    
-}
-
-async function showStorageDialog() {
-    const listEl = document.getElementById("storageList");
-    listEl.innerHTML = "";
-    selectedDbFile = null;
-
-    // Отримуємо всі ключі з IndexedDB
-    const idb = await openAppDB();
-    const keys = await new Promise((resolve, reject) => {
-        const tx = idb.transaction(IDB_STORE, "readonly");
-        const req = tx.objectStore(IDB_STORE).getAllKeys();
-        req.onsuccess = e => resolve(e.target.result);
-        req.onerror = e => reject(e.target.error);
-    });
-
-    keys.forEach(key => {
-        if (!key.endsWith(".db-data")) return;
-        const fileName = key.replace(".db-data", "");
-        const li = document.createElement("li");
-        li.textContent = fileName;
-        li.style.padding = "8px";
-        li.style.cursor = "pointer";
-
-        li.addEventListener("click", () => {
-            [...listEl.children].forEach(el => el.style.background = "");
-            const isDark = document.body.classList.contains("dark-theme");
-            li.style.background = isDark ? "#242d43" : "#d0e0ff";
-            selectedDbFile = fileName;
-        });
-
-        listEl.appendChild(li);
-    });
-
-    document.getElementById("storageModal").style.display = "flex";
-}
-
-async function loadSelectedDb() {
-    if (!selectedDbFile) {
-        Message(t("ioSelectDbFile"));
-        return;
-    }
-
-    const data = await idbLoad(selectedDbFile + ".db-data");
-    if (!data) {
-        Message(t("ioFileNotFound"));
-        return;
-    }
-
-    db = new SQL.Database(data);
-
-    // Очистити database, queries та меню
-    clearDB();
-    syncStoreFilesInDbSetting();
-
-    // Завантажити дані з локального сховища
-    const fullDatabase = JSON.parse(localStorage.getItem(selectedDbFile + ".tables-data"));
-    console.log("fullDatabase=", fullDatabase);
-
-    queries.definitions = [];
-    if (fullDatabase) {
-        database.tables = fullDatabase;
     
-        // Створити всі таблиці в SQLite, якщо вони відсутні
-        database.tables.forEach(t => {
-            try {
-                db.exec(`SELECT * FROM "${t.name}" LIMIT 1`);
-            } catch (e) {
-                console.warn(`Таблиця "${t.name}" відсутня в SQLite, створюємо...`);
-                
-                // Створення таблиці вручну з її schema
-                const fields = t.schema.map(field => {
-                    let type = (field.type || "").toUpperCase();
-                    if (type === "ЦІЛЕ ЧИСЛО") type = "INTEGER";
-                    else if (type === "ДРОБОВЕ ЧИСЛО") type = "REAL";
-                    else if (type === "ТЕКСТ") type = "TEXT";
-                    else if (type === "ТАК/НІ" || type === "BOOLEAN") type = "INTEGER";
-                    else if (type === "ДАТА") type = "TEXT";
-                    else if (type === "ЗОБРАЖЕННЯ" || type === "IMAGE") type = "TEXT";
-                    else if (type === "ФАЙЛ") type = "BLOB";
-
-                    let def = `"${field.title}" ${type}`;
-
-                    if (field.primaryKey) {
-                        if (field.autoInc && type === "INTEGER") {
-                            def += " PRIMARY KEY AUTOINCREMENT";
-                        } else {
-                            def += " PRIMARY KEY";
-                        }
-                    }
-
-                    return def;
-                });
-
-                // Додати FOREIGN KEY (якщо є)
-                const foreignKeys = t.schema
-                    .filter(f => f.foreignKey && f.refTable && f.refField)
-                    .map(f => `FOREIGN KEY ("${f.title}") REFERENCES "${f.refTable}"("${f.refField}")`);
-
-                const fullFields = [...fields, ...foreignKeys].join(", ");
-                db.run(`CREATE TABLE "${t.name}" (${fullFields});`);
-            }
-
-            // 🔧 відновлюємо subst у схемі (щоб не губився після відновлення)
-            t.schema = t.schema.map(f => ({
-                ...f,
-                subst: f.subst || false,
-                autoInc: f.autoInc ?? false
-            }));
-
-            // Завантажити дані
-            const res = db.exec(`SELECT * FROM "${t.name}"`);
-            t.data = res.length ? res[0].values : [];
-        });
-    } else {
-        Message(t("ioFileCorrupted"));
-        return;
-    }
-    console.log("t.data=",database.tables)
-
-    // Load
-    database.fileName = selectedDbFile;
-    await loadDatabase();
-
-    // 🔄 Автоматично додати зв’язки з foreign key
-    database.relations = [];
-    database.tables.forEach(table => {
-        table.schema.forEach(field => {
-            if (field.foreignKey && field.refTable && field.refField) {
-                database.relations.push({
-                    fromTable: table.name,
-                    fromField: field.title,
-                    toTable: field.refTable,
-                    toField: field.refField,
-                    readonly: true,
-                });
-            }
-        });
-    });
-
-    database.tables.forEach(t => addTableToMenu(t.name)); // 🔧 Оновити меню "Дані"
-    Message(t("ioDbLoaded", selectedDbFile));
-    database.fileName = selectedDbFile;
-    localStorage.setItem('lastOpenedFile', selectedDbFile);
-    closeStorageDialog();
-    updateMainTitle();
-}
-
-async function exportDTA() {
-    const zip = new JSZip();
-
-    // SQLite база
-    const dbData = db.export();
-    zip.file("database.sqlite", dbData);
-
-    // Запити
-    const queriesJson = JSON.stringify(queries.definitions, null, 2);
-    zip.file("queries.json", queriesJson);
-
-    // Звіти
-    const reportsJson = JSON.stringify(database.reports, null, 2);
-    zip.file("reports.json", reportsJson);
-
-    // Результати запитів
-    zip.file("query-results.json", JSON.stringify(queries.results || []));
-
-    // Схеми (без data)
-    const schemas = database.tables.map(t => ({
-        name: t.name,
-        schema: t.schema
-    }));
-    zip.file("schemas.json", JSON.stringify(schemas, null, 2));
-
-    // 🆕 Форми
-    const formsJson = JSON.stringify(database.forms || [], null, 2);
-    zip.file("forms.json", formsJson);
-
-    // Налаштування програми (_app_settings.json)
-    const storeFilesInDbVal = localStorage.getItem("app_settings_storeFilesInDb") ?? "false";
-    appSettingSet("storeFilesInDb", storeFilesInDbVal);
-    zip.file("_app_settings.json", JSON.stringify(Object.assign({}, appSettings), null, 2));
-
-    // Архів
-    const content = await zip.generateAsync({ type: "blob" });
-    const filename = (database.fileName || "my_database") + ".dta";
-
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(content);
-    a.download = filename;
-    a.click();
-}
-
-
-async function importDTA(file) {
-    const zip = await JSZip.loadAsync(file);
-    const dbFile = await zip.file("database.sqlite").async("uint8array");
-    db = new SQL.Database(dbFile);
-    database.fileName = file.name.split('.')[0];
-
-    // Запити
-    const queriesText = await zip.file("queries.json").async("string");
-    queries.definitions = JSON.parse(queriesText);
-
-    // Звіти
-    const reportsText = await zip.file("reports.json").async("string");
-    database.reports = JSON.parse(reportsText);
-
-    // Результати запитів
-    if (zip.file("query-results.json")) {
-        const resultsText = await zip.file("query-results.json").async("string");
-        queries.results = JSON.parse(resultsText);
-    } else {
-        queries.results = [];
-    }
-
-    // Схеми
-    let savedSchemas = [];
-    if (zip.file("schemas.json")) {
-        const schemasText = await zip.file("schemas.json").async("string");
-        savedSchemas = JSON.parse(schemasText);
-    }
-
-    // 🆕 Форми
-    if (zip.file("forms.json")) {
-        console.log("Знайдено форми")
-        const formsText = await zip.file("forms.json").async("string");
-        database.forms = JSON.parse(formsText);
-        // Валідація форм після імпорту
-        database.forms = database.forms.map(form => ({
-            ...form,
-            elements: form.elements.map(el => {
-                if (el.type === "field") {
-                    return {
-                        ...el,
-                        tableName: el.tableName || "",
-                        fieldName: el.fieldName || ""
-                    };
-                }
-                return el;
-            })
-        }));
-     console.log(database.forms)   
-    } else {
-        database.forms = [];
-    }
-
-    // Налаштування програми (_app_settings.json)
-    if (zip.file("_app_settings.json")) {
-        try {
-            const settingsText = await zip.file("_app_settings.json").async("string");
-            const loaded = JSON.parse(settingsText);
-            Object.assign(appSettings, loaded);
-            console.log("Налаштування завантажено з _app_settings.json:", appSettings);
-        } catch (e) {
-            console.warn("Не вдалося прочитати _app_settings.json:", e);
-        }
-    }
-
-    // Відновлення таблиць через sqlite_master + savedSchemas
-    database.tables = [];
-    syncStoreFilesInDbSetting();
-    const res = db.exec("SELECT name, sql FROM sqlite_master WHERE type='table';");
-    if (res.length > 0) {
-        const tableRows = res[0].values;
-        tableRows.forEach(([name, sql]) => {
-            if (name.startsWith("sqlite_") || name === "_app_settings") return;
-
-            const savedSchema = savedSchemas.find(s => s.name === name)?.schema;
-
-            let schema = [];
-            if (savedSchema) {
-                schema = savedSchema;
-            } else {
-                const match = sql.match(/\((.+)\)/s);
-                if (match) {
-                    const schemaText = match[1];
-                    const schemaParts = schemaText.split(",").map(s => s.trim());
-                    schema = schemaParts.map(part => {
-                        const [titleRaw, typeRaw, ...rest] = part.split(/\s+/);
-                        return {
-                            title: titleRaw.replace(/"/g, ''),
-                            type: typeRaw === "INTEGER" ? "Ціле число" :
-                                  typeRaw === "REAL"    ? "Дробове число" :
-                                  typeRaw === "BOOLEAN" ? "Так/Ні" :
-                                  typeRaw === "TEXT"    ? "Текст" :
-                                  typeRaw === "BLOB"    ? "Файл" : typeRaw,
-                            primaryKey: rest.includes("PRIMARY") || rest.includes("PRIMARY KEY"),
-                            comment: rest.includes("PRIMARY") ? "Первинний ключ" : ""
-                        };
-                    });
-                }
-            }
-
-            const selectRes = db.exec(`SELECT * FROM "${name}"`);
-            const dataRows = selectRes.length ? selectRes[0].values : [];
-
-            database.tables.push({
-                name,
-                schema,
-                data: dataRows
-            });
-        });
-    }
-
-    // Оновлення меню
-    document.getElementById("data-menu").innerHTML = "";
-    database.tables.forEach(t => addTableToMenu(t.name));
-    queries.results.forEach(q => addTableToMenu(`*${q.name}`));
-
-    localStorage.setItem('lastOpenedFile', database.fileName);
-    saveDatabase();
-    Message(t("ioDtaImported"));
-    updateMainTitle();
-    updateQuickAccessPanel(
-        getCurrentTableNames(),
-        getCurrentQueryNames(),
-        getCurrentReportNames(),
-        getCurrentFormNames()
-    );
-}
-
-// імпорт бази даних SQLite
-function importSQLiteDb(file) {
-
-        if (!file) {
-            Message(t("ioFileNotSelected"));
-            return;
-        }
-
-        const reader = new FileReader();
-    
-        reader.onload = async function(event) {
-            const arrayBuffer = event.target.result;
-            const uIntArray = new Uint8Array(arrayBuffer);
-
-            try {
-                clearDB();
-                const importedDb = new SQL.Database(uIntArray);
-
-                const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
-                const fileName = nameWithoutExt;
-
-                // Зберігаємо файл в IndexedDB
-                await idbSave(fileName + ".db-data", uIntArray);
-               
-                db = importedDb;
-                syncStoreFilesInDbSetting();
-    
-                const res = db.exec("SELECT name, sql FROM sqlite_master WHERE type='table';");
-                if (res.length > 0) {
-                    const tableRows = res[0].values;
-                    tableRows.forEach(([name]) => {
-                        if (name.startsWith("sqlite_") || name === "_app_settings") return;
-    
-                        const pragmaRes = db.exec(`PRAGMA table_info("${name}")`);
-                        if (!pragmaRes.length) return;
-                        
-                        const columns = pragmaRes[0].values;
-                        
-                        // Зчитуємо зовнішні ключі
-                        const fkRes = db.exec(`PRAGMA foreign_key_list("${name}")`);
-                        const foreignKeys = fkRes.length ? fkRes[0].values.map(([id, seq, refTable, fromCol, toCol]) => ({
-                            fromCol, refTable, toCol
-                        })) : [];
-                        
-                        // Формуємо схему
-                        const schema = columns.map(([cid, title, type, notnull, dflt_value, pk]) => {
-                            const fk = foreignKeys.find(f => f.fromCol === title);
-                            return {
-                                title,
-                                type: type.toUpperCase() === "INTEGER" ? "Ціле число"
-                                    : type.toUpperCase() === "REAL" ? "Дробове число"
-                                    : type.toUpperCase().includes("TEXT") ? "Текст"
-                                    : type.toUpperCase().includes("BOOL") ? "Так/Ні"
-                                    : type.toUpperCase() === "BLOB" ? "Файл"
-                                    : type,
-                                primaryKey: pk > 0,
-                                comment: pk > 0 ? "Первинний ключ" : "",
-                                foreignKey: !!fk,
-                                refTable: fk ? fk.refTable : null,
-                                refField: fk ? fk.toCol : null,
-                                subst: false // за замовчуванням
-                            };
-                        });
-    
-                        const selectRes = db.exec(`SELECT * FROM "${name}"`);
-                        const dataRows = selectRes.length ? selectRes[0].values : [];
-                        
-                        database.tables.push({
-                            name: name,
-                            schema: schema,
-                            data: dataRows
-                        });
-                    });
-                }
-    
-                // 🆕 Додати зовнішні ключі до database.relations
-                // Спочатку очистимо relations
-                database.relations = [];
-                
-                // Пройдемо по всіх таблицях і зберемо foreign keys
-                database.tables.forEach(table => {
-                    table.schema.forEach(field => {
-                        if (field.foreignKey && field.refTable && field.refField) {
-                            // Перевіряємо чи такий зв'язок вже існує
-                            const exists = database.relations.some(r =>
-                                r.fromTable === table.name &&
-                                r.fromField === field.title &&
-                                r.toTable === field.refTable &&
-                                r.toField === field.refField
-                            );
-    
-                            if (!exists) {
-                                database.relations.push({
-                                    fromTable: table.name,
-                                    fromField: field.title,
-                                    toTable: field.refTable,
-                                    toField: field.refField,
-                                    color: "red",
-                                    readonly: true
-                                });
-                            }
-                        }
-                    });
-                });
-    
-                database.fileName = fileName;
-                saveDatabase();
-                
-                database.tables.forEach(t => addTableToMenu(t.name));
-                updateMainTitle();
-                
-                Message(t("ioSqliteImported", fileName));
-                
-                updateQuickAccessPanel(
-                    getCurrentTableNames(),
-                    getCurrentQueryNames(),
-                    getCurrentReportNames(),
-                    getCurrentFormNames()
-                );
-                
-            } catch (e) {
-                Message(t("ioImportError", e.message));
-            }
-        };
-    
-        reader.readAsArrayBuffer(file);
-    }
-    
-// експорт в базу даних SQLite
-function exportSQLiteDb() {
-        if (!db) {
-            Message(t("ioNoActiveDb"));
-            return;
-        }
-
-        const data = db.export();
-        const blob = new Blob([data], {
-            type: "application/x-sqlite3"
-        });
-
-        // Використовуємо назву з database.fileName або "my_database"
-        const fileName = (database.fileName || "my_database") + ".sqlite";
-
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = fileName;
-        a.style.display = "none";
-        document.body.appendChild(a);
-        a.click();
-        URL.revokeObjectURL(a.href);
-        a.remove();
-    }
 /**
  * ============================================================
  * Імпорт з CSV файлу — новий багатоетапний флоу

@@ -115,6 +115,16 @@ function previewReport(report = null) {
                     height: el.style.height
                 };
             }
+            if (el.classList.contains("report-image")) {
+                return {
+                    type: "image",
+                    imageUrl: el.dataset.imageUrl || "",
+                    left: el.style.left,
+                    top: el.style.top,
+                    width: el.style.width,
+                    height: el.style.height
+                };
+            }
             if (el.classList.contains("report-table")) {
                 return {
                     type: "table",
@@ -205,6 +215,30 @@ function previewReport(report = null) {
                 if (el.shapeType === "round-rect") shapeDiv.style.borderRadius = "14px";
             }
             previewCanvas.appendChild(shapeDiv);
+            return;
+        }
+
+        // Рендеринг зображень
+        if (el.type === "image") {
+            const imgDiv = document.createElement("div");
+            imgDiv.className = "report-image-preview";
+            Object.assign(imgDiv.style, {
+                position: "absolute",
+                left: addPx(el.left),
+                top: addPx(el.top),
+                width: addPx(el.width),
+                height: addPx(el.height),
+                boxSizing: "border-box",
+                overflow: "hidden",
+                pointerEvents: "none"
+            });
+            if (el.imageUrl) {
+                const img = document.createElement("img");
+                img.src = el.imageUrl;
+                Object.assign(img.style, { width: "100%", height: "100%", objectFit: "contain", display: "block" });
+                imgDiv.appendChild(img);
+            }
+            previewCanvas.appendChild(imgDiv);
             return;
         }
 
@@ -534,6 +568,10 @@ function saveReport() {
         // 🆕 Збереження графічних фігур
         if (el.classList.contains("report-shape")) {
             return serializeShapeElement(el);
+        }
+        // 🆕 Збереження зображень
+        if (el.classList.contains("report-image")) {
+            return serializeImageElement(el);
         }
         // 🆕 Збереження таблиць
         if (el.classList.contains("report-table")) {
