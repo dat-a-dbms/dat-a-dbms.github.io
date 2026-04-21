@@ -225,7 +225,8 @@ function previewForm(form = null, resetIndex = false) {
             if (el.type === "image") {
                 return {
                     ...base,
-                    imageUrl: el.imageUrl || ""
+                    imageUrl: el.imageUrl || "",
+                    imageBlob: el.imageBlob || null
                 };
             }
             // Властивості текстових елементів та полів
@@ -301,7 +302,9 @@ function previewForm(form = null, resetIndex = false) {
                     top: el.style.top,
                     width: el.style.width,
                     height: el.style.height,
-                    imageUrl: el.dataset.imageUrl || ""
+                    imageUrl: el.dataset.imageUrl || "",
+                    imageBlob: (el._imageBlob instanceof Uint8Array && el._imageBlob.length > 0)
+                        ? Array.from(el._imageBlob) : null
                 };
             }
             // Поля та написи
@@ -868,12 +871,8 @@ thead.appendChild(headerRow);
                 overflow: "hidden",
                 pointerEvents: "none"
             });
-            if (el.imageUrl) {
-                const img = document.createElement("img");
-                img.src = el.imageUrl;
-                Object.assign(img.style, { width: "100%", height: "100%", objectFit: "contain", display: "block" });
-                imgDiv.appendChild(img);
-            }
+            const imgEl = _buildImagePreviewElement(el);
+            if (imgEl) imgDiv.appendChild(imgEl);
             previewCanvas.appendChild(imgDiv);
         }
     });
