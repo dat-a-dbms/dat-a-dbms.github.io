@@ -1,4 +1,6 @@
 {
+  "designerTableLabel" : "Таблиця.",
+  "queryDone" : "Запит виконано",
   "aeditExpandCell" : "Розгорнути для редагування",
   "urlLoadLoading" : "Завантаження файлу…",
   "urlLoadInvalidUrl" : "Помилкова адреса або файл не .dta:",
@@ -140,7 +142,7 @@
   "queryNoName2": "Введіть ім'я запиту у поле «Назва запиту».",
   "queryOverwrite": "Запит з таким ім'ям вже існує. Перезаписати? ",
   "querySaved": "Запит збережено.",
-  "queryEmptyResult": "Запит виконано, але результат порожній.",
+  "queryEmptyResult": "Запит виконано без отримання даних.",
   "queryRunError": "Помилка виконання запиту: ${msg}",
   "querySelectForDelete": "Будь ласка, оберіть запит для видалення.",
   "queryDeleted": "Запит  \"${name}\" видалено.",

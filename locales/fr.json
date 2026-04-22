@@ -1,4 +1,5 @@
 {
+	"queryDone" : "Requête terminée",
 	"aeditExpandCell" : "Développer pour modifier",
 	"urlLoadLoading" : "Chargement du fichier…",
 	"urlLoadInvalidUrl" : "URL non valide ou le fichier n'est pas au format .dta :",

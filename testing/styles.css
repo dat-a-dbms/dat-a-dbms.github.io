@@ -956,8 +956,6 @@ body.dark-theme ::-webkit-scrollbar-thumb {
     background: var(--dt-border-hi);
     border-radius: 5px;
 }
-body.dark-theme ::-webkit-scrollbar-thumb:hover { background: #777; }
-
 
 /* ============================================================
    17. LIST EDITOR MODAL (#listEditorOverlay)

@@ -147,6 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (element) {
             activeElement = element;
             activeElement.classList.add("selected");
+            _updateFilterBtnVisibility();
             const rect = activeElement.getBoundingClientRect();
             initialLeft = activeElement.offsetLeft;
             initialTop = activeElement.offsetTop;
@@ -198,6 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             activeElement = null;
+            _updateFilterBtnVisibility();
         }
     }
     // спільна функція замість дублювання mousemove
@@ -394,7 +396,7 @@ function addScreenTable() {
         top: "100px",
         width: "340px",
         height: "200px",
-        border: "1px solid  #0000ff",
+        border: "1px dashed  #0000ff",
         backgroundColor: "#fffaf0",
         cursor: "grab",
         boxSizing: "border-box",
@@ -417,7 +419,9 @@ function addScreenTable() {
         const nearBorder = clickX < BORDER_TOLERANCE || clickX > rect.width - BORDER_TOLERANCE || clickY < BORDER_TOLERANCE || clickY > rect.height - BORDER_TOLERANCE;
         // Якщо клік не біля межі - відкриваємо налаштування
         if (!nearBorder) {
+            activeElement = el;
             activeTableElement = el;
+            _updateFilterBtnVisibility();
             openTableFieldModal();
         }
     });
@@ -454,7 +458,6 @@ function addScreenButton() {
         boxSizing: "border-box",
         padding: "0 10px",
         whiteSpace: "nowrap",
-        overflow: "hidden",
         textOverflow: "ellipsis"
     });
     button.textContent = t("designerDefaultButton");
@@ -575,6 +578,8 @@ function closeTableFieldModal() {
 function populateTableFieldModal() {
     const sel = document.getElementById("tableFieldTableSelect");
     sel.innerHTML = `<option value="">${t("designerSelectTable")}</option>`;
+
+    // Заповнюємо список таблиць
     database.tables.forEach(tbl => {
         const opt = document.createElement("option");
         opt.value = tbl.name;
@@ -589,10 +594,27 @@ function populateTableFieldModal() {
             sel.appendChild(opt);
         });
     }
-    const currentTable = activeTableElement.dataset.tableName || "";
-    if (currentTable) sel.value = currentTable;
+
+    // 🔒 ЛОГІКА ДЛЯ ФОРМ: жорстко фіксуємо таблицю з formTableSelect
+    if (constructorMode === "form") {
+        const formTableSel = document.getElementById("formTableSelect");
+        const lockedTable = formTableSel ? formTableSel.value : "";
+        
+        sel.value = lockedTable;
+        sel.disabled = true;          // Блокуємо візуально
+        sel.onchange = null;          // Вимикаємо обробник зміни
+        
+        // Синхронізуємо dataset елемента, щоб уникнути розбіжностей
+        if (activeTableElement) activeTableElement.dataset.tableName = lockedTable;
+    } else {
+        // Для звітів: звичайна поведінка
+        const currentTable = activeTableElement.dataset.tableName || "";
+        if (currentTable) sel.value = currentTable;
+        sel.disabled = false;
+        sel.onchange = () => renderTableFieldCheckboxes(sel.value);
+    }
+
     renderTableFieldCheckboxes(sel.value);
-    sel.onchange = () => renderTableFieldCheckboxes(sel.value);
 }
 
 function renderTableFieldCheckboxes(tableName) {
@@ -650,93 +672,121 @@ function saveTableSelection() {
 }
 // Легкий прев'ю на canvas (не викликає editData, щоб не гальмувати UI)
 function renderTablePreviewInDesigner(container, tableName, fields) {
-    // Зберігаємо поточні маркери та позицію
-    const hadHandles = container.querySelectorAll('.resize-handle').length > 0;
-    const savedLeft = container.style.left;
-    const savedTop = container.style.top;
-    const savedWidth = container.style.width;
+    // Зберігаємо позицію/розміри та наявність маркерів
+    const hadHandles = container.querySelectorAll(".resize-handle").length > 0;
+    const savedLeft   = container.style.left;
+    const savedTop    = container.style.top;
+    const savedWidth  = container.style.width;
     const savedHeight = container.style.height;
+
     container.innerHTML = "";
+
     // Відновлюємо позицію та розміри
-    container.style.left = savedLeft;
-    container.style.top = savedTop;
-    container.style.width = savedWidth;
+    container.style.left   = savedLeft;
+    container.style.top    = savedTop;
+    container.style.width  = savedWidth;
     container.style.height = savedHeight;
+    container.style.border = "1px dashed  #0000ff";
+    //container.style.display        = "flex";
+    //container.style.flexDirection  = "column";
+    //container.style.overflow       = "hidden";
+    container.style.boxSizing      = "border-box";
+
     const result = findTableOrQueryResult(tableName);
     if (!result || !result.table) {
-        container.innerHTML = `<div style="color:#888; text-align:center; margin-top:35%; font-size:13px; pointer-events:none;">${t("designerTableNotFound")}</div>`;
+        container.innerHTML = `<div style="color:#888;text-align:center;margin-top:35%;font-size:13px;pointer-events:none;">${t("designerTableNotFound")}</div>`;
+        if (hadHandles) addResizeHandles(container);
         return;
     }
-    const table = result.table;
-    const isReadOnly = result.isQuery === true;
+
+    const table  = result.table;
+    // Відображаємо обрані поля; якщо поля не обрані — всі колонки
+    const cols   = (fields && fields.length > 0) ? fields : table.schema.map(c => c.title);
+    // Кількість рядків-заглушок (3 або менше якщо даних немає)
+    const rowCount = Math.min(Math.max(table.data?.length || 0, 3), 5);
+
+    // ── Таблиця ─────────────────────────────────────────────────────────────
+    const wrapper = document.createElement("div");
+    wrapper.style.cssText = "flex:1;overflow:hidden;pointer-events:none;";
+
     const tbl = document.createElement("table");
-    tbl.style.width = "100%";
-    tbl.style.borderCollapse = "collapse";
-    tbl.style.fontSize = "11px";
-    tbl.style.pointerEvents = "none"; // Блокуємо взаємодію на canvas
+    tbl.style.cssText = "width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;";
+
+    // Заголовок — реальні назви полів
     const thead = document.createElement("thead");
-    const hr = document.createElement("tr");
-    fields.forEach(f => {
+    const trHead = document.createElement("tr");
+    cols.forEach(f => {
         const th = document.createElement("th");
         th.textContent = f;
-        th.style.border = "1px solid #ccc";
-        th.style.padding = "3px";
-        th.style.background = "#eee";
-        th.style.fontSize = "11px";
-        th.style.whiteSpace = "nowrap";
-        hr.appendChild(th);
+        th.style.cssText = `
+            border: 1px solid #bbb;
+            padding: 3px 4px;
+            background: #dde4ee;
+            font-size: 11px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        `;
+        trHead.appendChild(th);
     });
-    thead.appendChild(hr);
+    thead.appendChild(trHead);
     tbl.appendChild(thead);
+
+    // Тіло — сірі прямокутники-заглушки, кожен ряд світліший за попередній
     const tbody = document.createElement("tbody");
-    const previewData = table.data?.slice(0, 3) || [];
-    previewData.forEach(row => {
+    const BASE_L = 176; // #b0b8c8 ≈ rgb(176,184,200)
+    const STEP   = 14;
+    for (let rowIdx = 0; rowIdx < rowCount; rowIdx++) {
+        const lv  = Math.min(BASE_L + rowIdx * STEP, 238); // не світліше #eeeeee
+        const barL = Math.max(lv - 28, 120);
+        const barColor = `rgb(${barL},${barL+2},${barL+10})`;
+
         const tr = document.createElement("tr");
-        fields.forEach(f => {
+        cols.forEach(() => {
             const td = document.createElement("td");
-            td.style.border = "1px solid #ccc";
-            td.style.padding = "3px";
-            td.style.fontSize = "10px";
-            td.style.whiteSpace = "nowrap";
-            const colIdx = table.schema.findIndex(c => c.title === f);
-            let cellValue = colIdx !== -1 ? (row?.[colIdx] ?? "") : "";
-            // Спрощене відображення для зображень/файлів у прев'ю
-            const typeStr = String(table.schema[colIdx]?.type || "").toLowerCase();
-            if (typeStr === "image" || typeStr === "зображення") {
-                if (cellValue && typeof cellValue === "string" && looksLikeImageUrl(cellValue)) {
-                    td.innerHTML = "🖼️";
-                } else if (cellValue instanceof Uint8Array) {
-                    td.innerHTML = "🖼️";
-                } else if (cellValue) {
-                    td.innerHTML = "📷";
-                } else {
-                    td.textContent = "";
-                }
-            } else if (typeStr === "file" || typeStr === "файл") {
-                td.innerHTML = cellValue ? "📎" : "";
-            } else {
-                td.textContent = String(cellValue).length > 30 ? String(cellValue).slice(0, 27) + "..." : String(cellValue);
-            }
+            td.style.cssText = `
+                border: 1px solid #ccc;
+                padding: 4px 5px;
+                overflow: hidden;
+            `;
+            // Сірий прямокутник-заглушка всередині комірки
+            const bar = document.createElement("div");
+            bar.style.cssText = `
+                height: 9px;                
+                background: ${barColor};
+                width: ${70 + ((rowIdx * 13 + cols.indexOf ? 0 : 0)) % 25}%;
+                min-width: 20px;
+            `;
+            td.appendChild(bar);
             tr.appendChild(td);
         });
         tbody.appendChild(tr);
-    });
+    }
     tbl.appendChild(tbody);
-    container.appendChild(tbl);
-    // Якщо даних немає
-    if (previewData.length === 0) {
-        const emptyDiv = document.createElement("div");
-        emptyDiv.style.textAlign = "center";
-        emptyDiv.style.padding = "20px";
-        emptyDiv.style.color = "#999";
-        emptyDiv.style.fontSize = "12px";
-        emptyDiv.textContent = t("reportNoData") || "Немає даних";
-        container.appendChild(emptyDiv);
-    }
-    // Відновлюємо маркери, якщо вони були
-    if (hadHandles) {
-        addResizeHandles(container);
-    }
+    wrapper.appendChild(tbl);
+    container.appendChild(wrapper);
+
+    // Підпис "Таблиця. <назва>" над нижнім краєм 
+    const label = document.createElement("div");
+    label.textContent = (t("designerTableLabel") || "Таблиця.") + " " + tableName;
+    label.style.cssText = `
+        font-size: 12px;
+        color: #111;
+        padding: 2px 5px;
+        margin-top: 10px;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex-shrink: 0;
+        pointer-events: none;
+        border-top: 1px dashed #ccc;
+    `;
+    container.appendChild(label);
+
+    // Відновлюємо маркери зміни розміру
+    if (hadHandles) addResizeHandles(container);
 }
 /**
  * Відтворення об'єктів збереженого звіту/форми
@@ -804,7 +854,6 @@ function renderCanvas(stored) {
                 boxSizing: "border-box",
                 padding: "0 10px",
                 whiteSpace: "nowrap",
-                overflow: "hidden",
                 textOverflow: "ellipsis"
             });
             div.textContent = el.text || t("designerDefaultButton");
@@ -843,6 +892,15 @@ function renderCanvas(stored) {
             div.dataset.type = "table";
             div.dataset.tableName = el.tableName || "";
             div.dataset.selectedFields = JSON.stringify(el.selectedFields || []);
+            div.dataset.filterConfig = el.filterConfig ? JSON.stringify(el.filterConfig) : ""; // Відновлення конфігу
+            // Відновлюємо збережений фільтр
+            div.dataset.filterActive = el.filterActive ? "1" : "0";
+            if (el.filterActive && Array.isArray(el.filteredRows) && el.filteredRows.length > 0) {
+                div.dataset.filteredRows = JSON.stringify(el.filteredRows);
+                const _fRes = findTableOrQueryResult(el.tableName);
+                const _fTotal = _fRes ? _fRes.table.data.length : 0;
+                // Значок буде доданий після рендерингу прев'ю нижче
+            }
             // Оновлений обробник кліку з перевіркою відстані від меж
             div.addEventListener("click", (e) => {
                 if (e.target.classList.contains("resize-handle")) return;
@@ -855,11 +913,21 @@ function renderCanvas(stored) {
                 const nearBorder = clickX < BORDER_TOLERANCE || clickX > rect.width - BORDER_TOLERANCE || clickY < BORDER_TOLERANCE || clickY > rect.height - BORDER_TOLERANCE;
                 // Якщо клік не біля межі - відкриваємо налаштування
                 if (!nearBorder) {
+                    activeElement = div;
                     activeTableElement = div;
+                    _updateFilterBtnVisibility();
                     openTableFieldModal();
                 }
             });
-            if (el.tableName && el.selectedFields) renderTablePreviewInDesigner(div, el.tableName, el.selectedFields);
+            if (el.tableName && el.selectedFields) {
+                renderTablePreviewInDesigner(div, el.tableName, el.selectedFields);
+                // Відновлюємо значок фільтра якщо він був активний
+                if (el.filterActive && Array.isArray(el.filteredRows) && el.filteredRows.length > 0) {
+                    const _fRes2 = findTableOrQueryResult(el.tableName);
+                    const _fTotal2 = _fRes2 ? _fRes2.table.data.length : 0;
+                    _markTableFilteredInDesigner(div, el.filteredRows.length, _fTotal2);
+                }
+            }
             else div.innerHTML = `<div style="color:#888; text-align:center; margin-top:35%; font-size:13px; pointer-events:none;">📊 ${t("designerClickToConfigure")}</div>`;
             cCanvas.appendChild(div);
             addResizeHandles(div);
@@ -914,11 +982,11 @@ function renderCanvas(stored) {
         div.style.fontStyle = el.fontStyle;
         div.style.textDecoration = el.textDecoration;
         div.style.color = el.color;
+        div.style.border = "1px dashed rgb(0, 0, 255)";
         if (el.type === "field") {
             div.classList.add(cm + "-field");
             div.dataset.fieldName = el.fieldName;
-            div.dataset.tableName = el.tableName;
-            div.style.border = "1px dashed green";
+            div.dataset.tableName = el.tableName;            
             div.style.backgroundColor = "rgba(144, 238, 144, 0.3)";
             const fieldText = document.createElement("div");
             fieldText.classList.add("field-text");
@@ -928,7 +996,6 @@ function renderCanvas(stored) {
             div.classList.add(cm + "-label");
             div.contentEditable = "false";
             div.innerText = el.text;
-            div.style.border = "1px dashed gray";
             div.style.backgroundColor = "rgba(240,240,240,0.8)";
         }
         cCanvas.appendChild(div);
@@ -946,7 +1013,7 @@ function addScreenLabel() {
         top: "10px",
         width: "150px",
         height: "40px",
-        border: "1px solid blue",
+        border: "1px dashed rgb(0, 0, 255)",
         backgroundColor: "rgba(173, 216, 230, 0.3)",
         padding: "5px",
         cursor: "grab",
@@ -969,7 +1036,7 @@ function addScreenField() {
         top: "60px",
         width: "200px",
         height: "40px",
-        border: "1px dashed green",
+        border: "1px dashed rgb(0, 0, 255)",
         backgroundColor: "rgba(144,238,144,0.3)",
         padding: "5px",
         cursor: "grab",
@@ -1422,6 +1489,7 @@ function _attachImageClickHandler(el) {
                            clickY < BORDER_TOLERANCE || clickY > rect.height - BORDER_TOLERANCE;
         if (!nearBorder) {
             activeElement = el;
+            _updateFilterBtnVisibility();
             _openImagePicker(el);
         }
     });
@@ -1560,11 +1628,258 @@ document.addEventListener("click", (e) => {
     let el = e.target.closest(".report-element");
     if (el) {
         activeElement = el;
+        _updateFilterBtnVisibility();
         return;
     }
     el = e.target.closest(".form-element");
     if (el) {
         activeElement = el;
+        _updateFilterBtnVisibility();
         return;
     }
 });
+
+
+// =============================================================================
+// ФІЛЬТРУВАННЯ ТАБЛИЦЬ У КОНСТРУКТОРІ ЗВІТІВ
+// =============================================================================
+
+/**
+ * Показує кнопку "Фільтр" тільки коли у Конструкторі звітів виділено report-table.
+ * Викликається при кожній зміні activeElement.
+ */
+function _updateFilterBtnVisibility() {
+    const btn = document.getElementById("filterTableBtn");
+    if (!btn) return;
+    const isReportTable = constructorMode === "report"
+        && activeElement
+        && activeElement.classList.contains("report-table");
+    btn.style.display = isReportTable ? "" : "none";
+}
+
+// Посилання на елемент таблиці, для якого відкрито вікно фільтрування
+let _reportTableFilterTarget = null;
+// Snapshot оригінальних рядків (до сортування/фільтрування) — для порівняння при закритті
+let _reportTableOriginalRows = null;
+
+/**
+ * Викликається кнопкою "Фільтр" у тулбарі конструктора звітів.
+ * Відкриває вікно фільтрування з data.js для виділеного елемента-таблиці.
+ */
+function filterReportTable() {
+    const tableEl = (activeElement && activeElement.classList.contains("report-table"))
+        ? activeElement
+        : activeTableElement;
+    if (!tableEl) { Message(t("reportSelectTableToFilter") || "Оберіть об'єкт «таблиця» у звіті."); return; }
+    const tableName = tableEl.dataset.tableName;
+    if (!tableName) { Message(t("reportTableHasNoSource") || "Таблиця не має джерела даних."); return; }
+    const result = findTableOrQueryResult(tableName);
+    if (!result || !result.table) { Message(t("dataTableNotFound") || "Таблицю не знайдено."); return; }
+    const sourceTable = result.table;
+
+    currentDataView.columns = sourceTable.schema.map(c => c.title);
+    currentDataView.rows    = [...sourceTable.data];
+    _reportTableOriginalRows = [...sourceTable.data];
+    _reportTableFilterTarget = tableEl;
+
+    delete tableEl.dataset.filteredRows;
+    tableEl.dataset.filterActive = "0";
+    _unmarkTableFilteredInDesigner(tableEl);
+
+    let savedConfig = null;
+    if (tableEl.dataset.filterConfig) {
+        try { savedConfig = JSON.parse(tableEl.dataset.filterConfig); } catch(e) { savedConfig = null; }
+    }
+
+    // --- ВІДНОВЛЕННЯ СТАНУ ---
+    // 🛠️ ФІКС: Спочатку наповнюємо select полями, інакше він порожній
+    const fieldSelect = document.getElementById("dataFieldSelect");
+    if (fieldSelect) {
+        fieldSelect.innerHTML = currentDataView.columns.map(c => `<option value="${c}">${c}</option>`).join("");
+    }
+
+    // 1. Відновлення сортування
+    if (savedConfig?.sortField && currentDataView.columns.includes(savedConfig.sortField)) {
+        if (fieldSelect) fieldSelect.value = savedConfig.sortField;
+    }
+    const sortOrder = savedConfig?.sortOrder || "asc";
+    const orderRadio = document.querySelector(`input[name="sortOrder"][value="${sortOrder}"]`);
+    if (orderRadio) orderRadio.checked = true;
+
+    // Застосовуємо сортування
+    if (typeof sortDataTable === "function") sortDataTable();
+
+    // 2. Відновлення фільтрів та пошуку
+    const filterContainer = document.getElementById("filterRowsContainer");
+    const searchInput = document.getElementById("dataSearchInput");
+    if (searchInput) searchInput.value = savedConfig?.search || "";
+    window._filterRowCount = 0;
+    filterContainer.innerHTML = "";
+
+    if (savedConfig?.filters && Array.isArray(savedConfig.filters) && savedConfig.filters.length > 0) {
+        savedConfig.filters.forEach(() => {
+            if (typeof addDataFilterRow === "function") addDataFilterRow();
+        });
+        const rows = filterContainer.querySelectorAll("#filterRowsContainer > div");
+        rows.forEach((row, i) => {
+            const cfg = savedConfig.filters[i];
+            if (!cfg) return;
+            row.querySelector(".dvFilterCol").value = cfg.col || "";
+            row.querySelector(".dvFilterCond").value = cfg.cond || "";
+            row.querySelector(".dvFilterVal").value = cfg.val || "";
+            if (cfg.logic === "OR") {
+                const badge = row.querySelector("button[id^='badge_']");
+                if (badge) badge.textContent = "OR";
+            }
+        });
+    }
+
+    if (typeof applyDataFilter === "function") applyDataFilter();
+    if (typeof renderDataViewTable === "function") {
+        renderDataViewTable(currentDataView.columns, currentDataView.rows);
+    }
+    if (typeof _updateCountLabel === "function") {
+        _updateCountLabel(currentDataView.rows.length, currentDataView.rows.length);
+    }
+
+    const titleEl = document.getElementById("dataViewTitle");
+    if (titleEl) {
+        titleEl.textContent = (typeof t === "function"
+            ? (t("dataTableLabel", tableName) || ("Таблиця: " + tableName))
+            : ("Таблиця: " + tableName));
+    }
+
+    document.getElementById("dataViewModal").style.display = "flex";
+}
+
+/**
+ * Розширення closeDataViewModal з data.js:
+ * при закритті вікна зберігаємо відфільтровані рядки у dataset таблиці звіту.
+ *
+ * Викликається замість оригінальної closeDataViewModal.
+ * Оригінальна функція оголошена у data.js — тут ми її перевизначаємо.
+ */
+(function _patchCloseDataViewModal() {
+    const _patch = function () {
+        const _orig = (typeof closeDataViewModal === "function")
+            ? closeDataViewModal
+            : function () { document.getElementById("dataViewModal").style.display = "none"; };
+
+        window.closeDataViewModal = function () {
+            if (_reportTableFilterTarget) {
+                const bodyRows = document.querySelectorAll("#dataViewBody tr");
+                const filteredRows = [];
+                const colCount = currentDataView.columns.length;
+                bodyRows.forEach(tr => {
+                    const row = [];
+                    tr.querySelectorAll("td").forEach(td => row.push(td.textContent));
+                    while (row.length < colCount) row.push("");
+                    filteredRows.push(row);
+                });
+
+                const totalRows = _reportTableOriginalRows.length;
+                const isFiltered = filteredRows.length !== totalRows ||
+                    filteredRows.some((row, i) =>
+                        row.some((cell, j) =>
+                            String(cell) !== String(_reportTableOriginalRows[i]?.[j] ?? "")
+                        )
+                    );
+
+                // --- ЗБЕРЕЖЕННЯ КОНФІГУ ФІЛЬТРІВ/СОРТУВАННЯ ---
+                const currentSortField = document.getElementById("dataFieldSelect")?.value || "";
+                const currentSortOrder = document.querySelector('input[name="sortOrder"]:checked')?.value || "asc";
+                const currentSearch = document.getElementById("dataSearchInput")?.value.trim() || "";
+                const currentFilters = (typeof _getFilterRows === "function") ? _getFilterRows().map(f => ({
+                    col: f.col, cond: f.cond, val: f.val, logic: f.logic
+                })) : [];
+
+                _reportTableFilterTarget.dataset.filterConfig = JSON.stringify({
+                    sortField: currentSortField,
+                    sortOrder: currentSortOrder,
+                    search: currentSearch,
+                    filters: currentFilters
+                });
+
+                if (isFiltered) {
+                    _reportTableFilterTarget.dataset.filteredRows = JSON.stringify(filteredRows);
+                    _reportTableFilterTarget.dataset.filterActive = "1";
+                    _markTableFilteredInDesigner(_reportTableFilterTarget, filteredRows.length, totalRows);
+                    if (typeof isDesignerDirty !== "undefined") isDesignerDirty = true;
+                } else {
+                    delete _reportTableFilterTarget.dataset.filteredRows;
+                    _reportTableFilterTarget.dataset.filterActive = "0";
+                    _unmarkTableFilteredInDesigner(_reportTableFilterTarget);
+                }
+
+                _reportTableFilterTarget = null;
+                _reportTableOriginalRows = null;
+            }
+            _orig();
+        };
+    };
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", _patch);
+    } else {
+        _patch();
+    }
+})();
+
+/**
+ * Додає жовтий бейдж "🔽 N / M" на елемент таблиці у конструкторі.
+ */
+function _markTableFilteredInDesigner(tableEl, shown, total) {
+    _unmarkTableFilteredInDesigner(tableEl); // видаляємо старий
+    const badge = document.createElement("div");
+    badge.className = "report-table-filter-badge";
+    badge.textContent = `🔽 ${shown} / ${total}`;
+    Object.assign(badge.style, {
+        position:      "absolute",
+        top:           "2px",
+        right:         "2px",
+        background:    "#fff3cd",
+        border:        "1px solid #ffc107",
+        borderRadius:  "4px",
+        padding:       "1px 6px",
+        fontSize:      "10px",
+        color:         "#856404",
+        pointerEvents: "none",
+        zIndex:        "10",
+        whiteSpace:    "nowrap"
+    });
+    tableEl.appendChild(badge);
+}
+
+/**
+ * Видаляє бейдж фільтра з елемента таблиці у конструкторі.
+ */
+function _unmarkTableFilteredInDesigner(tableEl) {
+    tableEl.querySelectorAll(".report-table-filter-badge").forEach(b => b.remove());
+}
+
+/**
+ * Серіалізація елемента-таблиці у конструкторі.
+ * Замінює serializeTableElement, яка визначена в іншому файлі.
+ * Якщо serializeTableElement вже оголошена — вона буде перевизначена нижче.
+ */
+function serializeTableElement(el) {
+    const obj = {
+        type:           "table",
+        left:           parseInt(el.style.left)  || 0,
+        top:            parseInt(el.style.top)   || 0,
+        width:          parseInt(el.style.width) || 100,
+        height:         parseInt(el.style.height)|| 50,
+        tableName:      el.dataset.tableName  || "",
+        selectedFields: JSON.parse(el.dataset.selectedFields || "[]"),
+        filterActive:   el.dataset.filterActive === "1",
+        filteredRows:   null,
+        filterConfig:   null 
+    };
+    if (obj.filterActive && el.dataset.filteredRows) {
+        try { obj.filteredRows = JSON.parse(el.dataset.filteredRows); } catch (_) { obj.filteredRows = null; }
+    }
+    // Збереження конфігу
+    if (el.dataset.filterConfig) {
+        try { obj.filterConfig = JSON.parse(el.dataset.filterConfig); } catch (_) { obj.filterConfig = null; }
+    }
+    return obj;
+}

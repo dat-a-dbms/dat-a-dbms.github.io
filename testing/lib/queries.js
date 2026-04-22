@@ -1073,8 +1073,7 @@ function runFinalSqlQuery() {
         const res = db.exec(pendingQueryText); 
         
         if (isOwnSQL) { // оновимо про всяк випадок таблиці та їх структури якщо запит "вручну"
-                    updateDatabaseTables();
-                    isOwnSQL = false;
+                    updateDatabaseTables();                    
         }
         
         if (res.length > 0) {
@@ -1109,8 +1108,13 @@ function runFinalSqlQuery() {
             closeOwnSqlModal();
             editData(menuDisplayName);
         } else {
-            Message(t("queryEmptyResult"));
+			if (isOwnSQL) {
+				Message(t("queryDone"));
+			} else {	
+				Message(t("queryEmptyResult"));
+			}
         }
+        isOwnSQL = false;
         updateQuickAccessPanel(
                   getCurrentTableNames(),
                   getCurrentQueryNames(),
