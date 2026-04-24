@@ -513,10 +513,22 @@ function serializeTableElement(el) {
 }
 
 /**
+ * Декодує Base64-рядок у Uint8Array.
+ * Використовується для відновлення imageBlobB64 з бази даних.
+ */
+function base64ToUint8Array(b64) {
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+}
+
+/**
  * Серіалізує елемент зображення з DOM-елемента.
  * Підтримує два режими:
  *   - storeFilesInDb=false → поле imageUrl (рядок)
- *   - storeFilesInDb=true  → поле imageBlob (Uint8Array, через encodeFileBlob)
+ *   - storeFilesInDb=true  → поле imageBlobB64 (Base64-рядок, компактний формат)
+ *                            (застарілий формат imageBlob як масив чисел — підтримується для читання)
  * @param {HTMLElement} el
  * @returns {object}
  */
@@ -530,42 +542,68 @@ function serializeImageElement(el) {
     };
     const storeInDb = localStorage.getItem("app_settings_storeFilesInDb") === "true";
     if (storeInDb) {
-        // Зберігаємо як Uint8Array (буде серіалізовано у .DTA разом з рештою БД)
+        // Зберігаємо як Base64-рядок (компактніше ніж масив чисел у ~5-8 разів)
         const blob = (el._imageBlob instanceof Uint8Array && el._imageBlob.length > 0)
             ? el._imageBlob
             : null;
-        return { ...base, imageBlob: blob ? Array.from(blob) : null, imageUrl: "" };
+        let imageBlobB64 = null;
+        if (blob) {
+            let binary = "";
+            for (let i = 0; i < blob.length; i++) binary += String.fromCharCode(blob[i]);
+            imageBlobB64 = btoa(binary);
+        }
+        return { ...base, imageBlobB64, imageBlob: null, imageUrl: "" };
     } else {
-        return { ...base, imageUrl: el.dataset.imageUrl || "", imageBlob: null };
+        return { ...base, imageUrl: el.dataset.imageUrl || "", imageBlobB64: null, imageBlob: null };
     }
 }
 
 /**
  * Будує <img> елемент для превью зображення в режимі перегляду форми/звіту.
- * Підтримує обидва режими (URL і blob).
+ * Підтримує три режими:
+ *   - imageBlobB64 (новий, компактний Base64-рядок)
+ *   - imageBlob (застарілий, масив чисел — зворотна сумісність)
+ *   - imageUrl (зовнішнє посилання)
  * @param {object} el — серіалізований image-елемент
  * @returns {HTMLImageElement|null}
  */
 function _buildImagePreviewElement(el) {
     let src = null;
-    // Режим blob
-    const blobData = el.imageBlob;
-    if (blobData && (blobData instanceof Uint8Array || Array.isArray(blobData))) {
+
+    // Новий формат: Base64-рядок
+    if (el.imageBlobB64) {
         try {
-            const uint8 = blobData instanceof Uint8Array ? blobData : new Uint8Array(blobData);
+            const uint8 = base64ToUint8Array(el.imageBlobB64);
             const { type, data } = decodeFileBlob(uint8);
             if (type && type.startsWith("image/")) {
-                const blob = new Blob([data], { type });
-                src = URL.createObjectURL(blob);
+                src = URL.createObjectURL(new Blob([data], { type }));
             }
         } catch (e) {
-            console.warn("_buildImagePreviewElement: decodeFileBlob failed", e);
+            console.warn("_buildImagePreviewElement: base64 decode failed", e);
         }
     }
+
+    // Застарілий формат: масив чисел (зворотна сумісність зі старими базами)
+    if (!src) {
+        const blobData = el.imageBlob;
+        if (blobData && (blobData instanceof Uint8Array || Array.isArray(blobData))) {
+            try {
+                const uint8 = blobData instanceof Uint8Array ? blobData : new Uint8Array(blobData);
+                const { type, data } = decodeFileBlob(uint8);
+                if (type && type.startsWith("image/")) {
+                    src = URL.createObjectURL(new Blob([data], { type }));
+                }
+            } catch (e) {
+                console.warn("_buildImagePreviewElement: legacy blob decode failed", e);
+            }
+        }
+    }
+
     // Режим URL
     if (!src && el.imageUrl) {
         src = el.imageUrl;
     }
+
     if (!src) return null;
     const img = document.createElement("img");
     img.src = src;

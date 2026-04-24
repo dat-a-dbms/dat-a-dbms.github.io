@@ -940,11 +940,14 @@ function renderCanvas(stored) {
             div.classList.add(cm + "-element", cm + "-image");
             div.dataset.imageUrl = el.imageUrl || "";
             // Відновлюємо blob-дані якщо є
-            div._imageBlob = (el.imageBlob instanceof Uint8Array && el.imageBlob.length > 0)
-                ? el.imageBlob
-                : (Array.isArray(el.imageBlob) && el.imageBlob.length > 0)
-                    ? new Uint8Array(el.imageBlob)
-                    : null;
+            // Відновлюємо _imageBlob: новий формат (Base64) → застарілий (масив) → null
+            div._imageBlob = el.imageBlobB64
+                ? base64ToUint8Array(el.imageBlobB64)
+                : (el.imageBlob instanceof Uint8Array && el.imageBlob.length > 0)
+                    ? el.imageBlob
+                    : (Array.isArray(el.imageBlob) && el.imageBlob.length > 0)
+                        ? new Uint8Array(el.imageBlob)
+                        : null;
             Object.assign(div.style, {
                 position: "absolute",
                 left: el.left + "px",
