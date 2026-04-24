@@ -1,4 +1,6 @@
 {
+  "reportNoName" : "Inserisci il nome del report",
+  "formNoName" : "Inserisci il nome del modulo",
   "lockSectionTables": "Tabelle",
   "lockSectionQueries":"Query",
   "lockSectionReports":"Report",

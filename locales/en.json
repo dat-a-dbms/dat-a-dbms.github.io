@@ -1,4 +1,6 @@
 {
+  "reportNoName" : "Enter report name",
+  "formNoName" : "Enter form name",
   "lockSectionTables": "Tables",
   "lockSectionQueries":"Queries",
   "lockSectionReports":"Reports",

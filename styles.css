@@ -53,10 +53,10 @@ body {
 /* ── 3. Title bar ── */
 
 .title-bar {
-    background-color: #435663;
-    color: #FFF8D4;
+    background-color: #5b847d;
+    color: black;
     font-size: 24px;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid #2b2e5c;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -344,6 +344,7 @@ body {
     cursor: pointer;
     font-size: 12px;
     padding: 5px;
+    border-radius: 5px;
 }
 .quick-icon:hover { background-color: #e0e0e0; }
 .quick-icon .icon { font-size: 24px; }

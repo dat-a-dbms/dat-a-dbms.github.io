@@ -1,4 +1,6 @@
 {
+  "reportNoName" : "Berichtsnamen eingeben",
+  "formNoName" : "Formularnamen eingeben",
   "lockSectionTables": "Tabellen",
   "lockSectionQueries":"Abfragen",
   "lockSectionReports":"Berichte",

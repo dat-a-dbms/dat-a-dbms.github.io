@@ -608,6 +608,11 @@ function previewReport(report = null) {
 
 function saveReport() {
     const reportName = document.getElementById("reportNameInput").value.trim();
+    if (!reportName) {
+        Message(t("reportNoName"));
+        document.getElementById("reportNameInput").focus();
+        return;
+    }
     const reportCanvas = document.getElementById("reportCanvas");
     
     const elements = [...reportCanvas.querySelectorAll('.report-element')].map(el => {

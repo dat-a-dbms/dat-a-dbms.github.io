@@ -1,4 +1,6 @@
 {
+  "reportNoName" : "Введіть назву звіту",
+  "formNoName" : "Введіть назву форми",
   "lockSectionTables": "Таблиці",
   "lockSectionQueries":"Запити",
   "lockSectionReports":"Звіти",

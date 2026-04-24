@@ -1,4 +1,6 @@
 {
+  "reportNoName" : "Ingrese el nombre del informe",
+  "formNoName" : "Ingrese el nombre del formulario",
   "lockSectionTables": "Tablas",
   "lockSectionQueries":"Consultas",
   "lockSectionReports":"Informes",

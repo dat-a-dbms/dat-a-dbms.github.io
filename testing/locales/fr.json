@@ -1,4 +1,6 @@
 {
+  "reportNoName" : "Saisissez le nom du rapport",
+  "formNoName" : "Saisissez le nom du formulaire",
   "lockSectionTables": "Tables",
   "lockSectionQueries":"Requêtes",
   "lockSectionReports":"Rapports",
