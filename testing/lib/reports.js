@@ -9,6 +9,14 @@ function editSelectedReport() {
             Message(t("reportSelectForEdit"));
             return;
         }
+        // Заблокований звіт — відкрити у режимі перегляду
+        if (typeof isLocked === "function" && isLocked("report", selectedReportName)) {
+            const report = database.reports.find(r => r.name === selectedReportName);
+            if (!report) { Message(t("reportNotFound")); return; }
+            document.getElementById("reportListModal").style.display = "none";
+            previewReport(report);
+            return;
+        }
         document.getElementById("reportListModal").style.display = "none";
         const report = database.reports.find(r => r.name === selectedReportName);
         if (!report) {

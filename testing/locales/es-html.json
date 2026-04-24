@@ -1,4 +1,6 @@
 {
+  "lockModalTitle":    "Bloqueo de objetos de la base de datos",
+  "lockModalHint":     "Los objetos marcados están protegidos contra edición y eliminación.",
   "addShapeRect" : "Rectángulo",
   "addShapeRoundRect" : "Rectángulo redondeado",
   "addShapeHLine" : "Línea horizontal",

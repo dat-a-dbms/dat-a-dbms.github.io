@@ -1,4 +1,6 @@
 {
+  "lockModalTitle":    "Verrouillage des objets de la base de données",
+  "lockModalHint":     "Les objets sélectionnés sont protégés contre toute modification ou suppression.",
   "addShapeRect" : "Rectangle",
   "addShapeRoundRect" : "Rectangle arrondi",
   "addShapeHLine" : "Ligne horizontale",

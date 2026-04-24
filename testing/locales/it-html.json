@@ -1,4 +1,6 @@
 {
+  "lockModalTitle":    "Blocco degli oggetti del database",
+  "lockModalHint":     "Gli oggetti selezionati sono protetti dalla modifica e dall'eliminazione.",
   "addShapeRect" : "Rettangolo",
   "addShapeRoundRect" : "Rettangolo arrotondato",
   "addShapeHLine" : "Linea orizzontale",

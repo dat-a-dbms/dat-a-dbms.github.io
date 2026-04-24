@@ -88,6 +88,17 @@ function applySimpleInterface(enabled) {
 function applyDarkTheme(enabled) {
     document.body.classList.toggle('dark-theme', enabled);
     localStorage.setItem(SETTINGS_KEYS.DARK_THEME, enabled);
+    applyQuickAccessPanelBg(enabled);
+}
+
+// Встановлює фон панелі швидкого запуску залежно від теми
+function applyQuickAccessPanelBg(isDark) {
+    const panel = document.getElementById('quickAccessPanel');
+    if (!panel) return;
+    const img = isDark ? 'pattern-dark.png' : 'pattern.png';
+    panel.style.backgroundImage = `url('${img}')`;
+    panel.style.backgroundRepeat = 'repeat';
+    panel.style.backgroundSize = 'auto';
 }
 
 /**
@@ -105,6 +116,7 @@ function applyAppSettingsToUI(s) {
         if (cb) cb.checked = v;
         document.body.classList.toggle('dark-theme', v);
         localStorage.setItem(SETTINGS_KEYS.DARK_THEME, String(v));
+        applyQuickAccessPanelBg(v);
     }
 
     if (s.language) {
@@ -159,6 +171,11 @@ function openSettingsModal() {
         bool('storeFilesInDb', SETTINGS_KEYS.STORE_FILES_IN_DB);
     document.getElementById('languageSelect').value =
         str('language', SETTINGS_KEYS.LANGUAGE, 'uk');
+
+    // Показати/приховати кнопку блокування залежно від наявності бази
+    const lockBtn = document.getElementById('openLockModalBtn');
+    if (lockBtn) lockBtn.style.display = hasDb ? 'block' : 'none';
+
     document.getElementById('settingsModal').style.display = 'flex';
 }
 
@@ -250,7 +267,261 @@ function clearStorage() {
 // Налаштування застосовуються через applyAppSettingsToUI() що викликається
 // з io.js → syncAllAppSettings() після кожного завантаження бази.
 
-// Ініціалізація після завантаження DOM 
+// ========== БЛОКУВАННЯ ОБ'ЄКТІВ БД ==========
+
+/**
+ * Зберігає стан блокування для поточної бази у localStorage.
+ * Структура: { tables: ["Назва1", ...], queries: [...], reports: [...], forms: [...] }
+ */
+function saveLockSettings(lockData) {
+    if (typeof database === "undefined" || !database.fileName) return;
+    const json = JSON.stringify(lockData);
+    // Зберігаємо в appSettings — звідси io.js підхопить при saveDatabase() та експорті .DTA
+    if (typeof appSettingSet === "function") appSettingSet("lockSettings", json);
+    // Дублюємо в окремий ключ localStorage для швидкого читання без appSettingGet
+    localStorage.setItem(database.fileName + ".lock-settings", json);
+    // Одразу персистуємо через saveDbSettings, щоб не чекати наступного saveDatabase()
+    if (typeof saveDbSettings === "function")
+        saveDbSettings(database.fileName, Object.assign(
+            typeof loadDbSettings === "function" ? loadDbSettings(database.fileName) : {},
+            { lockSettings: json }
+        ));
+}
+
+/**
+ * Завантажує стан блокування для поточної бази.
+ * @returns {Object} { tables: [], queries: [], reports: [], forms: [] }
+ */
+function getLockSettings() {
+    const empty = { tables: [], queries: [], reports: [], forms: [] };
+    if (typeof database === "undefined" || !database.fileName) return empty;
+    // 1. Першочергово — з appSettings (актуально після завантаження з .DTA)
+    try {
+        const fromApp = (typeof appSettingGet === "function") ? appSettingGet("lockSettings") : null;
+        if (fromApp) return Object.assign({}, empty, JSON.parse(fromApp));
+    } catch (e) { /* ignore */ }
+    // 2. Fallback — прямий localStorage-ключ
+    try {
+        const raw = localStorage.getItem(database.fileName + ".lock-settings");
+        if (raw) return Object.assign({}, empty, JSON.parse(raw));
+    } catch (e) { /* ignore */ }
+    // 3. Fallback — з app-settings збереженого файлу
+    try {
+        if (typeof loadDbSettings === "function") {
+            const dbS = loadDbSettings(database.fileName);
+            if (dbS.lockSettings) return Object.assign({}, empty, JSON.parse(dbS.lockSettings));
+        }
+    } catch (e) { /* ignore */ }
+    return empty;
+}
+
+/**
+ * Публічний API: перевірка, чи заблокований конкретний об'єкт.
+ * @param {string} type  — 'table' | 'query' | 'report' | 'form'
+ * @param {string} name  — назва об'єкта
+ * @returns {boolean}
+ */
+function isLocked(type, name) {
+    const ls = getLockSettings();
+    var key = type + "s"; // table → tables, query → queries, etc.
+    if (type==="query") { 
+			key="queries"
+		}
+    return Array.isArray(ls[key]) && ls[key].includes(name);
+}
+
+/**
+ * Відкриває модальне вікно блокування об'єктів.
+ * Збирає всі таблиці, запити, звіти та форми з database/queries
+ * і показує їх зі станом чекбоксів.
+ */
+function openLockModal() {
+    if (typeof database === "undefined" || !database.fileName) {
+        Message(t ? t("lockNoDb") : "Спочатку відкрийте базу даних.");
+        return;
+    }
+
+    const lockData = getLockSettings();
+    const modal = document.getElementById("lockModal");
+    if (!modal) {
+        console.error("lockModal не знайдено в DOM");
+        return;
+    }
+
+    // Очищення попереднього вмісту
+    const container = document.getElementById("lockObjectsList");
+    container.innerHTML = "";
+
+    const sections = [
+        {
+            titleKey: "lockSectionTables",
+            titleFallback: "Таблиці",
+            type: "tables",
+            items: (typeof database !== "undefined" && database.tables)
+                ? database.tables.map(t => t.name) : []
+        },
+        {
+            titleKey: "lockSectionQueries",
+            titleFallback: "Запити",
+            type: "queries",
+            items: (typeof queries !== "undefined" && queries.definitions)
+                ? queries.definitions.map(q => q.name) : []
+        },
+        {
+            titleKey: "lockSectionReports",
+            titleFallback: "Звіти",
+            type: "reports",
+            items: (typeof database !== "undefined" && database.reports)
+                ? database.reports.map(r => r.name) : []
+        },
+        {
+            titleKey: "lockSectionForms",
+            titleFallback: "Форми",
+            type: "forms",
+            items: (typeof database !== "undefined" && database.forms)
+                ? database.forms.map(f => f.name) : []
+        }
+    ];
+
+    let hasAny = false;
+
+    sections.forEach(section => {
+        if (!section.items.length) return;
+        hasAny = true;
+
+        // Заголовок секції
+        const heading = document.createElement("div");
+        heading.className = "lock-section-heading";
+        heading.textContent = (typeof t === "function" && t(section.titleKey) !== section.titleKey)
+            ? t(section.titleKey) : section.titleFallback;
+        container.appendChild(heading);
+
+        // Чекбокс «виділити всю секцію»
+        const selectAllRow = document.createElement("div");
+        selectAllRow.className = "lock-item lock-item-all";
+        const selectAllCb = document.createElement("input");
+        selectAllCb.type = "checkbox";
+        selectAllCb.id = `lockAll_${section.type}`;
+        const selectAllLabel = document.createElement("label");
+        selectAllLabel.htmlFor = `lockAll_${section.type}`;
+        selectAllLabel.textContent = (typeof t === "function" && t("lockSelectAll") !== "lockSelectAll")
+            ? t("lockSelectAll") : "Виділити всі";
+        selectAllLabel.style.fontStyle = "italic";
+        selectAllRow.appendChild(selectAllCb);
+        selectAllRow.appendChild(selectAllLabel);
+        container.appendChild(selectAllRow);
+
+        // Рядки об'єктів
+        const lockedArr = lockData[section.type] || [];
+        section.items.forEach(name => {
+            const row = document.createElement("div");
+            row.className = "lock-item";
+
+            const cb = document.createElement("input");
+            cb.type = "checkbox";
+            cb.dataset.type = section.type;
+            cb.dataset.name = name;
+            cb.id = `lock_${section.type}_${name.replace(/\W/g, "_")}`;
+            cb.checked = lockedArr.includes(name);
+
+            // Іконка замка для заблокованих
+            const lockIcon = document.createElement("span");
+            lockIcon.className = "lock-icon";
+            lockIcon.textContent = cb.checked ? "🔒" : "🔓";
+            cb.addEventListener("change", () => {
+                lockIcon.textContent = cb.checked ? "🔒" : "🔓";
+                // Оновлюємо «виділити всі»
+                updateSectionSelectAll(section.type);
+            });
+
+            const label = document.createElement("label");
+            label.htmlFor = cb.id;
+            label.textContent = name;
+
+            row.appendChild(cb);
+            row.appendChild(lockIcon);
+            row.appendChild(label);
+            container.appendChild(row);
+        });
+
+        // Ініціалізація «виділити всі» + обробник
+        updateSectionSelectAll(section.type);
+        selectAllCb.addEventListener("change", () => {
+            container.querySelectorAll(`input[data-type="${section.type}"]`)
+                .forEach(cb => {
+                    cb.checked = selectAllCb.checked;
+                    cb.dispatchEvent(new Event("change"));
+                });
+        });
+    });
+
+    if (!hasAny) {
+        const empty = document.createElement("div");
+        empty.style.padding = "16px";
+        empty.style.textAlign = "center";
+        empty.style.opacity = "0.6";
+        empty.textContent = (typeof t === "function" && t("lockNoObjects") !== "lockNoObjects")
+            ? t("lockNoObjects") : "У базі немає об'єктів для блокування.";
+        container.appendChild(empty);
+    }
+
+    modal.style.display = "flex";
+}
+
+/**
+ * Оновлює стан чекбокса «виділити всі» для секції.
+ */
+function updateSectionSelectAll(type) {
+    const container = document.getElementById("lockObjectsList");
+    if (!container) return;
+    const all = [...container.querySelectorAll(`input[data-type="${type}"]`)];
+    const selectAllCb = document.getElementById(`lockAll_${type}`);
+    if (!selectAllCb || !all.length) return;
+    const checkedCount = all.filter(c => c.checked).length;
+    selectAllCb.checked = checkedCount === all.length;
+    selectAllCb.indeterminate = checkedCount > 0 && checkedCount < all.length;
+}
+
+/**
+ * Закриває модальне вікно блокування без збереження.
+ */
+function closeLockModal() {
+    const modal = document.getElementById("lockModal");
+    if (modal) modal.style.display = "none";
+}
+
+/**
+ * Зберігає вибраний стан блокування з модального вікна.
+ */
+function saveLockModal() {
+    const container = document.getElementById("lockObjectsList");
+    if (!container) return;
+
+    const lockData = { tables: [], queries: [], reports: [], forms: [] };
+
+    container.querySelectorAll("input[data-type][data-name]").forEach(cb => {
+        if (cb.checked) {
+            const type = cb.dataset.type;
+            if (lockData[type]) lockData[type].push(cb.dataset.name);
+        }
+    });
+
+    saveLockSettings(lockData);
+
+    // Підраховуємо загальну кількість заблокованих об'єктів
+    const total = Object.values(lockData).reduce((s, arr) => s + arr.length, 0);
+    const msg = (typeof t === "function" && t("lockSaved") !== "lockSaved")
+        ? t("lockSaved", total)
+        : `Заблоковано об'єктів: ${total}`;
+    Message(msg);
+
+    closeLockModal();
+
+    // Оновлюємо панель швидкого доступу — замки на іконках відображають актуальний стан
+    if (typeof refreshQuickAccessPanel === "function") refreshQuickAccessPanel();
+}
+
+// ========== ІНІЦІАЛІЗАЦІЯ DOM ==========
 document.addEventListener('DOMContentLoaded', async () => {
     // Якщо мову ще не збережено — визначаємо з браузера і одразу зберігаємо,
     // щоб loadSettings() і loadLanguage() отримали однаковий результат.
@@ -267,4 +538,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const saveBtn = document.getElementById('saveSettingsBtn');
     if (saveBtn) saveBtn.onclick = saveSettings;
+
+    // Кнопка відкриття модалки блокування
+    const lockBtn = document.getElementById('openLockModalBtn');
+    if (lockBtn) lockBtn.onclick = () => { closeSettingsModal(); openLockModal(); };
+
+    // Кнопки всередині lockModal
+    const saveLockBtn = document.getElementById('saveLockBtn');
+    if (saveLockBtn) saveLockBtn.onclick = saveLockModal;
+
+    const cancelLockBtn = document.getElementById('cancelLockBtn');
+    if (cancelLockBtn) cancelLockBtn.onclick = closeLockModal;
 });

@@ -1,4 +1,6 @@
 {
+  "lockModalTitle":    "Blokowanie obiektów bazy danych",
+  "lockModalHint":     "Wybrane obiekty są chronione przed edycją i usunięciem.",
   "addShapeRect" : "Prostokąt",
   "addShapeRoundRect" : "Zaokrąglony prostokąt",
   "addShapeHLine" : "Linia pozioma",

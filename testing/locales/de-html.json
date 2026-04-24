@@ -1,4 +1,6 @@
 {
+  "lockModalTitle":    "Datenbankobjekte sperren",
+  "lockModalHint":     "Markierte Objekte sind vor Bearbeitung und Löschung geschützt.",
   "addShapeRect" : "Rechteck",
   "addShapeRoundRect" : "Abgerundetes Rechteck",
   "addShapeHLine" : "Horizontale Linie",

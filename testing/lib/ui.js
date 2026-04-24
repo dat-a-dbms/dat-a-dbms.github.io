@@ -183,6 +183,21 @@ function getCurrentFormNames() {
     return (database.forms || []).map(f => f.name);
 }
 
+
+/**
+ * Повторно відмальовує панель швидкого доступу з актуальним станом блокувань.
+ * Викликається після збереження змін у lockSettings.
+ */
+function refreshQuickAccessPanel() {
+    if (typeof database === "undefined" || !database.fileName) return;
+    updateQuickAccessPanel(
+        getCurrentTableNames(),
+        getCurrentQueryNames(),
+        getCurrentReportNames(),
+        getCurrentFormNames()
+    );
+}
+
 function updateQuickAccessPanel(tables, qqueries, reports, forms) {
     const panel = document.getElementById("quickAccessPanel");
     const sections = [
@@ -233,9 +248,18 @@ function updateQuickAccessPanel(tables, qqueries, reports, forms) {
             section.items.forEach(name => {
                 const el = document.createElement("div");
                 el.className = "quick-icon";
+
+                // Визначаємо тип для isLocked: прибираємо кінцеву 's' де потрібно
+                const lockType = section.id === "quickQueries" ? "query"
+                               : section.id === "quickTables"  ? "table"
+                               : section.id === "quickReports" ? "report"
+                               : "form";
+                const locked = (typeof isLocked === "function") && isLocked(lockType, name);
+
                 el.innerHTML = `
-                    <div class='icon'>
+                    <div class='icon' style="position:relative;display:inline-block;">
                         <img src="${section.image}" alt="icon" />
+                        ${locked ? `<span class="lock-badge" title="${typeof t === 'function' ? t('lockBadgeTitle') || 'Заблоковано' : 'Заблоковано'}" style="position:absolute;top:-4px;right:-6px;font-size:13px;line-height:1;pointer-events:none;">🔒</span>` : ''}
                     </div>
                     <div>${name}</div>`;
                 el.onclick = () => section.openFunc(name);
@@ -328,4 +352,3 @@ function closeImageModal() {
   document.getElementById("imageModal").style.display = "none";
   imageEditContext = null;
 }
-

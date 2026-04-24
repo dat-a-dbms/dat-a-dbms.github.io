@@ -335,7 +335,6 @@ body {
 .quick-icon {
     width: 110px;
     height: 80px;
-    background-color: #f9f9f9;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -612,7 +611,7 @@ body.dark-theme {
 }
 
 body.dark-theme .menu-bar {
-    background-color: var(--dt-surface);
+    background-color: #0c101b;
     border-bottom: 1px solid var(--dt-border);
 }
 body.dark-theme .menu-item,
@@ -625,7 +624,7 @@ body.dark-theme .dropdown a { color: var(--dt-text); }
 body.dark-theme .dropdown a:hover { background-color: var(--dt-hover); }
 
 body.dark-theme .title-bar {
-    background-color: var(--dt-surface);
+    background-color: #1a1c1f;
     color: var(--dt-text);
 }
 
@@ -944,9 +943,13 @@ body.dark-theme [contenteditable="true"] {
     background-color: var(--dt-surface-hi);
 }
 body.dark-theme .quick-icon {
-    background-color: var(--dt-surface-hi);
     border-color: var(--dt-border-hi);
 }
+body.dark-theme .quick-icon:hover { 
+  background-color: #e0e0e0;
+  color: #000;
+}
+
 body.dark-theme .resize-handle { background-color: var(--dt-text-muted); }
 
 /* ── Скролбари ── */
@@ -1682,3 +1685,158 @@ body.dark-theme .computed-expr-display span { color: #fb923c; }
 
     /* Список-модалі (savedQueries/Tables/Forms/Reports, storage, dataWork) */
     .modal-box-list { max-height: 80%; flex-direction: row; }
+
+/* ── Модальне вікно блокування ── */
+.lock-modal-card {
+    width: min(520px, 96vw);
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    background: honeydew;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: var(--modal-header-bg, #f0f4ff);
+    border-bottom: 1px solid var(--border-color, #dde3f0);
+    flex-shrink: 0;
+}
+
+.modal-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-color, #1a2340);
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--text-muted, #666);
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background .15s;
+}
+.modal-close-btn:hover { background: var(--hover-bg, #e0e7ff); }
+
+.lock-modal-hint {
+    margin: 0;
+    padding: 10px 18px 6px;
+    font-size: 13px;
+    color: var(--text-muted, #666);
+    flex-shrink: 0;
+}
+
+/* ── Список об'єктів ── */
+.lock-objects-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 18px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.lock-section-heading {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--accent-color, #4a6cf7);
+    margin-top: 14px;
+    margin-bottom: 4px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid var(--border-color, #dde3f0);
+}
+.lock-section-heading:first-child { margin-top: 4px; }
+
+.lock-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 6px;
+    border-radius: 5px;
+    transition: background .12s;
+    cursor: default;
+}
+.lock-item:hover { background: var(--hover-bg, #f0f4ff); }
+
+.lock-item-all {
+    opacity: .8;
+    margin-bottom: 2px;
+}
+
+.lock-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent-color, #4a6cf7);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.lock-icon {
+    font-size: 14px;
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.lock-item label {
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-color, #1a2340);
+    user-select: none;
+}
+
+/* ── Підвал ── */
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px 18px;
+    border-top: 1px solid var(--border-color, #dde3f0);
+    background: var(--modal-header-bg, #f0f4ff);
+    flex-shrink: 0;
+}
+
+/* ── Кнопка відкриття у вікні налаштувань ── */
+.btn-lock-open {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border: 1px solid var(--accent-color, #4a6cf7);
+    background: transparent;
+    color: var(--accent-color, #4a6cf7);
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    white-space: nowrap;
+}
+.btn-lock-open:hover {
+    background: var(--accent-color, #4a6cf7);
+    color: #fff;
+}
+
+/* ── Темна тема ── */
+.dark-theme .modal-header,
+.dark-theme .modal-footer        { background: #1e2640; }
+.dark-theme .modal-title         { color: #e0e8ff; }
+.dark-theme .lock-modal-hint     { color: #8899bb; }
+.dark-theme .lock-section-heading{ color: #7a9fff; border-color: #2d3a5a; }
+.dark-theme .lock-item:hover     { background: #242d43; }
+.dark-theme .lock-item label     { color: #dce6ff; }
+.dark-theme .modal-header,
+.dark-theme .lock-objects-list   { border-color: #2d3a5a; }
+.dark-theme .btn-lock-open       { border-color: #7a9fff; color: #7a9fff; }
+.dark-theme .btn-lock-open:hover { background: #3a4d80; color: #fff; }

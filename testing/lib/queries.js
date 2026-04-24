@@ -982,18 +982,37 @@ function saveAndRunQuery() {
 
 
 /**
- * Виконати користувацький SQL-запит
+ * Виконати користувацький SQL-запит.
+ * Якщо текст запиту змінився відносно збереженого — показує вікно підтвердження збереження.
+ * Якщо збереження підтверджено — зберігає та виконує. Якщо відхилено — виконує без збереження.
  **/
-function executeOwnSQL() {
+async function executeOwnSQL() {
     sqlQuery = document.getElementById("ownSqlInput").value.trim();
     queryName = document.getElementById("ownSQLName").value.trim();
-    if (!saveOwnSQLquery()) {
-        Message(t("queryNotSaved"))
+
+    if (!sqlQuery) {
+        Message(t("queryEmptySQL"));
+        return;
+    }
+    if (!queryName) {
+        Message(t("queryNoName2"));
+        return;
+    }
+
+    const queryChanged = sqlQuery !== (_ownSqlOriginal ?? "").trim();
+
+    if (queryChanged) {
+        const confirmed = await confirmSaveSQL();
+        if (confirmed) {
+            const saved = await saveOwnSQLquery();
+            if (!saved) return;
+            _ownSqlOriginal = sqlQuery;
         }
+    }
+
     isOwnSQL = true;
     runSqlQuery(sqlQuery, queryName);
-    
-}    
+}
 
 function runSqlQuery(sqlQuery, queryName) {
     pendingQueryName = queryName;
@@ -1226,11 +1245,15 @@ function showSavedQueriesDialog() {
 
         queries.definitions.forEach(query => {
             const li = document.createElement("li");
-            li.textContent = query.name;
             li.style.padding = "8px";
             li.style.cursor = "pointer";
-            li.dataset.queryName = query.name; // Store the query name in a data attribute
-
+            li.dataset.queryName = query.name;
+            if (typeof isLocked === "function" && isLocked("query", query.name)) {
+                li.title = typeof t === "function" ? t("lockLockedHint") : "Заблоковано";
+                li.innerHTML = "<span style='margin-right:4px'>&#128274;</span>" + query.name;
+            } else {
+                li.textContent = query.name;
+            }
             li.addEventListener("click", () => {
                 [...listEl.children].forEach(el => el.style.background = "");
                 const isDark = document.body.classList.contains("dark-theme");
@@ -1248,20 +1271,35 @@ function closeSavedQueriesDialog() {
 }
     
 function editSelectedQuery() {
+	   
         if (!selectedQueryName) {
             Message(t("querySelectForEdit"));
             return;
         }
-    
+
+        // Заблокований запит — виконати (конструктор) або read-only (власний SQL)
+        if (typeof isLocked === "function" && isLocked("query", selectedQueryName)) {
+
+            const queryDef = queries.definitions.find(q => q.name === selectedQueryName);
+            if (!queryDef) { Message(t("queryNotFound")); return; }
+            closeSavedQueriesDialog(); // executeSelectedQuery()
+            if (queryDef.config === null && queryDef.joins === null) {
+                openOwnQueryReadOnly(queryDef);
+            } else {
+                runSqlQuery(queryDef.sql, queryDef.name);
+            }
+            return;
+        }
+
         const queryToEdit = queries.definitions.find(q => q.name === selectedQueryName);
-        console.log("Edit query=",selectedQueryName, queryToEdit )
+       
         if (queryToEdit) {
             if (queryToEdit.config === null && queryToEdit.joins === null) {
                 // Власний SQL-запит
                 editOwnQuery(queryToEdit);
             } else {
                 populateQueryModal(queryToEdit);
-                // Згенерований конструктором запит
+                // Згенерований консруктором запит
             }
             closeSavedQueriesDialog();
         } else {
@@ -1480,6 +1518,10 @@ function deleteSelectedQuery() {
             Message(t("querySelectForDelete"));
             return;
         }
+        if (typeof isLocked === "function" && isLocked("query", selectedQueryName)) {
+            Message(typeof t === "function" ? t("lockObjectLocked", selectedQueryName) : `"${selectedQueryName}" заблоковано.`);
+            return;
+        }
         const queryIndex = queries.definitions.findIndex(q => q.name === selectedQueryName);
         if (queryIndex !== -1) {
             const deletedQueryName = queries.definitions[queryIndex].name;
@@ -1581,12 +1623,17 @@ function openRelationFromQuery() {
 
 // Ручне створення SQL-запиту
 // Відкриває модальне вікно для ручного введення та виконання SQL-запитів.
+
+/** Зберігає оригінальний SQL на момент відкриття модалки (для порівняння перед виконанням) **/
+let _ownSqlOriginal = null;
+
 function createOwnSQL() {
 		if(!isDBExist()) return
         document.getElementById("ownSqlInput").value = "";
         document.getElementById("ownSqlResults").innerHTML = "";
         document.getElementById("ownSqlModal").style.display = "flex";
         document.getElementById('ownSQLName').value = t("queryNewQuery");
+        _ownSqlOriginal = "";
         toggleStructureButtonVisibility(true);
         // Ініціалізація редактора: підсвічування, автодоповнення, фокус
         setTimeout(function () {
@@ -1599,14 +1646,20 @@ function createOwnSQL() {
     
 function editOwnQuery(query) {
         const modal = document.getElementById("ownSqlModal");
-        if (modal) modal.style.display = "flex";
+        if (modal) { modal.style.display = "flex"; delete modal.dataset.lockReadOnly; }
         toggleStructureButtonVisibility(true)
 
         const nameInput = document.getElementById("ownSQLName");
-        if (nameInput) nameInput.value = query.name || "";
+        if (nameInput) { nameInput.value = query.name || ""; nameInput.readOnly = false; nameInput.style.opacity = ""; }
 
         const sqlTextarea = document.getElementById("ownSqlInput");
-        if (sqlTextarea) sqlTextarea.value = query.sql || "";
+        if (sqlTextarea) { sqlTextarea.value = query.sql || ""; sqlTextarea.readOnly = false; sqlTextarea.style.opacity = ""; }
+        _ownSqlOriginal = query.sql || "";
+
+        const saveBtn = document.getElementById("saveOwnSQLBtn");
+        if (saveBtn) saveBtn.style.display = "";
+        const banner = document.getElementById("ownSqlReadOnlyBanner");
+        if (banner) banner.style.display = "none";
 
         document.getElementById("ownSqlResults").innerHTML = "";
         // Ініціалізація редактора: підсвічування, автодоповнення, фокус
@@ -1617,7 +1670,97 @@ function editOwnQuery(query) {
             window._sqlFocusEditor      && window._sqlFocusEditor();
         }, 0);
 }
-       
+
+function openOwnQueryReadOnly(query) {
+    const modal = document.getElementById("ownSqlModal");
+    if (modal) { modal.style.display = "flex"; modal.dataset.lockReadOnly = "1"; }
+    toggleStructureButtonVisibility(true);
+
+    const nameInput = document.getElementById("ownSQLName");
+    if (nameInput) { nameInput.value = query.name || ""; nameInput.readOnly = true; nameInput.style.opacity = "0.7"; }
+
+    const sqlTextarea = document.getElementById("ownSqlInput");
+    if (sqlTextarea) { sqlTextarea.value = query.sql || ""; sqlTextarea.readOnly = true; sqlTextarea.style.opacity = "0.7"; }
+    _ownSqlOriginal = query.sql || "";
+
+    const saveBtn = document.getElementById("saveOwnSQLBtn");
+    if (saveBtn) saveBtn.style.display = "none";
+
+    let banner = document.getElementById("ownSqlReadOnlyBanner");
+    if (!banner) {
+        banner = document.createElement("div");
+        banner.id = "ownSqlReadOnlyBanner";
+        banner.style.cssText = "background:var(--warning-bg,#fff8e1);border:1px solid var(--warning-border,#ffe082);color:var(--warning-text,#7a5800);padding:6px 12px;border-radius:5px;font-size:13px;margin-bottom:8px;display:flex;align-items:center;gap:6px";
+        const resultsEl = document.getElementById("ownSqlResults");
+        if (resultsEl) resultsEl.parentNode.insertBefore(banner, resultsEl);
+    }
+    banner.innerHTML = "&#128274; " + (
+        (typeof t === "function" && t("lockReadOnlyQuery") !== "lockReadOnlyQuery")
+            ? t("lockReadOnlyQuery")
+            : "Запит заблоковано — редагування недоступне."
+    );
+    banner.style.display = "flex";
+
+    document.getElementById("ownSqlResults").innerHTML = "";
+    setTimeout(function () {
+        window._sqlInitHighlighter  && window._sqlInitHighlighter();
+        window.refreshSQLHighlight  && window.refreshSQLHighlight();
+    }, 0);
+}
+async function confirmSaveSQL() {
+    // Отримуємо модальне вікно
+    const modal = document.getElementById('confirmQuerySaveModal');
+    if (!modal) {
+        console.error('Модальне вікно confirmQuerySaveModal не знайдено');
+        return false;
+    }
+    
+    // Отримуємо кнопки
+    const confirmBtn = document.getElementById('confirmSaveSQLBtn');
+    const closeBtn = document.getElementById('confirmSaveSQLCloseBtn');
+    
+    if (!confirmBtn || !closeBtn) {
+        console.error('Кнопки не знайдені');
+        return false;
+    }
+    
+    // Показуємо модальне вікно
+    modal.style.display = 'flex';
+    
+    // Створюємо Promise, щоб чекати натискання кнопки
+    return new Promise((resolve) => {
+        // Функція для закриття модального вікна
+        const closeModal = () => {
+            modal.style.display = 'none';
+            // Видаляємо обробники подій після закриття
+            confirmBtn.removeEventListener('click', onConfirm);
+            closeBtn.removeEventListener('click', onClose);
+        };
+        
+        // Обробник для кнопки підтвердження
+        const onConfirm = () => {
+            closeModal();
+            resolve(true);
+        };
+        
+        // Обробник для кнопки закриття
+        const onClose = () => {
+            closeModal();
+            resolve(false);
+        };
+        
+        // Додаємо обробники подій
+        confirmBtn.addEventListener('click', onConfirm);
+        closeBtn.addEventListener('click', onClose);
+        
+        // Опціонально: закриття при кліку на оверлей
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                onClose();
+            }
+        });
+    });
+}       
     
 function saveOwnSQLquery() {
         const sql = document.getElementById("ownSqlInput").value.trim();
@@ -1645,15 +1788,15 @@ function saveOwnSQLquery() {
         const existingIndex = queries.definitions.findIndex(q => q.name === name);
     
         if (existingIndex !== -1) {
-            if (!confirm(t("queryOverwriteConfirm"))) return false;
             queries.definitions[existingIndex] = query;
         } else {
             queries.definitions.push(query);
         }
     
         saveDatabase();
-        return true
+        return true;
 }
+
 
 function saveOwnSQL() {
         if (saveOwnSQLquery()) {

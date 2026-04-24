@@ -114,9 +114,13 @@ function renderStructurePanel() {
     database.tables.forEach(table => {
         html += `<div style="margin-bottom: 12px;"><strong>${table.name}</strong><ul style="padding-left: 16px; margin: 4px 0;">`;
         table.schema.forEach(field => {
+			let fieldType = typeToSQL(field.type);
+			if (localStorage.getItem(SETTINGS_KEYS.LANGUAGE)==="uk") {
+				fieldType = field.type.toUpperCase().trim();
+			}
             const pkIcon = field.primaryKey ? " 🔑" : "";
             const fkIcon = field.foreignKey ? " 📌" : "";
-            html += `<li>${field.title} (${field.type})${pkIcon}${fkIcon}</li>`;
+            html += `<li>${field.title} (${fieldType})${pkIcon}${fkIcon}</li>`;
         });
         html += `</ul></div>`;
     });

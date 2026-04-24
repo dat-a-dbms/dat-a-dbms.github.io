@@ -894,7 +894,8 @@ function editData(tableName) {
         }
     } else {
         table = database.tables.find(t => t.name === tableName);
-        isReadOnly = false;
+        // Заблокована таблиця вiдкривається у режимi read-only
+        isReadOnly = (typeof isLocked === "function" && isLocked("table", tableName));
 
         if (table) {
             table.schema = (table.schema || []).map(f => ({
@@ -936,9 +937,13 @@ function editData(tableName) {
     }
 
     currentEditTable = table;
-    document.getElementById("editTitle").innerText = isReadOnly
+    // Для заблокованої таблиці — додаємо позначку read-only у заголовку
+    const _lockSuffix = (!isQueryTable && typeof isLocked === "function" && isLocked("table", tableName))
+        ? " [" + (typeof t === "function" && t("lockReadOnly") !== "lockReadOnly" ? t("lockReadOnly") : "read-only") + "]"
+        : "";
+    document.getElementById("editTitle").innerText = isQueryTable
         ? t("aeditQueryTitle", table.name.slice(5))
-        : t("aeditTableTitle", table.name);
+        : t("aeditTableTitle", table.name) + _lockSuffix;
 
     const editQueryInfo = document.getElementById("editQueryInfo");
     if (isQueryTable) {

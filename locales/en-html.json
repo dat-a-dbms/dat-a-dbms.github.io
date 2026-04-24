@@ -1,4 +1,6 @@
 {
+  "lockModalTitle":    "Database Object Locking",
+  "lockModalHint":     "Selected objects are protected from editing and deletion.",
   "addShapeRect" : "Rectangle",
   "addShapeRoundRect" : "Rounded rectangle",
   "addShapeHLine" : "Horizontal line",

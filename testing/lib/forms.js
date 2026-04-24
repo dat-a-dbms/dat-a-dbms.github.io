@@ -95,6 +95,33 @@ function editSelectedForm() {
         return;
     }
     document.getElementById("savedFormsModal").style.display = "none";
+
+    // Заблокована форма — рендеримо в конструктор (невидимо),
+    // щоб previewForm міг вирахувати розміри canvas, і відкриваємо превю замість редактора
+    if (typeof isLocked === "function" && isLocked("form", selectedFormName)) {
+        constructorMode = "form";
+        screenCanvas = document.getElementById(constructorMode + "Canvas");
+        renderCanvas(form);
+        const fts = document.getElementById("formTableSelect");
+        if (fts) {
+            populateTableSelect(fts, t("formSelectTable"), true);
+            fts.value = form.formTable || "";
+        }
+        // Відкриваємо конструктор невидимо, щоб getBoundingClientRect() повернув реальні розміри
+        const creatorModal = document.getElementById("formCreatorModal");
+        const prevVis = creatorModal.style.visibility;
+        const prevDisp = creatorModal.style.display;
+        creatorModal.style.visibility = "hidden";
+        creatorModal.style.display = "flex";
+        // Невеликий setTimeout, щоб браузер встиг розрахувати макет
+        setTimeout(() => {
+            previewForm(form, true);
+            creatorModal.style.visibility = prevVis || "";
+            creatorModal.style.display = "none";
+        }, 30);
+        return;
+    }
+
     constructorMode = "form";
     screenCanvas = document.getElementById(constructorMode + "Canvas");
     renderCanvas(form);
@@ -344,9 +371,23 @@ function previewForm(form = null, resetIndex = false) {
     const frmNewRecord = document.getElementById("frmNewRecord");
     const frmSaveChanges = document.getElementById("frmSaveChanges");
     const frmDeleteRecord = document.getElementById("frmDeleteRecord");
-    if (frmNewRecord) frmNewRecord.style.display = usesQueries ? 'none' : 'flex';
-    if (frmSaveChanges) frmSaveChanges.style.display = usesQueries ? 'none' : 'flex';
-    if (frmDeleteRecord) frmDeleteRecord.style.display = usesQueries ? 'none' : 'flex';
+    const frmTableMenuBtn = document.getElementById("frmTableMenuBtn");
+
+    // Режим read-only: форма заблокована від змін
+    const formIsReadOnly = currentPreviewForm
+        && typeof isLocked === "function"
+        && isLocked("form", currentPreviewForm.name);
+
+    if (formIsReadOnly) {
+        if (frmNewRecord)    frmNewRecord.style.display    = 'none';
+        if (frmSaveChanges)  frmSaveChanges.style.display  = 'none';
+        if (frmDeleteRecord) frmDeleteRecord.style.display = 'none';
+        if (frmTableMenuBtn) frmTableMenuBtn.style.display = 'none';
+    } else {
+        if (frmNewRecord)    frmNewRecord.style.display    = usesQueries ? 'none' : 'flex';
+        if (frmSaveChanges)  frmSaveChanges.style.display  = usesQueries ? 'none' : 'flex';
+        if (frmDeleteRecord) frmDeleteRecord.style.display = usesQueries ? 'none' : 'flex';
+    }
     // Логіка з currentFormRecordIndex (тільки для полів, не для таблиць та кнопок)
     const formFields = elements.filter(el => el.type === 'field' && el.tableName);
     const formTables = elements.filter(el => el.type === 'table');
@@ -889,11 +930,29 @@ thead.appendChild(headerRow);
     }
     if (formCanvas && previewCanvas) {
         const fr = formCanvas.getBoundingClientRect();
-        previewCanvas.style.width  = fr.width  + "px";
-        previewCanvas.style.height = fr.height + "px";
-        previewCanvas.style.flex   = "none";
+        // Застосовуємо розміри лише якщо formCanvas реально видимий (не display:none)
+        if (fr.width > 0 && fr.height > 0) {
+            previewCanvas.style.width  = fr.width  + "px";
+            previewCanvas.style.height = fr.height + "px";
+            previewCanvas.style.flex   = "none";
+        }
     }
     previewModal.style.display = "flex";
+    // Оверлей read-only: прозорий шар поверх канвасу блокує введення даних
+    const existingOverlay = previewCanvas.querySelector(".form-readonly-overlay");
+    if (existingOverlay) existingOverlay.remove();
+    if (formIsReadOnly) {
+        const overlay = document.createElement("div");
+        overlay.className = "form-readonly-overlay";
+        Object.assign(overlay.style, {
+            position: "absolute",
+            inset: "0",
+            zIndex: "10",
+            cursor: "not-allowed",
+            background: "transparent"
+        });
+        previewCanvas.appendChild(overlay);
+    }
     // Синхронізуємо виділення рядка таблиці з поточним записом
     // Таймаут потрібен, щоб DOM вже був готовий
     setTimeout(syncTableSelectionToRecord, 0);
