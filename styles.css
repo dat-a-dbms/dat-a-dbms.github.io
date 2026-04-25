@@ -5,6 +5,8 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
+    background-image: url('pattern.png');
+    background-repeat: repeat;
 }
 
 .center-image {
@@ -609,6 +611,8 @@ body.dark-theme {
 /* ── Загальне ── */
 body.dark-theme {
     background-color: var(--dt-bg);
+    background-image: url('pattern-dark.png');
+    background-repeat: repeat;
     color: var(--dt-text);
 }
 
