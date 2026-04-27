@@ -50,7 +50,7 @@
   "openDTA": "📂 Відкрити з .DTA",
   "importSQLite": "📥 Імпорт з sqlite DB",
   "exportSQLite": "📤 Експорт в sqlite DB",
-  "importCSV": "🗂️ Імпорт таблиці з файлу CSV",
+  "importCSV": "🗂️ Імпорт з CSV",
   "databaseInfo": "ℹ️ Відомості",
   "closeDatabase": "❌ Закрити базу даних",
   "exitApplication": "🚪 Вихід",

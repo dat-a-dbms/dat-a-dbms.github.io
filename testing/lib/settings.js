@@ -522,14 +522,43 @@ function saveLockModal() {
 }
 
 // ========== ІНІЦІАЛІЗАЦІЯ DOM ==========
+
+/**
+ * Зчитує параметр ?lang= з URL і повертає код мови, якщо він підтримується.
+ * Якщо параметр відсутній — повертає null.
+ * Якщо параметр є, але мова не підтримується — повертає 'en' (fallback).
+ */
+function getLangFromUrl() {
+    const SUPPORTED_LANGS = ['en', 'uk', 'pl', 'de', 'fr', 'es', 'it'];
+    const params = new URLSearchParams(window.location.search);
+    const urlLang = params.get('lang');
+    if (urlLang === null) return null;                          // параметра немає — не втручаємось
+    const normalized = urlLang.toLowerCase().split('-')[0];
+    return SUPPORTED_LANGS.includes(normalized) ? normalized : 'en'; // невідома мова → 'en'
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
-    // Якщо мову ще не збережено — визначаємо з браузера і одразу зберігаємо,
-    // щоб loadSettings() і loadLanguage() отримали однаковий результат.
-    let initialLang = localStorage.getItem(SETTINGS_KEYS.LANGUAGE);
-    if (!initialLang) {
-        initialLang = detectBrowserLanguage();
-        localStorage.setItem(SETTINGS_KEYS.LANGUAGE, initialLang);
+    // Пріоритет вибору мови:
+    //   1. ?lang=<код> в URL (якщо параметр присутній)
+    //   2. збережена мова з localStorage
+    //   3. визначення з налаштувань браузера (перший запуск)
+    const urlLang = getLangFromUrl();
+    let initialLang;
+
+    if (urlLang !== null) {
+        // Мова задана через URL — використовуємо її, але НЕ перезаписуємо localStorage,
+        // щоб наступне відкриття без параметра взяло збережені налаштування користувача.
+        initialLang = urlLang;
+        console.log(`Lang override from URL: ${initialLang}`);
+    } else {
+        // Звичайна логіка: localStorage або автовизначення з браузера
+        initialLang = localStorage.getItem(SETTINGS_KEYS.LANGUAGE);
+        if (!initialLang) {
+            initialLang = detectBrowserLanguage();
+            localStorage.setItem(SETTINGS_KEYS.LANGUAGE, initialLang);
+        }
     }
+
     await loadLanguage(initialLang);
     loadSettings();
 

@@ -86,6 +86,7 @@
             <a href="#" onclick="openSettingsModal()" lang-i18n="settings">🛠️ Налаштування</a>
             <a href="#" onclick="showAboutModal()" lang-i18n="aboutProgram">😉 Про програму</a> </div>
 		</div>
+		<img src="img/launcher-icon.png" alt="Альтернативне меню" onclick="openMainMenu()" style="cursor: pointer; width:32px; height:32px; padding: 4px 8px; margin-left: auto; align-self: center;">
 	</div>
 	<div class="title-bar">
 		<div id="mainTitle"> <span lang-i18n="selectOrCreateDatabase">Виберіть або створіть базу даних</span> </div> 
@@ -96,7 +97,7 @@
      <div id="logo-image" class="center-image">
     <img src="logo.png" alt="logo">
   </div>
-    <img src="img/launcher-icon.png" alt="Альтернативне меню" onclick="openMainMenu()" style="cursor: pointer;width:32px;height:32px; padding: 20px; position:fixed; bottom:0;left:0;">
+
 	<!-- Області: будуть показані лише якщо є відповідні об'єкти" />
   <!-- Панель швидкого доступу -->
 	<div id="quickAccessPanel" style="display:none; position: fixed; top: 136px; left: 0; right: 0; bottom: 0; overflow-x: auto; overflow-y: auto; flex-direction: column; margin-left: 20px; box-sizing: border-box; background-image: url('pattern.png'); background-repeat: repeat;">
@@ -1015,11 +1016,6 @@
 					<div class="icon">📤</div>
 					<div class="label" lang-i18n="exportSQLite">Експорт sqlite</div>
 				</div>
-				<div class="modal-icon" onclick="showCsvImportDialog()">
-					<div class="icon">📑</div>
-					<div class="label" lang-i18n="importCSV">Імпорт CSV</div>
-				</div>
-				<input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleCsvFile(this.files[0])">
 				<div class="modal-icon" onclick="showDatabaseInfo()">
 					<div class="icon">ℹ️</div>
 					<div class="label" lang-i18n="info">Відомості</div>
@@ -1092,6 +1088,11 @@
 					<div class="icon">📚</div>
 					<div class="label" lang-i18n="saved">Збережені</div>
 				</div>
+				<div class="modal-icon" onclick="showCsvImportDialog()">
+					<div class="icon">📑</div>
+					<div class="label" lang-i18n="importCSV">Імпорт CSV</div>
+				</div>
+				<input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleCsvFile(this.files[0])">
 			</div>
 		</div>
 	</div>
