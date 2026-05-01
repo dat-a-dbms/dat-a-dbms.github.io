@@ -1361,15 +1361,22 @@
       <div id="importMessage" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
         <span id="importMsg" lang-i18n="importInstructions">
           Скопіюйте дані з табличного процесора і натисніть
-        </span> 
+        </span>
         <div style="display: flex; align-items: center; gap: 8px;">
           <img src="./img/ctrl-v.png" alt="Ctrl+V" >
         </div>
-      </div> 
-       <div id="importMsg1" lang-i18n="importImportant" style="color: red;" >
-          Важливо: перший рядок таблиці має містити заголовки стовпчиків
-        </div>      
-      <textarea id="clipboardInput" style="position: absolute; top: -10px; left: -10px; width: 1px; height: 1px; opacity: 0;" tabindex="0"></textarea>      
+      </div>
+      <div id="importMsg1" lang-i18n="importImportant" style="color: red;">
+        Важливо: перший рядок таблиці має містити заголовки стовпчиків
+      </div>
+      <!-- Кнопка вставки для мобільних та десктопу -->
+      <button id="clipboardPasteBtn" onclick="_pasteFromClipboard()"
+        style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px 14px;font-size:15px;cursor:pointer;border-radius:6px;border:1px solid #bbb;background:#f0f4ff;">
+        <span style="font-size:20px;">📋</span>
+        <span lang-i18n="ioPasteFromClipboard">Вставити з буфера</span>
+      </button>
+      <!-- Прихований textarea для десктопного Ctrl+V -->
+      <textarea id="clipboardInput" style="position: absolute; top: -10px; left: -10px; width: 1px; height: 1px; opacity: 0;" tabindex="0"></textarea>
       <div id="previewArea" style="max-height: 400px; overflow: auto; border: 1px solid #ccc; padding: 5px; border-radius: 4px; width: 100%; box-sizing: border-box;"></div>
     </div>    
     

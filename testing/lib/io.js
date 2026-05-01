@@ -982,25 +982,6 @@ function showImportTableDialog() {
     }
 }
 
-/**
- * Показує або ховає кнопку «📋 Вставити» залежно від підтримки Clipboard API.
- * На десктопі — кнопка завжди видима (Clipboard API підтримується).
- * На мобільних — кнопка видима, але при кліку робить fallback на фокус textarea.
- */
-function _updatePasteButton() {
-    let btn = document.getElementById("clipboardPasteBtn");
-    if (!btn) {
-        // Створюємо кнопку динамічно, якщо її немає в HTML
-        const input = document.getElementById("clipboardInput");
-        if (!input) return;
-        btn = document.createElement("button");
-        btn.id = "clipboardPasteBtn";
-        btn.style.cssText = "margin-top:6px;width:100%;padding:10px;font-size:15px;cursor:pointer;border-radius:6px;border:1px solid #aaa;background:#f5f5f5;";
-        input.parentNode.insertBefore(btn, input.nextSibling);
-    }
-    btn.textContent = "📋 " + (typeof t === "function" ? (t("ioPasteFromClipboard") || "Вставити з буфера") : "Вставити з буфера");
-    btn.onclick = _pasteFromClipboard;
-}
 
 /**
  * Вставка з буфера обміну — кросплатформна реалізація.
