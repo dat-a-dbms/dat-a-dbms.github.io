@@ -12,7 +12,14 @@ function updateMainTitle() {
 * Призначення: Закриває вікно редагування таблиці, скидаючи вибрані значення.
 **/
 function closeEditModal() {
-    document.getElementById("editModal").style.display = "none"; // Ховаємо вікно
+    const modal = document.getElementById("editModal");
+    // Якщо активний повноекранний режим — спочатку скидаємо його стилі
+    if (modal && modal.dataset.fullscreen === '1') {
+        if (typeof _toggleEditTableFullscreen === 'function') {
+            _toggleEditTableFullscreen(); // виходимо з fullscreen перед закриттям
+        }
+    }
+    modal.style.display = "none"; // Ховаємо вікно
     currentEditTable = null; // Скидаємо редаговану таблицю
     selectedCell = null; // Скидаємо вибрану клітинку
 }
@@ -392,6 +399,8 @@ window.addEventListener("click", function(event) {
 
     // Якщо це ownSqlModal — не закриваємо
     if (event.target.id === "ownSqlModal") return; ""
+    // Для editModal — використовуємо closeEditModal, щоб скинути fullscreen
+    if (event.target.id === "editModal") { closeEditModal(); return; }
     // Для всіх інших модалей — закриваємо
     event.target.style.display = "none";
   }
