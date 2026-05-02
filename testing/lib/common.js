@@ -259,16 +259,16 @@ function openFileEditor(currentData, onChange) {
     document.getElementById("fileViewBtn").style.display = "none";
     document.getElementById("fileDownloadBtn").style.display = hasFile ? "flex" : "none";
     if (hasFile) {
-        const {
-            name,
-            type,
-            data
-        } = decodeFileBlob(currentData);
+        const decoded = tryDecodeFileBlob(currentData);
+        const mime = detectImageMime(currentData);
+        const { name, type, data } = decoded ?? {
+            name: "image." + (mime.split("/")[1] || "bin"),
+            type: mime,
+            data: currentData
+        };
         docName.textContent = name;
         if (type.startsWith("image/")) {
-            const blob = new Blob([data], {
-                type
-            });
+            const blob = new Blob([data], { type });
             imgPreview.src = URL.createObjectURL(blob);
             imgPreview.style.display = "block";
             document.getElementById("fileViewBtn").style.display = "flex";
@@ -340,7 +340,13 @@ function isBrowserViewable(mimeType) {
 }
 
 function viewCurrentFile() {
-    const { name, type, data } = decodeFileBlob(fileEditContext.currentData);
+    const decoded = tryDecodeFileBlob(fileEditContext.currentData);
+    const mime = detectImageMime(fileEditContext.currentData);
+    const { name, type, data } = decoded ?? {
+        name: "image." + (mime.split("/")[1] || "bin"),
+        type: mime,
+        data: fileEditContext.currentData
+    };
 
     if (!isBrowserViewable(type)) {
         // Браузер не може відобразити цей тип — пропонуємо завантажити
@@ -355,11 +361,17 @@ function viewCurrentFile() {
 }
 
 function downloadCurrentFile() {
+    const decoded = tryDecodeFileBlob(fileEditContext.currentData);
+    const mime = detectImageMime(fileEditContext.currentData);
     const {
         name,
         type,
         data
-    } = decodeFileBlob(fileEditContext.currentData);
+    } = decoded ?? {
+        name: "image." + (mime.split("/")[1] || "bin"),
+        type: mime,
+        data: fileEditContext.currentData
+    };
     const blob = new Blob([data], {
         type
     });

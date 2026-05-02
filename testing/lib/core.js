@@ -589,7 +589,7 @@ function saveDbAndCreateTable() {
  * 
  */
 function isDBExist() {
-	let isDB = database.fileName!=""
+	let isDB = database.fileName !== "" && db !== null;
 	if(!isDB) {
 		 Message(t("dbNotExist"))		 
     }
