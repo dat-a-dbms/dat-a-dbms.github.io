@@ -1560,6 +1560,54 @@ function _updateImageElement(el, url, encoded) {
     }
 }
 
+/**
+ * Будує <img> для превью форми з el.imageBlobB64 / el.imageBlob / el.imageUrl.
+ * el.imageBlob може бути Uint8Array, Array чисел або null.
+ */
+function _buildImagePreviewElement(el) {
+    let displaySrc = null;
+
+    // Нормалізуємо blob-дані до Uint8Array
+    let blobData = null;
+    if (el.imageBlobB64 && typeof base64ToUint8Array === "function") {
+        blobData = base64ToUint8Array(el.imageBlobB64);
+    } else if (el.imageBlob instanceof Uint8Array && el.imageBlob.length > 0) {
+        blobData = el.imageBlob;
+    } else if (Array.isArray(el.imageBlob) && el.imageBlob.length > 0) {
+        blobData = new Uint8Array(el.imageBlob);
+    }
+
+    if (blobData && blobData.length > 0) {
+        try {
+            const decoded = decodeFileBlob(blobData);
+            if (decoded && decoded.type && decoded.type.startsWith("image/")) {
+                const blob = new Blob([decoded.data], { type: decoded.type });
+                displaySrc = URL.createObjectURL(blob);
+            }
+        } catch (e) {
+            console.warn("_buildImagePreviewElement: decodeFileBlob failed", e);
+        }
+    }
+
+    // Fallback на URL
+    if (!displaySrc && el.imageUrl) {
+        displaySrc = el.imageUrl;
+    }
+
+    if (!displaySrc) return null;
+
+    const img = document.createElement("img");
+    img.src = displaySrc;
+    Object.assign(img.style, {
+        width: "100%",
+        height: "100%",
+        objectFit: "contain",
+        display: "block",
+        pointerEvents: "none"
+    });
+    return img;
+}
+
 function openShapeColorPicker() {
     // Якщо активна фігура — показуємо її поточні кольори
     if (activeElement && activeElement.dataset.shapeType) {
