@@ -193,16 +193,21 @@ function previewReport(report = null) {
         reportPreview.style.height = (cr.height - 50) + "px";
         reportPreview.style.maxWidth  = "";
         reportPreview.style.maxHeight = "";
+        reportPreview.style.overflow  = "auto";
+    } else if (reportPreview) {
+        reportPreview.style.overflow  = "auto";
     }
     if (designCanvas && previewCanvas) {
         const fr = designCanvas.getBoundingClientRect();
-        previewCanvas.style.width  = fr.width  + "px";
-        previewCanvas.style.height = fr.height + "px";
-        previewCanvas.style.flex   = "none";
+        previewCanvas.style.width    = fr.width  + "px";
+        previewCanvas.style.height   = fr.height + "px";
+        previewCanvas.style.flex     = "none";
+        previewCanvas.style.position = "relative";
     } else if (report && report.canvasWidth && report.canvasHeight) {
-        previewCanvas.style.width  = report.canvasWidth  + "px";
-        previewCanvas.style.height = report.canvasHeight + "px";
-        previewCanvas.style.flex   = "none";
+        previewCanvas.style.width    = report.canvasWidth  + "px";
+        previewCanvas.style.height   = report.canvasHeight + "px";
+        previewCanvas.style.flex     = "none";
+        previewCanvas.style.position = "relative";
     }
 
     // Оновлюємо результати запитів, щоб дані були актуальними перед рендерингом

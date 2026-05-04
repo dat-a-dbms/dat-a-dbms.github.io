@@ -42,10 +42,15 @@ function syncAllAppSettings(dbName) {
     const result = {};
     APP_SETTING_KEYS.forEach(key => {
         const fromDta = appSettingGet(key);
-        if (stored[key] !== undefined) {
-            result[key] = stored[key];                      // збережені налаштування цієї бази
+        if (fromDta !== undefined && fromDta !== null && fromDta !== "") {
+            // Найвищий пріоритет: значення завантажене з .DTA (appSettings)
+            result[key] = fromDta;
+        } else if (stored[key] !== undefined) {
+            // Другий пріоритет: збережені налаштування цієї бази в localStorage
+            result[key] = stored[key];
         } else {
-            result[key] = localStorage.getItem("app_settings_" + key) ?? "false"; // fallback
+            // Fallback: глобальні браузерні налаштування
+            result[key] = localStorage.getItem("app_settings_" + key) ?? "false";
         }
         appSettingSet(key, result[key]);
     });
@@ -460,8 +465,9 @@ async function exportDTA() {
     const formsJson = JSON.stringify(database.forms || [], null, 2);
     zip.file("forms.json", formsJson);
 
-    // Налаштування програми (_app_settings.json) — усі ключі цієї бази
-    { const s=loadDbSettings(database.fileName); APP_SETTING_KEYS.forEach(k=>{ appSettingSet(k, s[k]??appSettingGet(k)??"false"); }); }
+    // Налаштування програми (_app_settings.json) — зберігаємо поточний стан appSettings
+    // Доповнюємо ключами з localStorage лише якщо вони відсутні в appSettings
+    { const s=loadDbSettings(database.fileName); APP_SETTING_KEYS.forEach(k=>{ if (!appSettingGet(k)) appSettingSet(k, s[k]??"false"); }); }
     zip.file("_app_settings.json", JSON.stringify(Object.assign({}, appSettings), null, 2));
 
     // Архів
