@@ -193,21 +193,34 @@ function previewReport(report = null) {
         reportPreview.style.height = (cr.height - 50) + "px";
         reportPreview.style.maxWidth  = "";
         reportPreview.style.maxHeight = "";
-        reportPreview.style.overflow  = "auto";
-    } else if (reportPreview) {
-        reportPreview.style.overflow  = "auto";
     }
-    if (designCanvas && previewCanvas) {
+    // Встановлюємо розміри канваса
+    let canvasW = 0, canvasH = 0;
+    if (designCanvas) {
         const fr = designCanvas.getBoundingClientRect();
-        previewCanvas.style.width    = fr.width  + "px";
-        previewCanvas.style.height   = fr.height + "px";
-        previewCanvas.style.flex     = "none";
-        previewCanvas.style.position = "relative";
+        canvasW = fr.width;
+        canvasH = fr.height;
     } else if (report && report.canvasWidth && report.canvasHeight) {
-        previewCanvas.style.width    = report.canvasWidth  + "px";
-        previewCanvas.style.height   = report.canvasHeight + "px";
+        canvasW = report.canvasWidth;
+        canvasH = report.canvasHeight;
+    }
+    if (canvasW > 0 && canvasH > 0) {
+        previewCanvas.style.width    = canvasW + "px";
+        previewCanvas.style.height   = canvasH + "px";
+        previewCanvas.style.minWidth = canvasW + "px";
         previewCanvas.style.flex     = "none";
         previewCanvas.style.position = "relative";
+        previewCanvas.style.overflow = "visible";
+    }
+
+    // Скролінг лише у безпосередньому батьку previewCanvas, а не у всьому reportPreview
+    const previewCanvasParent = previewCanvas.parentElement;
+    if (previewCanvasParent && previewCanvasParent !== reportPreview) {
+        previewCanvasParent.style.flex     = "1 1 0";
+        previewCanvasParent.style.minWidth = "0";
+    } else if (reportPreview) {
+        // Fallback: якщо батько і є reportPreview
+        //reportPreview.style.overflow = "auto";
     }
 
     // Оновлюємо результати запитів, щоб дані були актуальними перед рендерингом
