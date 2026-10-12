@@ -225,9 +225,15 @@ function advDataInput(container, cellData, col, rowData, index, isReadOnly) {
 
     // універсальний санітайзер для типів
     const sanitizeByType = (s, t) => {
-        s = (s ?? "").toString().replace(/\r?\n/g, "");
+        s = (s ?? "").toString();
         t = String(t || "").toLowerCase();
-    
+
+        // Довгий текст: зберігаємо нові рядки, без обмеження довжини
+        if (t === "longtext" || t === "довгий текст") {
+            return s;
+        }
+
+        s = s.replace(/\r?\n/g, "");
         if (t === "text" || t === "текст") {
             if (s.length > 64) s = s.slice(0, 64);
             return s;
@@ -593,6 +599,99 @@ if (isForeignKey) {
         createdEl = btn;
     }
 
+    // ===== LONG TEXT (відображення як звичайний текст, редагування по кліку) =====
+    else if (typeStr === "longtext" || typeStr === "довгий текст") {
+        let editing = false;
+
+        const renderView = () => {
+            container.innerHTML = "";
+            container.contentEditable = "false";
+            container.textContent = String(rowData[index] ?? "");
+            createdEl = container;
+            if (!isReadOnly) {
+                container.addEventListener("click", startEdit, { once: true });
+            }
+        };
+
+        const startEdit = () => {
+            if (isReadOnly || editing) return;
+            editing = true;
+
+            // Текстбокс розкривається ПОВЕРХ інших рядків (як overlay),
+            // а не розширює рядок: зберігаємо текст комірки всередині td,
+            // а textarea позиціонуємо абсолютно (не впливає на висоту ряда).
+            const origPos = container.style.position;
+            const origZ = container.style.zIndex;
+            const origOverflow = container.style.overflow;
+            if (!origPos || origPos === "static") container.style.position = "relative";
+            container.style.zIndex = "50";
+            container.style.overflow = "visible";
+
+            const textarea = document.createElement("textarea");
+            textarea.rows = 6;
+            textarea.value = String(rowData[index] ?? "");
+            textarea.spellcheck = false;
+
+            // Якщо знизу мало місця — розкриваємо догори
+            const cellRect = container.getBoundingClientRect();
+            const wrapper = container.closest("table")?.parentElement;
+            const spaceBelow = wrapper
+                ? wrapper.getBoundingClientRect().bottom - cellRect.bottom
+                : 200;
+            const openUp = spaceBelow < 120;
+
+            Object.assign(textarea.style, {
+                position: "absolute",
+                left: "0",
+                top: openUp ? "auto" : "0",
+                bottom: openUp ? "0" : "auto",
+                width: "100%",
+                height: "108px",
+                boxSizing: "border-box",
+                resize: "vertical",
+                overflowY: "auto",
+                overflowX: "auto",
+                zIndex: "100",
+                fontFamily: "inherit",
+                fontSize: "inherit",
+                lineHeight: "inherit",
+                padding: "4px",
+                margin: "0",
+                border: "1px solid #99b",
+                borderRadius: "3px",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
+                background: "var(--input-bg, #fff)",
+                color: "inherit"
+            });
+
+            container.appendChild(textarea);
+            textarea.focus();
+            textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
+
+            let closed = false;
+            const finish = (save) => {
+                if (closed) return;
+                closed = true;
+                if (save) rowData[index] = textarea.value;
+                editing = false;
+                container.style.position = origPos;
+                container.style.zIndex = origZ;
+                container.style.overflow = origOverflow;
+                renderView();
+            };
+
+            textarea.addEventListener("blur", () => finish(true));
+            textarea.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    e.preventDefault();
+                    finish(false);
+                }
+            });
+        };
+
+        renderView();
+    }
+
     // ===== TEXT / NUMBER (contentEditable) =====
     else { 
         const editable = !isReadOnly && !isPKAuto;
@@ -681,6 +780,7 @@ function _updateExpandBtn(td, colSchema, rowData, index, isReadOnly) {
     const isSpecial = (
         typeStr === "boolean" || typeStr === "date" || typeStr === "list" ||
         typeStr === "image" || typeStr === "file" ||
+        typeStr === "longtext" || typeStr === "довгий текст" ||
         !!(colSchema?.foreignKey && colSchema?.refTable)
     );
     if (isSpecial) return;

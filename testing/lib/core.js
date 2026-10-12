@@ -10,7 +10,7 @@ let database = {
     
 // SCHEMA_TYPES тепер береться з i18n.js (залежить від поточної мови)
 // Для порівняння типів у логіці використовуються внутрішні англійські ключі
-const SCHEMA_TYPE_KEYS = ["text", "integer", "real", "boolean", "date", "image", "list", "file"];
+const SCHEMA_TYPE_KEYS = ["text", "integer", "real", "boolean", "date", "image", "list", "file", "longtext"];
 Object.defineProperty(window, "SCHEMA_TYPES", {
   get: () => (typeof t === "function" ? t("schemaTypes") : TRANSLATIONS["uk"].schemaTypes),
   configurable: true
@@ -25,6 +25,7 @@ function typeToSQL(typeStr) {
     if (t === "ЦІЛЕ ЧИСЛО"  || t === "INTEGER")    return "INTEGER";
     if (t === "ДРОБОВЕ ЧИСЛО" || t === "REAL NUMBER" || t === "REAL") return "REAL";
     if (t === "ТЕКСТ"       || t === "TEXT")        return "TEXT";
+    if (t === "ДОВГИЙ ТЕКСТ" || t === "LONG TEXT" || t === "LONGTEXT") return "TEXT";
     if (t === "ТАК/НІ"     || t === "YES/NO"  || t === "BOOLEAN") return "BOOLEAN";
     if (t === "ДАТА"        || t === "DATE")        return "TEXT";
     if (t === "СПИСОК"      || t === "LIST")        return "TEXT";
@@ -174,6 +175,8 @@ function normalizeFieldType(rawType) {
         "LIST": 6, "СПИСОК": 6,
         // file
         "FILE": 7, "ФАЙЛ": 7,
+        // longtext
+        "LONGTEXT": 8, "LONG TEXT": 8, "ДОВГИЙ ТЕКСТ": 8,
     };
 
     const idx = map[upper];
@@ -202,6 +205,7 @@ function normalizeFieldTypeKey(rawType) {
         "IMAGE": 5, "ЗОБРАЖЕННЯ": 5,
         "LIST": 6, "СПИСОК": 6,
         "FILE": 7, "ФАЙЛ": 7,
+        "LONGTEXT": 8, "LONG TEXT": 8, "ДОВГИЙ ТЕКСТ": 8,
     };
 
     const idx = map[upper];

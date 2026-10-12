@@ -68,6 +68,7 @@
   "exprErrPrefix": "Ausdrucksfehler: ",
   "queryOverwriteConfirm": "Eine Abfrage mit diesem Namen existiert bereits. Überschreiben?",
   "text": "Text",
+  "longtext": "Langtext",
   "integer": "Ganzzahl",
   "real": "Reale Zahl",
   "boolean": "Boolesch",
@@ -110,7 +111,8 @@
     "Datum",
     "Bild",
     "Liste",
-    "Datei"
+    "Datei",
+    "Langtext"
   ],
   "schemaHeaderFieldName": "Feldname",
   "schemaHeaderType": "Typ",
